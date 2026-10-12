@@ -117,6 +117,7 @@ main { max-width: 560px; margin: 0 auto; padding: 4px 16px 16px; display: grid; 
 .btn.ghost { background: none; border-color: transparent; }
 .btn.danger { color: var(--danger); }
 .btn.block { width: 100%; }
+.btn.small { min-height: 38px; padding: 0 12px; border-radius: 12px; }
 .btn.lg { min-height: 54px; font-size: 1.02rem; border-radius: 16px; }
 .btn:disabled { opacity: .55; cursor: default; }
 .icon-btn {
@@ -259,3 +260,11 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .warn-text { color: var(--warn); }
 .banner.warn-banner { background: color-mix(in srgb, var(--warn) 14%, var(--surface)); color: var(--ink); }
 .banner.warn-banner .grow { color: var(--ink); font-weight: 500; }
+
+/* Panier assisté */
+.progress { height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent-ink) 25%, transparent); overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--lime); border-radius: inherit; transition: width .3s; }
+.how { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: .9rem; }
+.items.order { background: var(--surface); border-radius: 18px; padding: 4px 14px; box-shadow: var(--shadow); }
+.items.order li.next { background: color-mix(in srgb, var(--accent) 8%, transparent); margin: 0 -14px; padding: 10px 14px; }
+.items.order .btn { flex: none; }

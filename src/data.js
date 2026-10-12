@@ -20,7 +20,7 @@ export const CHAINS = {
 //  - Delhaize Collect : retrait gratuit (communiqué Delhaize) ; un minimum de 30 €
 //    figure encore sur une page du site, on le garde par prudence.
 export const COLLECT = {
-  colruyt: { name: 'Collect&Go', fee: 5.95, minOrder: 0, minutes: 5, url: 'https://www.collectandgo.be/fr' },
+  colruyt: { name: 'Collect&Go', fee: 5.95, minOrder: 0, minutes: 5, url: 'https://www.colruyt.be/fr' },
   delhaize: { name: 'Delhaize Collect', fee: 0, minOrder: 30, minutes: 5, url: 'https://www.delhaize.be/fr/collect' },
 };
 

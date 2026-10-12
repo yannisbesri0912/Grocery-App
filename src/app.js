@@ -3,6 +3,7 @@ import {
   MODES, DEFAULT_SETTINGS, optimize, priceInfo, mapsUrl, dueRecurring, learnFrequency, isOpen, haversineKm,
 } from './optimizer.js';
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
+import { SHOPS, orderLink } from './order.js';
 
 // ---------- État (gardé sur le téléphone, jamais envoyé ailleurs) ----------
 const KEY = 'courses-opti:v1';
@@ -340,6 +341,9 @@ function viewPlan() {
   const singles = allPlans.filter((p) => p.mode === 'store' && p.stops.length === 1);
   const nearest = [...singles].sort((a, b) => a.travel.km - b.travel.km)[0];
   const plan = lastPlans.find((p) => p.id === shownPlan) ?? lastPlans[0];
+  const ordering = orderStop && plan.stops.find((s) => s.store.id === orderStop);
+  if (ordering) return viewOrder(plan, ordering);
+  orderStop = null;
   const isBest = plan === lastPlans[0];
   const saving = nearest ? nearest.total - plan.total : 0;
 
@@ -354,8 +358,8 @@ function viewPlan() {
         <div class="grow"><h3>${esc(st.name)}</h3><div class="small muted">${esc(st.address ?? '')}${km != null ? ` · ${km.toFixed(1)} km` : ''}</div></div>
         <b class="num">${eur(sub)}</b>
       </div>
-      ${st.collect ? `<div class="row wrap"><span class="pill good">retrait${st.collect.fee ? ` · ${eur(st.collect.fee)} de frais` : ' gratuit'}${st.collect.minOrder ? ` · min. ${eur(st.collect.minOrder)}` : ''}</span><a class="btn soft" style="min-height:36px" target="_blank" rel="noopener" href="${esc(st.collect.url)}">${icon('cart')} Commander</a></div>
-        <p class="tiny muted">Choisis ce magasin comme point de retrait sur le site (vérifie qu'il propose le retrait).</p>` : ''}
+      ${st.collect ? `<div class="row wrap"><span class="pill good">retrait${st.collect.fee ? ` · ${eur(st.collect.fee)} de frais` : ' gratuit'}${st.collect.minOrder ? ` · min. ${eur(st.collect.minOrder)}` : ''}</span></div>
+        <button class="btn primary block" data-action="order" data-id="${esc(st.id)}">${icon('cart')} Préparer ma commande ${icon('arrow')}</button>` : ''}
       ${status ? `<div>${status}</div>` : ''}
       <ul class="items">${s.lines.map((l) => {
         const item = state.list.find((x) => x.id === l.product.id);
@@ -404,6 +408,44 @@ function viewPlan() {
         <span style="text-align:right"><b class="num">${eur(p.total)}</b><br><span class="diff num">+${eur(p.total - lastPlans[0].total)}</span></span>
       </button>`).join('')}</div>` : ''}
     <p class="foot">${priceSourcesNote()} <a href="#" data-tab="prices">Fiabilité des prix</a><br>Coût total = courses + frais + ton temps (${eur(state.settings.valueOfTime)}/h, modifiable dans Réglages).</p>`;
+}
+
+// ---------- Panier assisté (commande Collect) ----------
+let orderStop = null; // magasin dont on prépare la commande
+
+function viewOrder(plan, stop) {
+  const st = stop.store;
+  const shop = SHOPS[st.chain];
+  const lines = stop.lines.map((l) => ({ ...l, link: orderLink(st.chain, l), item: state.list.find((x) => x.id === l.product.id) }));
+  const done = lines.filter((l) => l.item?.checked).length;
+  const next = lines.find((l) => !l.item?.checked);
+  const sub = stop.lines.reduce((a, l) => a + l.total, 0);
+  const min = st.collect.minOrder;
+  return `
+    <button class="btn ghost small" data-action="order-back">← Retour au plan</button>
+    <section class="hero">
+      <div class="row" style="gap:12px">${logo(st.chain, 'lg')}
+        <div class="grow stack" style="gap:2px"><span class="eyebrow">Commande ${esc(st.collect.name)}</span><span class="plan-name">${esc(st.placeName ?? st.name)}</span></div>
+        <b class="num">${eur(sub)}</b></div>
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${lines.length}" aria-valuenow="${done}"><span style="width:${lines.length ? (done / lines.length) * 100 : 0}%"></span></div>
+      <span class="small">${done === lines.length ? 'Tout est dans ton panier 🎉' : `${done} sur ${lines.length} dans le panier`}</span>
+    </section>
+    <div class="card">
+      <ol class="how">
+        <li>Sur le site, connecte-toi et choisis <b>${esc(st.placeName ?? st.name)}</b> comme point de retrait (une seule fois).</li>
+        <li>Touche <b>${lines.some((l) => l.link.kind === 'product') ? 'Ouvrir' : 'Chercher'}</b> : le produit s'ouvre sur le site, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>
+        ${shop?.copy ? '<li>Si la recherche ne s\'ouvre pas, le nom est déjà copié : colle-le dans la barre de recherche du site.</li>' : ''}
+        <li>À la fin, ouvre ton panier pour choisir le créneau et payer sur le site.</li>
+      </ol>
+      ${min && sub < min ? `<p class="small warn-text">Minimum de commande : ${eur(min)} (il manque ${eur(min - sub)}).</p>` : ''}
+    </div>
+    <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
+        <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
+        <span class="name">${l.qty > 1 ? `<b>${l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${esc(l.info?.article ?? `recherche : ${l.link.query}`)} · ${eur(l.total)}</span></span>
+        <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy ? ` data-copy="${esc(l.link.query)}"` : ''}>${l.link.kind === 'product' ? 'Ouvrir' : 'Chercher'}</a>
+      </li>`).join('')}</ul>
+    <a class="btn primary lg block" target="_blank" rel="noopener" href="${esc(shop?.cart ?? st.collect.url)}">${icon('cart')} ${esc(shop?.cartLabel ?? `Commander chez ${CHAINS[st.chain].name}`)}</a>
+    <p class="foot">Les quantités (« 2 × ») sont à régler sur le site. L'app ne voit pas ton compte : elle coche l'article quand tu l'ouvres, décoche-le s'il n'était pas disponible.</p>`;
 }
 
 function priceSourcesNote() {
@@ -662,7 +704,15 @@ async function refreshStores() {
 // ---------- Événements ----------
 document.addEventListener('click', async (e) => {
   const tab = e.target.closest('[data-tab]');
-  if (tab) { if (tab.dataset.tab === 'plan') shownPlan = null; setTab(tab.dataset.tab); return; }
+  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } setTab(tab.dataset.tab); return; }
+  // Panier assisté : ouvrir un produit sur le site le coche comme « dans le panier ».
+  const open = e.target.closest('a[data-open]');
+  if (open) {
+    const item = state.list.find((l) => l.id === open.dataset.open);
+    if ('copy' in open.dataset) navigator.clipboard?.writeText(open.dataset.copy).then(() => toast(`« ${open.dataset.copy} » copié : colle-le dans la recherche si besoin`), () => {});
+    if (item && !item.checked) { item.checked = true; save(); setTimeout(render, 300); }
+    return;
+  }
   const b = e.target.closest('button[data-action]');
   if (!b) return;
   const a = b.dataset.action;
@@ -718,6 +768,13 @@ document.addEventListener('click', async (e) => {
     state.settings[b.dataset.key] = 'num' in b.dataset ? Number(b.dataset.val) : b.dataset.val;
     shownPlan = null;
     save();
+    render();
+  } else if (a === 'order') {
+    orderStop = id;
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'order-back') {
+    orderStop = null;
     render();
   } else if (a === 'show-plan') {
     shownPlan = b.dataset.plan;
@@ -799,6 +856,7 @@ view.addEventListener('change', (e) => {
     if (item) item.checked = t.checked;
     t.closest('li')?.classList.toggle('done', t.checked);
     save();
+    if (orderStop) render(); // met à jour la progression du panier
   } else if (a === 'every') {
     const r = state.recurring.find((x) => x.id === t.dataset.id);
     if (r) r.every = Math.max(1, Number(t.value) || 1);

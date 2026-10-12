@@ -59,10 +59,22 @@ elle n'est pas nécessaire.
 | Onglet | Fonction |
 |---|---|
 | 🧺 **Liste** | ~75 produits courants (ou ajout libre), quantités, tri par rayon. |
-| 🧭 **Plan** | Meilleurs plans : 1 à 3 magasins, ou Collect&Go / livraison Delhaize. Liste à cocher, itinéraire, WhatsApp. « Courses faites » retire les articles cochés. |
+| 🧭 **Plan** | Meilleurs plans : 1 à 3 magasins, ou Collect&Go / livraison Delhaize. Liste à cocher, itinéraire, WhatsApp. « Courses faites » retire les articles cochés. Pour un retrait Collect : **Préparer ma commande** (panier assisté, voir plus bas). |
 | 🔁 **Auto** | Produits récurrents remis automatiquement dans la liste quand il faut en racheter ; la fréquence s'ajuste à ta consommation. |
 | 💶 **Prix** | Prix de chaque enseigne avec leur source (réel, promo, estimation) et l'article retenu. Tu peux corriger avec ton ticket. |
 | ⚙️ **Réglages** | Adresse exacte (gardée sur ton appareil), magasins à inclure, sauvegarde. |
+
+## Panier assisté (Collect&Go, Delhaize Collect)
+
+Dans le plan, **Préparer ma commande** liste les articles avec un bouton par
+produit qui l'ouvre sur le site du magasin : fiche produit Delhaize quand le
+robot l'a trouvée, sinon une recherche. On l'ajoute au panier sur le site, on
+revient, la case est cochée. Le créneau et le paiement se font sur le site.
+L'app ne demande aucun identifiant et ne touche pas au compte.
+
+Colruyt bloque les robots (captcha) : son adresse de recherche n'a pas pu être
+vérifiée. Le nom du produit est donc aussi copié, à coller dans la recherche
+du site si la page ne s'ouvre pas sur les bons résultats.
 
 ## Lancer en local
 
