@@ -114,7 +114,7 @@ function collectPoints() {
   const ex = new Set(state.settings.excluded);
   return state.stores.filter((st) => COLLECT[st.chain] && !ex.has(st.id)).map((st) => {
     const c = { ...COLLECT[st.chain], ...(state.settings.collect?.[st.chain] ?? {}) };
-    return { ...st, id: `${st.id}#collect`, storeId: st.id, name: `${c.name} · ${st.name}`, collect: c };
+    return { ...st, id: `${st.id}#collect`, storeId: st.id, placeName: st.name, name: `${c.name} · ${st.name}`, collect: c };
   });
 }
 

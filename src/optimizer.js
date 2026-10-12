@@ -246,9 +246,10 @@ export function optimize({
 // d'origine), étapes = magasins par nom + adresse (Google les reconnaît comme de
 // vrais lieux, pas des « repères placés »), arrivée = le domicile.
 export function placeQuery(store) {
-  if (store.address) return `${store.name}, ${store.address}`;
+  const name = store.placeName ?? store.name; // nom du magasin, pas du service de retrait
+  if (store.address) return `${name}, ${store.address}`;
   if (store.lat != null) return `${store.lat},${store.lng}`;
-  return store.name;
+  return name;
 }
 
 export function mapsUrl(home, plan, mode = 'walk') {
