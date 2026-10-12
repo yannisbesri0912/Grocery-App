@@ -72,9 +72,8 @@ robot l'a trouvée, sinon une recherche. On l'ajoute au panier sur le site, on
 revient, la case est cochée. Le créneau et le paiement se font sur le site.
 L'app ne demande aucun identifiant et ne touche pas au compte.
 
-Colruyt bloque les robots (captcha) : son adresse de recherche n'a pas pu être
-vérifiée. Le nom du produit est donc aussi copié, à coller dans la recherche
-du site si la page ne s'ouvre pas sur les bons résultats.
+Collect&Go (Colruyt) n'a pas d'adresse de recherche directe : le bouton copie
+le nom du produit et ouvre le site, il suffit de le coller dans la recherche.
 
 ## Lancer en local
 

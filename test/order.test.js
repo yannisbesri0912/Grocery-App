@@ -19,8 +19,9 @@ test('orderLink cherche l\'article, sinon la recherche du catalogue', () => {
   const real = orderLink('delhaize', { product: lait, info: { kind: 'real', article: 'Delhaize Lait demi-écrémé | 1 L' } });
   assert.equal(real.kind, 'search');
   assert.equal(real.query, 'Lait demi-écrémé');
-  // Colruyt : noms d'articles en néerlandais → recherche en français.
-  assert.equal(orderLink('colruyt', { product: lait, info: { kind: 'real', article: 'BONI halfvolle melk 1L' } }).query, 'lait demi-écrémé');
+  // Collect&Go : noms d'articles en néerlandais → mots français à coller.
+  const cg = orderLink('colruyt', { product: lait, info: { kind: 'real', article: 'BONI halfvolle melk 1L' } });
+  assert.deepEqual(cg, { url: 'https://www.collectandgo.be/fr/home', kind: 'search', query: 'lait demi-écrémé' });
   const est = orderLink('delhaize', { product: lait, info: { kind: 'estimate', url: '/x' } });
   assert.equal(est.query, 'lait demi-écrémé');
   assert.match(est.url, /^https:\/\/www\.delhaize\.be\/fr\/shop\/search\?text=lait%20demi/);

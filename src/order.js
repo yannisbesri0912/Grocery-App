@@ -13,14 +13,15 @@ export const SHOPS = {
     cart: 'https://www.delhaize.be/fr/cart',
     cartLabel: 'Ouvrir mon panier Delhaize',
   },
-  // Colruyt bloque les robots (captcha) : l'adresse de recherche n'a pas pu être
-  // vérifiée. Le nom est aussi copié, à coller dans la recherche du site si besoin.
-  // Ses noms d'articles sont en néerlandais : on cherche avec les mots français.
+  // Collect&Go (Colruyt) : sa recherche ne change pas l'adresse de la page, il
+  // n'y a donc pas de lien direct. On copie le nom et on ouvre le site : il
+  // suffit de le coller dans la barre de recherche. Ses noms d'articles sont en
+  // néerlandais : on copie les mots français.
   colruyt: {
-    origin: 'https://www.colruyt.be',
-    search: (q) => `https://www.colruyt.be/fr/produits?searchTerm=${encodeURIComponent(q)}`,
-    cart: 'https://www.colruyt.be/fr',
-    cartLabel: 'Finaliser sur colruyt.be',
+    origin: 'https://www.collectandgo.be',
+    search: () => 'https://www.collectandgo.be/fr/home',
+    cart: 'https://www.collectandgo.be/fr/home',
+    cartLabel: 'Finaliser sur Collect&Go',
     articleSearch: false,
     copy: true,
   },

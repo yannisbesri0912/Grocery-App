@@ -433,8 +433,9 @@ function viewOrder(plan, stop) {
     <div class="card">
       <ol class="how">
         <li>Sur le site, connecte-toi et choisis <b>${esc(st.placeName ?? st.name)}</b> comme point de retrait (une seule fois).</li>
-        <li>Touche <b>${lines.some((l) => l.link.kind === 'product') ? 'Ouvrir' : 'Chercher'}</b> : le produit s'ouvre sur le site, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>
-        ${shop?.copy ? '<li>Si la recherche ne s\'ouvre pas, le nom est déjà copié : colle-le dans la barre de recherche du site.</li>' : ''}
+        ${shop?.copy
+          ? '<li>Touche <b>Copier et ouvrir</b> : le nom du produit est copié et le site s\'ouvre. Colle-le dans la barre de recherche, ajoute l\'article au panier, puis reviens ici. La case se coche toute seule.</li>'
+          : '<li>Touche <b>Ouvrir</b> : le produit s\'ouvre sur le site, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>'}
         <li>À la fin, ouvre ton panier pour choisir le créneau et payer sur le site.</li>
       </ol>
       ${min && sub < min ? `<p class="small warn-text">Minimum de commande : ${eur(min)} (il manque ${eur(min - sub)}).</p>` : ''}
@@ -442,7 +443,7 @@ function viewOrder(plan, stop) {
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
         <span class="name">${l.qty > 1 ? `<b>${l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${esc(l.info?.article ?? `recherche : ${l.link.query}`)} · ${eur(l.total)}</span></span>
-        <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy ? ` data-copy="${esc(l.link.query)}"` : ''}>${l.link.kind === 'product' ? 'Ouvrir' : 'Chercher'}</a>
+        <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
     <a class="btn primary lg block" target="_blank" rel="noopener" href="${esc(shop?.cart ?? st.collect.url)}">${icon('cart')} ${esc(shop?.cartLabel ?? `Commander chez ${CHAINS[st.chain].name}`)}</a>
     <p class="foot">Les quantités (« 2 × ») sont à régler sur le site. L'app ne voit pas ton compte : elle coche l'article quand tu l'ouvres, décoche-le s'il n'était pas disponible.</p>`;
@@ -709,7 +710,7 @@ document.addEventListener('click', async (e) => {
   const open = e.target.closest('a[data-open]');
   if (open) {
     const item = state.list.find((l) => l.id === open.dataset.open);
-    if ('copy' in open.dataset) navigator.clipboard?.writeText(open.dataset.copy).then(() => toast(`« ${open.dataset.copy} » copié : colle-le dans la recherche si besoin`), () => {});
+    if ('copy' in open.dataset) navigator.clipboard?.writeText(open.dataset.copy).then(() => toast(`« ${open.dataset.copy} » copié : colle-le dans la recherche`), () => {});
     if (item && !item.checked) { item.checked = true; save(); setTimeout(render, 300); }
     return;
   }
