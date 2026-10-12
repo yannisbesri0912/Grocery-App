@@ -4,6 +4,7 @@ import {
 } from './optimizer.js';
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
 import { SHOPS, orderLink } from './order.js';
+import { searchCatalog, ROW } from './catalog.js';
 
 // ---------- État (gardé sur le téléphone, jamais envoyé ailleurs) ----------
 const KEY = 'courses-opti:v1';
@@ -62,6 +63,55 @@ async function loadPrices() {
     if (res.ok) PRICES = await res.json();
   } catch { /* hors ligne : estimations */ }
   render();
+}
+
+// ---------- Catalogue complet Colruyt (data/catalog-colruyt.json) ----------
+// Chargé à la première recherche, ou au démarrage si la liste contient déjà
+// des articles du catalogue (pour mettre leur prix à jour).
+let CATALOG = null; // { date, rows }
+let catalogLoading = null;
+function loadCatalog() {
+  catalogLoading ??= fetch('data/catalog-colruyt.json', { cache: 'no-cache' })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (!data?.rows) return;
+      CATALOG = data;
+      refreshCatalogPrices();
+      if (search.trim()) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); }
+    })
+    .catch(() => { catalogLoading = null; });
+  return catalogLoading;
+}
+
+// Prix du jour pour les articles ajoutés depuis le catalogue.
+function refreshCatalogPrices() {
+  const byId = new Map(CATALOG.rows.map((r) => [r[ROW.id], r]));
+  let changed = false;
+  for (const p of state.custom) {
+    if (!p.colruyt) continue;
+    const r = byId.get(p.colruyt.id);
+    const next = r ? { ...p.colruyt, price: r[ROW.price], promo: r[ROW.promo], date: CATALOG.date, gone: false } : { ...p.colruyt, gone: true };
+    if (JSON.stringify(next) !== JSON.stringify(p.colruyt)) { p.colruyt = next; changed = true; }
+  }
+  if (changed) { save(); render(); }
+}
+
+function catalogProduct(r) {
+  const weight = r[ROW.weight] === 1;
+  const name = `${r[ROW.name]}${r[ROW.content] ? ` ${r[ROW.content]}` : ''}${weight ? ' (1 kg)' : ''}`;
+  return {
+    id: `col-${r[ROW.id]}`, name, cat: r[ROW.cat], ref: r[ROW.price], custom: true,
+    colruyt: { id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], date: CATALOG?.date },
+  };
+}
+
+// Vrais prix : relevés de la nuit + articles du catalogue Colruyt ajoutés à la liste.
+function realPrices() {
+  const real = { ...(PRICES.items ?? {}) };
+  for (const p of state.custom) {
+    if (p.colruyt && !p.colruyt.gone) real[p.id] = { colruyt: { price: p.colruyt.price, ...(p.colruyt.promo ? { promo: true } : {}) } };
+  }
+  return real;
 }
 
 // ---------- Utilitaires ----------
@@ -127,7 +177,7 @@ function computePlans() {
     delivery: DELIVERY,
     chains: chains(),
     overrides: state.overrides,
-    real: PRICES.items ?? {},
+    real: realPrices(),
     home: state.home,
     settings: state.settings,
   });
@@ -265,8 +315,17 @@ function searchResults() {
   const hits = allProducts().filter((p) => norm(p.name).includes(q))
     .sort((a, b) => rank(norm(a.name)) - rank(norm(b.name))).slice(0, 7);
   const exact = hits.some((p) => norm(p.name) === q);
+  if (!CATALOG) loadCatalog();
+  const inList = new Set(hits.map((p) => p.id));
+  const cat = CATALOG ? searchCatalog(CATALOG.rows, search, 12).filter((r) => !inList.has(`col-${r[ROW.id]}`)) : [];
+  const unit = (r) => (r[ROW.unitPrice] && r[ROW.unit] && r[ROW.weight] !== 1 ? `${eur(r[ROW.unitPrice])}/${r[ROW.unit] === 'pc' ? 'pièce' : r[ROW.unit]}` : '');
   return hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
-    (exact ? '' : `<button data-action="add-custom"><span>Ajouter « ${esc(search.trim())} »</span><span class="small muted">nouveau</span></button>`);
+    (cat.length ? `<div class="results-head">${logo('colruyt', 'sm')} Tout Colruyt · vrais prix${CATALOG.date ? ` du ${dateFr(CATALOG.date)}` : ''}</div>` : '') +
+    cat.map((r) => `<button data-action="add-cat" data-id="${esc(r[ROW.id])}"><span class="grow">${esc(r[ROW.name])}${r[ROW.content] ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}
+        <span class="sub">${unit(r)}</span></span>
+        <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
+    (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tout Colruyt…</div>' : '') +
+    (exact ? '' : `<button data-action="add-custom"><span>Ajouter « ${esc(search.trim())} » avec mon prix</span><span class="small muted">autre</span></button>`);
 }
 
 function quickChips() {
@@ -727,6 +786,17 @@ document.addEventListener('click', async (e) => {
     save();
     render();
     toast(`${productById(id)?.name.replace(/\s*\(.*\)$/, '')} ajouté`);
+  } else if (a === 'add-cat') {
+    const r = CATALOG?.rows.find((x) => x[ROW.id] === id);
+    if (!r) return;
+    const p = catalogProduct(r);
+    if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
+    const ex = state.list.find((l) => l.id === p.id);
+    if (ex) ex.qty++; else state.list.push({ id: p.id, qty: 1, checked: false });
+    search = '';
+    save();
+    render();
+    toast(`${r[ROW.name]} ajouté`);
   } else if (a === 'add-custom') {
     const name = search.trim();
     const answer = await ask(`Prix approximatif de « ${name} » (€) ?`, { input: '2', ok: 'Ajouter' });
@@ -896,6 +966,7 @@ view.addEventListener('change', (e) => {
 if (state.settings.autoAdd) autoAddDue({ silent: false });
 render();
 loadPrices();
+if (state.custom.some((p) => p.colruyt)) loadCatalog();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});

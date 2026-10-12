@@ -4,6 +4,8 @@
 const BUCKET = 'https://storage.googleapis.com/storage/v1/b/colruyt-products/o';
 const FILES = 'https://storage.googleapis.com/colruyt-products/';
 
+import { CAT_MAP } from '../src/catalog.js';
+
 const UNIT = { K: 'kg', L: 'l', S: 'pc' };
 
 export async function latestDumpName(now = new Date()) {
@@ -42,6 +44,26 @@ export function toCandidate(p) {
   return c;
 }
 
+/**
+ * Catalogue complet pour la recherche dans l'app : une ligne compacte par
+ * article en vente en Belgique (voir ROW dans src/catalog.js).
+ */
+export function catalogRows(products) {
+  const r2 = (x) => Math.round(x * 100) / 100;
+  return products
+    .filter((p) => p.businessDomain === 'RETAIL_BE' && p.isAvailable !== false && p.isPriceAvailable !== false && p.price?.basicPrice > 0)
+    .map((p) => {
+      const pr = p.price;
+      const name = (p.LongName || p.name || '').trim();
+      return [
+        p.productId, name, name.includes(p.content ?? '') ? '' : (p.content ?? ''), r2(pr.basicPrice),
+        pr.measurementUnitPrice > 0 ? r2(pr.measurementUnitPrice) : 0, UNIT[pr.measurementUnit] ?? '',
+        CAT_MAP[p.topCategoryName] ?? 4, p.inPromo ? 1 : 0, p.IsWeightArticle ? 1 : 0,
+      ];
+    })
+    .sort((a, b) => a[1].localeCompare(b[1]));
+}
+
 export async function fetchColruyt() {
   const name = await latestDumpName();
   const res = await fetch(FILES + name);
@@ -51,5 +73,5 @@ export async function fetchColruyt() {
   const candidates = products
     .filter((p) => p.isAvailable !== false && p.isPriceAvailable !== false && p.businessDomain !== 'RETAIL_LU')
     .map(toCandidate);
-  return { date, candidates, note: `catalogue ${name}` };
+  return { date, candidates, note: `catalogue ${name}`, catalog: catalogRows(products) };
 }

@@ -141,6 +141,9 @@ label.field { display: grid; gap: 6px; font-size: .84rem; color: var(--muted); f
 .results button { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 13px 16px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; cursor: pointer; }
 .results button:first-child { border-top: 0; }
 .results button .plus { color: var(--accent); font-weight: 800; }
+.results button .sub { display: block; font-size: .78rem; color: var(--muted); }
+.results button .price { font-weight: 750; white-space: nowrap; }
+.results-head { display: flex; align-items: center; gap: 8px; padding: 10px 16px 6px; border-top: 1px solid var(--line); font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 
 /* Segmenté */
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 14px; padding: 4px; gap: 4px; }

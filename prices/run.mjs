@@ -15,6 +15,7 @@ import { fetchSite } from './sites.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'data/prices.json');
 const REPORT = join(root, 'data/prices-report.md');
+const CATALOG = (chain) => join(root, `data/catalog-${chain}.json`);
 
 const SOURCES = {
   colruyt: () => fetchColruyt(),
@@ -67,7 +68,7 @@ for (const [chain, fetcher] of Object.entries(SOURCES)) {
   if (!runs(chain)) continue;
   console.log(`\n=== ${chain}`);
   try {
-    const { date, candidates, note } = await fetcher();
+    const { date, candidates, note, catalog } = await fetcher();
     const items = match(candidates.map(withUnitText));
     const count = Object.keys(items).length;
     if (!count) throw new Error('aucun produit reconnu');
@@ -75,6 +76,11 @@ for (const [chain, fetcher] of Object.entries(SOURCES)) {
     for (const [pid, it] of Object.entries(items)) (result.items[pid] ??= {})[chain] = it;
     result.sources[chain] = { date, matched: count, ok: true, ...(note ? { note } : {}) };
     log.push(`- **${chain}** : ${count} produits au ${date}`);
+    if (catalog?.length) {
+      // Catalogue complet cherchable dans l'app (une ligne par article).
+      writeFileSync(CATALOG(chain), `{"chain":"${chain}","date":"${date}","rows":[\n${catalog.map((r) => JSON.stringify(r)).join(',\n')}\n]}\n`);
+      log.push(`- **${chain}** : catalogue complet de ${catalog.length} articles`);
+    }
     console.log(`  ${count} produits reconnus`);
   } catch (e) {
     console.log(`  ÉCHEC : ${e.message}`);

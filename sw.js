@@ -1,7 +1,7 @@
 // Hors-ligne : sert le cache immédiatement puis le met à jour en arrière-plan.
-const CACHE = 'grocery-opti-v5';
+const CACHE = 'grocery-opti-v6';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
-  'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js'];
+  'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -16,8 +16,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  // Les prix changent chaque nuit : réseau d'abord, cache si hors ligne.
-  if (url.pathname.endsWith('/data/prices.json')) {
+  // Les prix et le catalogue changent chaque nuit : réseau d'abord, cache si hors ligne.
+  if (url.pathname.includes('/data/')) {
     e.respondWith(fetch(e.request).then((res) => {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put(e.request, copy));

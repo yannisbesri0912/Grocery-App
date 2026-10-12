@@ -64,6 +64,15 @@ elle n'est pas nécessaire.
 | 💶 **Prix** | Prix de chaque enseigne avec leur source (réel, promo, estimation) et l'article retenu. Tu peux corriger avec ton ticket. |
 | ⚙️ **Réglages** | Adresse exacte (gardée sur ton appareil), magasins à inclure, sauvegarde. |
 
+## Catalogue complet Colruyt
+
+En plus de la liste de base, la recherche fouille **tout le catalogue Colruyt**
+(~9 500 articles, vrais prix mis à jour chaque nuit dans
+`data/catalog-colruyt.json`). On tape en français (« cinnamon rolls »,
+« éclairs au chocolat ») : les mots sont traduits vers les noms néerlandais de
+Colruyt (`src/catalog.js`). Pour les autres enseignes, ces articles ont un prix
+estimé d'après Colruyt (marqué « approx. »).
+
 ## Panier assisté (Collect&Go, Delhaize Collect)
 
 Dans le plan, **Préparer ma commande** liste les articles avec un bouton par
