@@ -1,7 +1,7 @@
 // Hors-ligne : sert le cache immédiatement puis le met à jour en arrière-plan.
-const CACHE = 'grocery-opti-v6';
+const CACHE = 'grocery-opti-v7';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
-  'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js'];
+  'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js', 'src/smart.js', 'src/matcher.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

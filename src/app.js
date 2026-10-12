@@ -4,7 +4,8 @@ import {
 } from './optimizer.js';
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
 import { SHOPS, orderLink } from './order.js';
-import { searchCatalog, ROW } from './catalog.js';
+import { searchCatalog, ROW, rowName } from './catalog.js';
+import { TIERS, tierOf, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 
 // ---------- État (gardé sur le téléphone, jamais envoyé ailleurs) ----------
 const KEY = 'courses-opti:v1';
@@ -98,7 +99,7 @@ function refreshCatalogPrices() {
 
 function catalogProduct(r) {
   const weight = r[ROW.weight] === 1;
-  const name = `${r[ROW.name]}${r[ROW.content] ? ` ${r[ROW.content]}` : ''}${weight ? ' (1 kg)' : ''}`;
+  const name = `${rowName(r)}${r[ROW.content] ? ` ${r[ROW.content]}` : ''}${weight ? ' (1 kg)' : ''}`;
   return {
     id: `col-${r[ROW.id]}`, name, cat: r[ROW.cat], ref: r[ROW.price], custom: true,
     colruyt: { id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], date: CATALOG?.date },
@@ -117,7 +118,7 @@ function realPrices() {
 // ---------- Utilitaires ----------
 const eur = (x) => x.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' });
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const norm = (s) => s.replace(/œ/gi, 'oe').replace(/æ/gi, 'ae').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const dateFr = (iso) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString('fr-BE', { day: 'numeric', month: 'short' }) : '');
 const allProducts = () => [...PRODUCTS, ...state.custom];
 const productById = (id) => allProducts().find((p) => p.id === id);
@@ -143,6 +144,7 @@ const ICONS = {
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
 };
 const icon = (name) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 
@@ -258,9 +260,10 @@ function render() {
   loc.innerHTML = `${icon('pin')}<span>${esc(state.home?.address ?? 'Choisir mon adresse')}</span>`;
   const showSetup = !state.home && state.tab !== 'prices' && state.tab !== 'recurring';
   const views = { list: viewList, plan: viewPlan, recurring: viewRecurring, prices: viewPrices, settings: viewSettings };
+  if (smartOpen && state.tab === 'list') views.list = viewSmart;
   view.innerHTML = showSetup && (state.tab === 'plan' || state.tab === 'settings' || !state.skipSetup) ? viewSetup() : (views[state.tab] ?? viewList)();
   const cta = document.getElementById('cta');
-  const showCta = state.tab === 'list' && state.list.length && !(showSetup && !state.skipSetup);
+  const showCta = state.tab === 'list' && !smartOpen && state.list.length && !(showSetup && !state.skipSetup);
   cta.innerHTML = showCta ? `<button class="btn primary lg block" data-tab="plan">${icon('route')} Où acheter au meilleur prix ? ${icon('arrow')}</button>` : '';
   document.body.classList.toggle('has-cta', Boolean(showCta));
 }
@@ -312,16 +315,17 @@ function searchResults() {
   if (!search.trim()) return '';
   const q = norm(search.trim());
   const rank = (n) => (n.startsWith(q) ? 0 : new RegExp(`(^|[^a-z])${q.replace(/[^a-z0-9 ]/g, '')}`).test(n) ? 1 : 2);
-  const hits = allProducts().filter((p) => norm(p.name).includes(q))
+  // Produits généraux d'abord (comparés dans tous les magasins), puis articles précis Colruyt.
+  const hits = allProducts().filter((p) => !p.colruyt && norm(p.name).includes(q))
     .sort((a, b) => rank(norm(a.name)) - rank(norm(b.name))).slice(0, 7);
   const exact = hits.some((p) => norm(p.name) === q);
   if (!CATALOG) loadCatalog();
-  const inList = new Set(hits.map((p) => p.id));
-  const cat = CATALOG ? searchCatalog(CATALOG.rows, search, 12).filter((r) => !inList.has(`col-${r[ROW.id]}`)) : [];
+  const cat = CATALOG ? searchCatalog(CATALOG.rows, search, 12) : [];
   const unit = (r) => (r[ROW.unitPrice] && r[ROW.unit] && r[ROW.weight] !== 1 ? `${eur(r[ROW.unitPrice])}/${r[ROW.unit] === 'pc' ? 'pièce' : r[ROW.unit]}` : '');
-  return hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
-    (cat.length ? `<div class="results-head">${logo('colruyt', 'sm')} Tout Colruyt · vrais prix${CATALOG.date ? ` du ${dateFr(CATALOG.date)}` : ''}</div>` : '') +
-    cat.map((r) => `<button data-action="add-cat" data-id="${esc(r[ROW.id])}"><span class="grow">${esc(r[ROW.name])}${r[ROW.content] ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}
+  return (hits.length && cat.length ? '<div class="results-head">Produit général · meilleur prix tous magasins</div>' : '') +
+    hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
+    (cat.length ? `<div class="results-head">${logo('colruyt', 'sm')} Article précis · Colruyt${CATALOG.date ? ` · prix du ${dateFr(CATALOG.date)}` : ''}</div>` : '') +
+    cat.map((r) => `<button data-action="add-cat" data-id="${esc(r[ROW.id])}"><span class="grow">${esc(rowName(r))}${r[ROW.content] ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}
         <span class="sub">${unit(r)}</span></span>
         <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tout Colruyt…</div>' : '') +
@@ -359,11 +363,141 @@ function viewList() {
         </span></li>`).join('')}</ul></div>`).join('');
   return `
     <div class="section-head"><h1>Ma liste</h1>${state.list.length ? '<button class="btn ghost danger small" data-action="clear">Vider</button>' : ''}</div>
+    ${state.list.length ? `<button class="banner smart-entry" data-action="smart-open">${icon('spark')}<span class="grow"><b>Panier malin</b><br><span class="small muted">Donne un budget : je compose le meilleur panier</span></span>${icon('arrow')}</button>` : ''}
     ${due.length ? `<div class="banner">${icon('repeat')}<span class="grow">${due.length} produit${due.length > 1 ? 's' : ''} habituel${due.length > 1 ? 's' : ''} à racheter</span><button class="btn primary" data-action="add-due">Ajouter</button></div>` : ''}
     <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit…" value="${esc(search)}" autocomplete="off" enterkeyhint="done"></div>
       <div class="results" id="results">${searchResults()}</div></div>
     ${quickChips()}
     ${state.list.length ? `<div class="card">${listHtml}</div>` : `<div class="empty">${icon('cart')}<b>Ta liste est vide</b><span>Cherche un produit ou touche un ajout rapide.</span></div>`}`;
+}
+
+// ---------- Panier malin ----------
+let smartOpen = false;
+let smartCands = null; // candidats du catalogue (calculés une fois)
+const optionCache = new Map();
+
+function smartSettings() {
+  state.smart ??= { budget: 50, goal: 'best', pins: {}, optional: {}, removed: {} };
+  return state.smart;
+}
+
+// Choix proposés pour un produit : gammes Colruyt, ou l'article choisi, ou un prix unique.
+function optionsFor(p) {
+  if (p.colruyt) return [{ tier: tierOf(p.name), label: TIERS.find((t) => t.key === tierOf(p.name)).label, id: p.colruyt.id, article: p.name, price: p.colruyt.price, fixed: true }];
+  if (!optionCache.has(p.id)) {
+    smartCands ??= candidatesFromRows(CATALOG.rows);
+    optionCache.set(p.id, productOptions(p.id, smartCands));
+  }
+  const opts = optionCache.get(p.id);
+  if (opts.length) return opts;
+  const info = priceInfo(p, 'colruyt', chains(), state.overrides, realPrices());
+  return [{ tier: 'house', label: info?.kind === 'user' ? 'Ton prix' : 'Prix estimé', price: info?.price ?? p.ref, fixed: true }];
+}
+
+// Produits proposés en plus : habitudes à racheter, puis produits courants.
+function smartSuggestions() {
+  const sm = smartSettings();
+  const inList = new Set(state.list.map((l) => l.id));
+  const ids = [...dueRecurring(state.recurring).map((r) => r.id), ...state.recurring.map((r) => r.id), ...PRODUCTS.filter((p) => p.every && p.every <= 7).map((p) => p.id)];
+  return [...new Set(ids)].filter((id) => !inList.has(id) && !sm.removed[id] && productById(id)).slice(0, 6);
+}
+
+function smartItems() {
+  const sm = smartSettings();
+  const fromList = state.list.map((l) => ({ id: l.id, qty: l.qty, must: !sm.optional[l.id], inList: true }));
+  const extras = smartSuggestions().map((id) => ({ id, qty: 1, must: false, inList: false }));
+  return [...fromList.filter((i) => i.must), ...fromList.filter((i) => !i.must), ...extras]
+    .map((i) => ({ ...i, p: productById(i.id) })).filter((i) => i.p)
+    .map((i) => {
+      const options = optionsFor(i.p);
+      const pin = sm.pins[i.id];
+      return { ...i, options, pin: pin != null && pin < options.length ? pin : undefined };
+    });
+}
+
+function viewSmart() {
+  const sm = smartSettings();
+  if (!CATALOG) {
+    loadCatalog().then(() => { if (smartOpen) render(); });
+    return `<button class="btn ghost small" data-action="smart-close">← Ma liste</button><div class="empty"><span class="spin"></span><b>Je charge les prix Colruyt…</b></div>`;
+  }
+  const items = smartItems();
+  const res = buildBasket(items, sm.budget, sm.goal);
+  const picked = new Map(res.lines.map((l) => [l.id, l]));
+  const pct = Math.min(100, (res.total / Math.max(sm.budget, 1)) * 100);
+  const row = (it) => {
+    const line = picked.get(it.id);
+    const opt = line ? it.options[line.option] : it.options[0];
+    return `<li class="smart-item ${line ? '' : 'out'}">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
+        <span class="name">${it.qty > 1 ? `<b>${it.qty} ×</b> ` : ''}${esc(it.p.name)}<span class="sub">${esc(opt.article ?? opt.label)}${opt.promo ? ' · promo' : ''}</span></span>
+        <b class="num">${line ? eur(line.price) : '—'}</b>
+      </div>
+      ${it.options.length > 1 ? `<div class="tiers" role="group" aria-label="Gamme">${it.options.map((o, i) => `
+        <button data-action="smart-pin" data-id="${it.id}" data-i="${i}" aria-pressed="${line?.option === i}" class="${it.pin === i ? 'pinned' : ''}">${esc(o.label)}<span class="num">${eur(o.price * it.qty)}</span></button>`).join('')}</div>` : ''}
+      <div class="row" style="justify-content:space-between">
+        ${it.inList
+          ? `<label class="tiny row" style="gap:6px"><input type="checkbox" class="switch sm" data-action="smart-must" data-id="${it.id}" ${it.must ? 'checked' : ''}> Indispensable</label>`
+          : `<span class="tiny muted">Proposé${line ? ' · rentre dans le budget' : ' · pas assez de budget'}</span><button class="icon-btn" data-action="smart-remove" data-id="${it.id}" aria-label="Ne pas proposer">${icon('x')}</button>`}
+        ${it.pin != null ? '<span class="tiny muted">ton choix</span>' : ''}
+      </div></li>`;
+  };
+  const mine = items.filter((i) => i.inList);
+  const extras = items.filter((i) => !i.inList);
+  return `
+    <button class="btn ghost small" data-action="smart-close">← Ma liste</button>
+    <h1>Panier malin</h1>
+    <div class="card">
+      <label class="field"><span>Mon budget pour les courses</span>
+        <div class="row"><input type="number" id="smart-budget" min="1" step="1" inputmode="decimal" value="${sm.budget}" style="max-width:120px"> <b>€</b>
+          <div class="chips">${[30, 50, 80, 120].map((b) => `<button class="chip" data-action="smart-budget" data-val="${b}">${b} €</button>`).join('')}</div></div></label>
+      <div class="seg" role="group" aria-label="Objectif">
+        <button data-action="smart-goal" data-val="best" aria-pressed="${sm.goal === 'best'}">Le meilleur dans mon budget</button>
+        <button data-action="smart-goal" data-val="cheap" aria-pressed="${sm.goal === 'cheap'}">Le moins cher</button>
+      </div>
+    </div>
+    <section class="hero">
+      <span class="eyebrow">${res.over ? 'Budget dépassé' : 'Ton panier'} · vrais prix Colruyt</span>
+      <div class="row" style="align-items:baseline;gap:8px"><span class="total num">${eur(res.total)}</span><span>/ ${eur(sm.budget)}</span></div>
+      <div class="progress"><span style="width:${pct}%${res.over ? ';background:var(--danger)' : ''}"></span></div>
+      <span class="small">${res.over
+        ? `Il manque ${eur(-res.left)} même au premier prix : décoche « Indispensable » sur un produit ou augmente le budget.`
+        : `Il reste ${eur(res.left)}${res.skipped.length ? ` · ${res.skipped.length} proposition${res.skipped.length > 1 ? 's' : ''} hors budget` : ''}`}</span>
+    </section>
+    <p class="small muted">Touche une gamme pour l'imposer (retouche pour laisser l'app choisir). Les frais de retrait ne sont pas comptés.</p>
+    <ul class="items smart">${mine.map(row).join('')}</ul>
+    ${extras.length ? `<span class="eyebrow">Je te propose aussi</span><ul class="items smart">${extras.map(row).join('')}</ul>` : ''}
+    <button class="btn primary lg block" data-action="smart-apply" ${res.lines.length ? '' : 'disabled'}>${icon('check')} Mettre ce panier dans ma liste</button>`;
+}
+
+// Le panier choisi remplace la liste : gamme choisie = article précis du catalogue.
+function applySmart() {
+  const sm = smartSettings();
+  const items = smartItems();
+  const res = buildBasket(items, sm.budget, sm.goal);
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const rows = new Map(CATALOG.rows.map((r) => [r[ROW.id], r]));
+  const list = [];
+  for (const l of res.lines) {
+    const it = byId.get(l.id);
+    const o = it.options[l.option];
+    let id = l.id;
+    // Produit du catalogue de l'app au premier choix : on garde le produit
+    // générique (l'app cherche le moins cher dans chaque magasin).
+    if (!o.fixed && l.option > 0 && rows.has(o.id)) {
+      const p = catalogProduct(rows.get(o.id));
+      if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
+      id = p.id;
+    }
+    const prev = state.list.find((x) => x.id === l.id);
+    list.push({ id, qty: l.qty, checked: prev?.checked ?? false });
+  }
+  const dropped = state.list.filter((x) => !res.lines.some((l) => l.id === x.id)).length;
+  state.list = list;
+  smartOpen = false;
+  save();
+  toast(`Panier de ${eur(res.total)} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
+  setTab('plan');
 }
 
 // ---------- Plan ----------
@@ -764,7 +898,7 @@ async function refreshStores() {
 // ---------- Événements ----------
 document.addEventListener('click', async (e) => {
   const tab = e.target.closest('[data-tab]');
-  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } setTab(tab.dataset.tab); return; }
+  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } if (tab.dataset.tab === 'list') smartOpen = false; setTab(tab.dataset.tab); return; }
   // Panier assisté : ouvrir un produit sur le site le coche comme « dans le panier ».
   const open = e.target.closest('a[data-open]');
   if (open) {
@@ -786,6 +920,33 @@ document.addEventListener('click', async (e) => {
     save();
     render();
     toast(`${productById(id)?.name.replace(/\s*\(.*\)$/, '')} ajouté`);
+  } else if (a === 'smart-open') {
+    smartOpen = true;
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'smart-close') {
+    smartOpen = false;
+    render();
+  } else if (a === 'smart-budget') {
+    smartSettings().budget = Number(b.dataset.val);
+    save();
+    render();
+  } else if (a === 'smart-goal') {
+    smartSettings().goal = b.dataset.val;
+    save();
+    render();
+  } else if (a === 'smart-pin') {
+    const pins = smartSettings().pins;
+    const i = Number(b.dataset.i);
+    if (pins[id] === i) delete pins[id]; else pins[id] = i;
+    save();
+    render();
+  } else if (a === 'smart-remove') {
+    smartSettings().removed[id] = true;
+    save();
+    render();
+  } else if (a === 'smart-apply') {
+    applySmart();
   } else if (a === 'add-cat') {
     const r = CATALOG?.rows.find((x) => x[ROW.id] === id);
     if (!r) return;
@@ -796,7 +957,7 @@ document.addEventListener('click', async (e) => {
     search = '';
     save();
     render();
-    toast(`${r[ROW.name]} ajouté`);
+    toast(`${rowName(r)} ajouté`);
   } else if (a === 'add-custom') {
     const name = search.trim();
     const answer = await ask(`Prix approximatif de « ${name} » (€) ?`, { input: '2', ok: 'Ajouter' });
@@ -921,8 +1082,19 @@ view.addEventListener('change', (e) => {
     toast('Enregistré');
     return;
   }
+  if (t.id === 'smart-budget') {
+    smartSettings().budget = Math.max(1, Number(String(t.value).replace(',', '.')) || 1);
+    save();
+    render();
+    return;
+  }
   const a = t.dataset.action;
-  if (a === 'check') {
+  if (a === 'smart-must') {
+    const opt = smartSettings().optional;
+    if (t.checked) delete opt[t.dataset.id]; else opt[t.dataset.id] = true;
+    save();
+    render();
+  } else if (a === 'check') {
     const item = state.list.find((l) => l.id === t.dataset.id);
     if (item) item.checked = t.checked;
     t.closest('li')?.classList.toggle('done', t.checked);

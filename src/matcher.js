@@ -4,7 +4,7 @@
 // on ramène tout à un prix unitaire (€/kg, €/L, €/pièce) pour comparer des
 // formats différents. Aucune dépendance : utilisé par le robot et par l'app.
 
-export const norm = (s) => String(s ?? '')
+export const norm = (s) => String(s ?? '').replace(/œ/gi, 'oe').replace(/æ/gi, 'ae')
   .normalize('NFD').replace(/[̀-ͯ]/g, '')
   .toLowerCase()
   .replace(/[’'`]/g, ' ')
@@ -89,9 +89,18 @@ export function nameMatches(rule, name, globalNot = []) {
  * Renvoie { ...candidat, unitPrice, size, priceForSpec } ou null.
  */
 export function pickBest(rule, candidates, globalNot = []) {
+  const [best] = rankMatches(rule, candidates, globalNot, 1);
+  return best ?? null;
+}
+
+/**
+ * Tous les articles qui correspondent, du moins cher au plus cher au prix
+ * unitaire (au plus `limit`). Même format que pickBest.
+ */
+export function rankMatches(rule, candidates, globalNot = [], limit = Infinity) {
   const [amount, unit] = rule.size;
   const [lo, hi] = rule.tol ?? [0.5, 2.5];
-  let best = null;
+  const all = [];
   for (const c of candidates) {
     if (!(c.price > 0) || !nameMatches(rule, c.name, globalNot)) continue;
     if (c.kind === 'baby' || (c.kind === 'pet' && !rule.pets)) continue;
@@ -108,8 +117,8 @@ export function pickBest(rule, candidates, globalNot = []) {
       unitPrice = c.perUnit.price;
       size = { amount: Math.round(c.price / unitPrice), unit };
     } else continue;
-    if (!best || unitPrice < best.unitPrice) best = { ...c, size, unitPrice };
+    all.push({ ...c, size, unitPrice });
   }
-  if (!best) return null;
-  return { ...best, priceForSpec: Math.round(best.unitPrice * amount * 100) / 100 };
+  all.sort((a, b) => a.unitPrice - b.unitPrice);
+  return all.slice(0, limit).map((c) => ({ ...c, priceForSpec: Math.round(c.unitPrice * amount * 100) / 100 }));
 }

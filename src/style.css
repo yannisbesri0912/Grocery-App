@@ -271,3 +271,16 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .items.order { background: var(--surface); border-radius: 18px; padding: 4px 14px; box-shadow: var(--shadow); }
 .items.order li.next { background: color-mix(in srgb, var(--accent) 8%, transparent); margin: 0 -14px; padding: 10px 14px; }
 .items.order .btn { flex: none; }
+
+/* Panier malin */
+.smart-entry { width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; color: inherit; }
+.smart-entry .i:first-child { color: var(--accent); }
+.items.smart { background: var(--surface); border-radius: 18px; padding: 4px 14px; box-shadow: var(--shadow); }
+.items.smart li.smart-item { display: grid; gap: 8px; align-items: stretch; }
+.items.smart li.out .name, .items.smart li.out .num { color: var(--muted); }
+.tiers { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.tiers button { min-width: 0; display: grid; gap: 2px; padding: 6px 4px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font: inherit; font-size: .72rem; font-weight: 650; color: var(--muted); cursor: pointer; line-height: 1.15; }
+.tiers button .num { font-size: .84rem; color: var(--ink); }
+.tiers button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.tiers button.pinned { box-shadow: inset 0 0 0 1px var(--accent); }
+.switch.sm { transform: scale(.8); transform-origin: left center; }

@@ -1,16 +1,17 @@
-// Catalogue complet Colruyt (data/catalog.json, ~10 000 articles, vrais prix
-// mis à jour chaque nuit) et recherche en français dedans.
-// Les noms d'articles Colruyt sont surtout en néerlandais : chaque mot cherché
-// est complété par ses traductions (français / anglais → néerlandais).
+// Catalogue complet Colruyt (data/catalog-colruyt.json, ~10 000 articles, vrais
+// prix mis à jour chaque nuit) et recherche en français dedans.
+// Les noms Colruyt sont en néerlandais : le robot ajoute une traduction
+// française (src/translate.js), et chaque mot cherché est aussi complété par
+// ses traductions néerlandaises pour les mots que la traduction a manqués.
 
-const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const norm = (s) => s.replace(/œ/gi, 'oe').replace(/æ/gi, 'ae').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 // Mots français ou anglais → morceaux de mots néerlandais (sans accents).
 // Un morceau suffit : « kaneel » trouve « Kaneelrol » et « kaneelbroodjes ».
 export const LEXICON = {
   // Boulangerie, pâtisserie, petit-déjeuner
   pain: ['brood'], pains: ['brood'], baguette: ['stokbrood', 'baguette'], croissant: ['croissant'], brioche: ['brioche', 'koffiekoek'],
-  viennoiserie: ['koffiekoek'], cannelle: ['kaneel'], cinnamon: ['kaneel'], roll: ['rol', 'roll'], rolls: ['rol', 'roll'], roule: ['rol'],
+  viennoiserie: ['koffiekoek'], cannelle: ['kaneel'], cinnamon: ['kaneel', 'cannelle'], roll: ['rol', 'roll', 'roule'], rolls: ['rol', 'roll', 'roule'], roule: ['rol'],
   eclair: ['eclair'], chou: ['soes', 'soezen'], choux: ['soes', 'soezen'], gaufre: ['wafel'], gaufres: ['wafel'], crepe: ['pannenkoek', 'crepe'],
   gateau: ['cake', 'taart', 'gebak'], tarte: ['taart', 'tart'], tartelette: ['taartje'], biscuit: ['koek', 'biscuit'], biscuits: ['koek', 'biscuit'],
   cookie: ['cookie', 'koek'], cookies: ['cookie', 'koek'], muffin: ['muffin'], donut: ['donut'], beignet: ['donut', 'beignet', 'berliner'],
@@ -75,32 +76,67 @@ export function queryTerms(query) {
   });
 }
 
-// Lignes du catalogue : [id, nom, contenu, prix, prix unitaire, unité, rayon, promo, au poids]
-export const ROW = { id: 0, name: 1, content: 2, price: 3, unitPrice: 4, unit: 5, cat: 6, promo: 7, weight: 8 };
+// Lignes du catalogue : [id, nom (nl), contenu, prix, prix unitaire, unité, rayon, promo, au poids, nom (fr)]
+export const ROW = { id: 0, name: 1, content: 2, price: 3, unitPrice: 4, unit: 5, cat: 6, promo: 7, weight: 8, fr: 9 };
 
-/** Cherche dans le catalogue : les articles qui contiennent le plus de mots cherchés d'abord. */
+/** Nom affiché : français s'il existe. */
+export const rowName = (r) => r[ROW.fr] || r[ROW.name];
+
+// Mots qui annoncent un ingrédient secondaire : « mayonnaise avec œufs ».
+const SECONDARY = /\b(avec|aux?|a la|sans|sur|pour|met|op|zonder)\b/;
+
+// Rayon attendu pour les mots courants (indices de CATEGORIES dans data.js) :
+// « lait » → crèmerie avant le chocolat au lait.
+const CAT_HINT = {
+  0: 'pomme banane orange citron fraise framboise raisin poire peche ananas mangue kiwi tomate carotte oignon ail poireau courgette aubergine poivron champignon epinard brocoli chou haricot concombre laitue salade avocat patate legume fruit',
+  1: 'pain baguette croissant brioche pistolet viennoiserie gaufre crepe biscotte cereales muesli',
+  2: 'lait beurre fromage yaourt yogourt creme oeuf mozzarella gouda emmental skyr margarine',
+  3: 'poulet dinde boeuf porc veau agneau viande hache jambon saucisse lard lardons saumon thon cabillaud poisson crevettes moules',
+  4: 'chocolat bonbon chips biscuit pates riz farine sucre huile confiture miel',
+  5: 'surgele glace frites',
+  6: 'eau jus biere vin soda limonade cola',
+  7: 'shampoing dentifrice savon deodorant douche',
+  8: 'lessive adoucissant vaisselle eponge nettoyant javel',
+};
+const HINT = new Map(Object.entries(CAT_HINT).flatMap(([c, words]) => words.split(' ').map((w) => [w, Number(c)])));
+const BRAND = /^([A-ZÀ-Ý0-9&'.\-+]{2,}\s+)+/;
+
+/**
+ * Cherche dans le catalogue. Le produit « général » passe avant les produits
+ * qui ne font que le contenir : « œufs » donne des œufs avant la mayonnaise
+ * aux œufs. Ordre : mots trouvés, mot cherché en tête du nom (après la
+ * marque), pas après « avec / aux / de… », nom court, prix.
+ */
 export function searchCatalog(rows, query, limit = 12) {
   const terms = queryTerms(query);
   if (!terms.length) return [];
+  const hint = terms.map((alts) => HINT.get(alts[0]) ?? HINT.get(alts[1])).find((c) => c != null);
   const hits = [];
   for (const r of rows) {
-    const name = norm(r[ROW.name]);
+    const fr = r[ROW.fr] || r[ROW.name];
+    const head = norm(fr.replace(BRAND, ''));
+    const nl = norm(r[ROW.name].replace(BRAND, ''));
     let found = 0;
-    let starts = 0;
+    let points = 0;
     let first = false;
     for (const [k, alts] of terms.entries()) {
       let best = 0;
       for (const a of alts) {
-        const i = a.length <= 2 ? name.split(/[^a-z0-9]+/).indexOf(a) : name.indexOf(a);
-        if (i < 0) continue;
-        best = Math.max(best, i === 0 || /[^a-z0-9]/.test(name[i - 1]) ? 2 : 1);
+        for (const [text, base] of [[head, 4], [nl, 1]]) {
+          const i = a.length <= 2 ? text.split(/[^a-z0-9]+/).indexOf(a) : text.indexOf(a);
+          if (i < 0) continue;
+          const startsWord = i === 0 || /[^a-z0-9]/.test(text[i - 1]);
+          const wholeWord = startsWord && !/[a-z0-9]/.test(text[i + a.length] ?? '');
+          let p = base + (i === 0 ? 2 : startsWord ? 1 : 0) + (wholeWord ? 2 : 0);
+          if (i > 0 && SECONDARY.test(text.slice(0, i))) p -= 3;
+          best = Math.max(best, p);
+        }
       }
-      if (best) { found++; if (best === 2) starts++; if (k === 0) first = true; }
+      if (best > 0) { found++; points += best; if (k === 0) first = true; }
     }
-    // Tous les mots, ou au moins la moitié dont le premier (le plus important :
-    // « éclairs » dans « éclairs au chocolat »).
-    if (found < terms.length && (!first || found < Math.ceil(terms.length / 2))) continue;
-    hits.push({ r, score: found * 10 + starts * 3 - name.length / 40 });
+    // Tous les mots, ou au moins la moitié dont le premier (le plus important).
+    if (!found || (found < terms.length && (!first || found < Math.ceil(terms.length / 2)))) continue;
+    hits.push({ r, score: found * 20 + points + (r[ROW.cat] === hint ? 6 : 0) - head.length / 25 });
   }
   hits.sort((a, b) => b.score - a.score || a.r[ROW.price] - b.r[ROW.price]);
   return hits.slice(0, limit).map((h) => h.r);

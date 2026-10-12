@@ -28,3 +28,15 @@ test('searchCatalog trouve en français ce qui est écrit en néerlandais', () =
   assert.deepEqual(ids('papier toilette'), ['6']);
   assert.deepEqual(ids('caviar'), []);
 });
+
+test('searchCatalog : le produit général avant les produits qui le contiennent', () => {
+  const r = [
+    ['1', 'BONI mayonaise met eieren 500ml', '', 1.39, 2.78, 'l', 4, 0, 0, 'BONI mayonnaise avec œufs 500ml'],
+    ['2', 'BONI Eieren vrij uitloopM 12st', '', 3.99, 0.33, 'pc', 2, 0, 0, 'BONI œufs plein air 12st'],
+    ['3', 'MILKA Tablet Melk 90g', '', 1.01, 11.2, 'kg', 4, 0, 0, 'MILKA Tablet lait 90g'],
+    ['4', 'BONI halfvolle melk 1L', '', 0.99, 0.99, 'l', 2, 0, 0, 'BONI lait demi-écrémé 1L'],
+  ];
+  assert.deepEqual(searchCatalog(r, 'œufs').map((x) => x[0]), ['2', '1']);
+  assert.deepEqual(searchCatalog(r, 'oeufs').map((x) => x[0]), ['2', '1']);
+  assert.equal(searchCatalog(r, 'lait')[0][0], '4');
+});

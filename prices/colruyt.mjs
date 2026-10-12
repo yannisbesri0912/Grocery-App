@@ -5,6 +5,7 @@ const BUCKET = 'https://storage.googleapis.com/storage/v1/b/colruyt-products/o';
 const FILES = 'https://storage.googleapis.com/colruyt-products/';
 
 import { CAT_MAP } from '../src/catalog.js';
+import { toFrench } from '../src/translate.js';
 
 const UNIT = { K: 'kg', L: 'l', S: 'pc' };
 
@@ -55,13 +56,14 @@ export function catalogRows(products) {
     .map((p) => {
       const pr = p.price;
       const name = (p.LongName || p.name || '').trim();
+      const fr = toFrench(name); // nom français affiché dans l'app
       return [
         p.productId, name, name.includes(p.content ?? '') ? '' : (p.content ?? ''), r2(pr.basicPrice),
         pr.measurementUnitPrice > 0 ? r2(pr.measurementUnitPrice) : 0, UNIT[pr.measurementUnit] ?? '',
-        CAT_MAP[p.topCategoryName] ?? 4, p.inPromo ? 1 : 0, p.IsWeightArticle ? 1 : 0,
+        CAT_MAP[p.topCategoryName] ?? 4, p.inPromo ? 1 : 0, p.IsWeightArticle ? 1 : 0, fr === name ? '' : fr,
       ];
     })
-    .sort((a, b) => a[1].localeCompare(b[1]));
+    .sort((a, b) => (a[9] || a[1]).localeCompare(b[9] || b[1], 'fr'));
 }
 
 export async function fetchColruyt() {

@@ -66,12 +66,26 @@ elle n'est pas nécessaire.
 
 ## Catalogue complet Colruyt
 
-En plus de la liste de base, la recherche fouille **tout le catalogue Colruyt**
-(~9 500 articles, vrais prix mis à jour chaque nuit dans
-`data/catalog-colruyt.json`). On tape en français (« cinnamon rolls »,
-« éclairs au chocolat ») : les mots sont traduits vers les noms néerlandais de
-Colruyt (`src/catalog.js`). Pour les autres enseignes, ces articles ont un prix
-estimé d'après Colruyt (marqué « approx. »).
+La recherche fouille aussi **tout le catalogue Colruyt** (~9 500 articles, vrais
+prix mis à jour chaque nuit dans `data/catalog-colruyt.json`). Les noms Colruyt
+sont en néerlandais : le robot les traduit en français (`src/translate.js`,
+dictionnaire alimentaire, mots remis dans l'ordre français). On tape en
+français (« œufs », « cinnamon rolls », « éclairs au chocolat ») ; le produit
+général (comparé dans tous les magasins) passe d'abord, puis les articles
+précis, en privilégiant ceux dont c'est le produit principal (« œufs » avant
+« mayonnaise aux œufs »). Pour les autres enseignes, ces articles ont un prix
+estimé d'après Colruyt (« approx. »).
+
+## Panier malin
+
+Liste → **Panier malin** : on donne un budget, l'app compose le meilleur panier
+aux vrais prix Colruyt (`src/smart.js`). Chaque produit a jusqu'à trois choix :
+premier prix (Everyday), marque Colruyt (Boni), grande marque. Les produits
+« indispensables » passent d'abord au moins cher, puis les propositions
+(habitudes, produits courants) qui rentrent dans le budget, puis l'app monte
+en gamme avec ce qui reste (« Le meilleur dans mon budget ») — ou pas (« Le
+moins cher »). Toucher une gamme l'impose. « Mettre ce panier dans ma liste »
+remplace la liste ; le plan choisit ensuite les magasins.
 
 ## Panier assisté (Collect&Go, Delhaize Collect)
 

@@ -11,6 +11,7 @@ import { pickBest } from '../src/matcher.js';
 import { fetchColruyt } from './colruyt.mjs';
 import { fetchPromotions } from './prijsprofeet.mjs';
 import { fetchSite } from './sites.mjs';
+import { toFrench } from '../src/translate.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'data/prices.json');
@@ -36,7 +37,10 @@ function withUnitText(c) {
   return { ...c, perUnit: { unit, price: Number(m[1].replace(',', '.')) } };
 }
 
-function match(candidates) {
+// Noms néerlandais (Colruyt, Aldi, promos PrijsProfeet) affichés en français.
+const DUTCH = new Set(['colruyt', 'aldi', 'promos']);
+
+function match(candidates, source) {
   const items = {};
   for (const p of PRODUCTS) {
     const rule = RULES[p.id];
@@ -45,7 +49,7 @@ function match(candidates) {
     if (best) {
       items[p.id] = {
         price: best.priceForSpec,
-        article: best.name,
+        article: DUTCH.has(source) ? toFrench(best.name) : best.name,
         pack: Math.round(best.price * 100) / 100,
         unitPrice: Math.round(best.unitPrice * 1000) / 1000,
         unit: rule.size[1],
@@ -69,7 +73,7 @@ for (const [chain, fetcher] of Object.entries(SOURCES)) {
   console.log(`\n=== ${chain}`);
   try {
     const { date, candidates, note, catalog } = await fetcher();
-    const items = match(candidates.map(withUnitText));
+    const items = match(candidates.map(withUnitText), chain);
     const count = Object.keys(items).length;
     if (!count) throw new Error('aucun produit reconnu');
     for (const [pid, it] of Object.entries(result.items)) if (it[chain] && !it[chain].promoOnly) delete it[chain];
@@ -102,7 +106,7 @@ if (runs('promos')) {
       }
     }
     for (const [chain, cands] of Object.entries(promos)) {
-      const items = match(cands);
+      const items = match(cands, 'promos');
       for (const [pid, promo] of Object.entries(items)) {
         const cur = result.items[pid]?.[chain];
         if (cur && cur.price <= promo.price) continue;
