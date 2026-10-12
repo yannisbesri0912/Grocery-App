@@ -184,9 +184,13 @@ export function optimize({
       // Un magasin sans article n'a rien à faire dans la tournée.
       const visited = subset.filter((s) => a.byStore[s.id].length);
       if (visited.length < subset.length) continue;
-      // Retrait Collect : minimum de commande par point de retrait.
+      // Retrait Collect : minimum de commande par point de retrait. Un retrait
+      // seul sous le minimum reste proposé (avec le montant qui manque) mais
+      // passe après les plans faisables ; dans une tournée, il est écarté.
       const sub = (st) => a.byStore[st.id].reduce((t, l) => t + l.total, 0);
-      if (visited.some((st) => st.collect && sub(st) < (st.collect.minOrder ?? 0))) continue;
+      const short = visited.filter((st) => st.collect && sub(st) < (st.collect.minOrder ?? 0))
+        .map((st) => ({ store: st, min: st.collect.minOrder, missing: round2(st.collect.minOrder - sub(st)) }));
+      if (short.length && visited.length > 1) continue;
       // Pas deux fois la même enseigne au même endroit (rayon + retrait).
       if (new Set(visited.map((st) => st.storeId ?? st.id)).size < visited.length) continue;
       const route = bestRoute(home, visited, settings.detour);
@@ -203,6 +207,7 @@ export function optimize({
         fees,
         travel,
         total: round2(a.goods + fees + travel.cost),
+        ...(short.length ? { short } : {}),
       });
     }
   }
@@ -239,7 +244,7 @@ export function optimize({
     });
   }
 
-  return plans.sort((x, y) => x.total - y.total || x.stops.length - y.stops.length);
+  return plans.sort((x, y) => Boolean(x.short) - Boolean(y.short) || x.total - y.total || x.stops.length - y.stops.length);
 }
 
 // Lien Google Maps : départ = position actuelle du téléphone (on ne met pas

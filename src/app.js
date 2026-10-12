@@ -527,7 +527,7 @@ function viewPlan() {
   lastPlans = allPlans.filter((p) => modeOk(p, state.settings.planMode));
   if (!lastPlans.length) {
     const why = state.settings.planMode === 'collect'
-      ? 'Pas de Colruyt ou de Delhaize avec retrait dans ton rayon, ou commande sous le minimum (Delhaize Collect : 30 €).'
+      ? 'Pas de Colruyt ni de Delhaize dans ton rayon : élargis-le dans Réglages.'
       : 'Magasins exclus, ou produits introuvables avec ces réglages.';
     return `<h1>Meilleur plan</h1>${prefsBar()}<div class="empty">${icon('route')}<b>Aucun plan possible</b><span>${why}</span>${allPlans.length ? '<button class="btn soft" data-action="set" data-key="planMode" data-val="all">Voir toutes les options</button>' : ''}</div>`;
   }
@@ -597,8 +597,8 @@ function viewPlan() {
     ${others.length ? `<div class="card"><span class="eyebrow">Autres options</span>${others.map((p) => `
       <button class="alt" data-action="show-plan" data-plan="${p.id}">
         ${routeLogos(p)}
-        <span class="grow small">${esc(p.label)}</span>
-        <span style="text-align:right"><b class="num">${eur(p.total)}</b><br><span class="diff num">+${eur(p.total - lastPlans[0].total)}</span></span>
+        <span class="grow small">${esc(p.label)}${p.short ? `<br><span class="warn-text tiny">minimum ${eur(p.short[0].min)} : il manque ${eur(p.short[0].missing)}</span>` : ''}</span>
+        <span style="text-align:right"><b class="num">${eur(p.total)}</b><br><span class="diff num">${p.total >= lastPlans[0].total ? '+' : '−'}${eur(Math.abs(p.total - lastPlans[0].total))}</span></span>
       </button>`).join('')}</div>` : ''}
     <p class="foot">${priceSourcesNote()} <a href="#" data-tab="prices">Fiabilité des prix</a><br>Coût total = courses + frais + ton temps (${eur(state.settings.valueOfTime)}/h, modifiable dans Réglages).</p>`;
 }
@@ -625,7 +625,7 @@ function viewOrder(plan, stop) {
     </section>
     <div class="card">
       <ol class="how">
-        <li>Sur le site, connecte-toi et choisis <b>${esc(st.placeName ?? st.name)}</b> comme point de retrait (une seule fois).</li>
+        <li>Sur le site, connecte-toi et choisis <b>${esc(st.placeName ?? st.name)}</b> comme point de retrait (une seule fois). Tous les magasins ne font pas le retrait : sinon, prends le point de retrait le plus proche proposé par le site.</li>
         ${shop?.copy
           ? '<li>Touche <b>Copier et ouvrir</b> : le nom du produit est copié et le site s\'ouvre. Colle-le dans la barre de recherche, ajoute l\'article au panier, puis reviens ici. La case se coche toute seule.</li>'
           : '<li>Touche <b>Ouvrir</b> : le produit s\'ouvre sur le site, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>'}
@@ -690,6 +690,7 @@ function planWarnings(plan) {
   const approx = [...new Set(lines.filter((l) => l.kind === 'estimate').map((l) => CHAINS[l.chain].name))];
   const stale = [...new Set(plan.stops.map((st) => st.store.chain).filter((c) => chainStatus(c).stale))];
   const out = [];
+  for (const sh of plan.short ?? []) out.push(`${sh.store.collect.name} : commande minimum ${eur(sh.min)}, il manque ${eur(sh.missing)}. Ajoute des produits (ou corrige le minimum dans Réglages si le site en affiche un autre).`);
   if (approx.length) out.push(`Prix approximatifs pour ${approx.join(', ')} : vérifie en magasin.`);
   for (const c of stale) out.push(`Prix ${CHAINS[c].name} du ${dateFr(chainStatus(c).date)} : pas mis à jour depuis ${ageDays(chainStatus(c).date)} jours.`);
   return out.length ? `<div class="banner warn-banner">⚠️<span class="grow small">${out.map(esc).join('<br>')}</span></div>` : '';

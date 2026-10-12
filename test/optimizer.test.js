@@ -136,7 +136,9 @@ test('retrait Collect : frais, minimum de commande et temps sur place réduit', 
   const minPlans = optimize({
     items: [{ id: 'a', qty: 1 }], products, stores: [{ ...collect, collect: { fee: 0, minOrder: 30, minutes: 5 } }], chains, home,
   });
-  assert.equal(minPlans.length, 0); // 8 € < minimum 30 €
+  // 8 € < minimum 30 € : proposé quand même, avec ce qui manque
+  assert.equal(minPlans.length, 1);
+  assert.equal(minPlans[0].short[0].missing, 22);
 });
 
 test('récurrents : échéance et apprentissage de la fréquence', () => {
@@ -164,4 +166,22 @@ test('données réelles : un plan complet est trouvé depuis le domicile', () =>
   assert.equal(count, items.length);
   assert.match(mapsUrl(HOME, best), /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1/);
 
+});
+
+test('retrait Collect sous le minimum : proposé avec le montant manquant, après les plans faisables', async () => {
+  const { optimize } = await import('../src/optimizer.js');
+  const home = { lat: 50.84, lng: 4.39 };
+  const collect = (id, chain, fee, minOrder) => ({ id, chain, name: id, lat: 50.841, lng: 4.391, storeId: id.replace('#c', ''), collect: { name: id, fee, minOrder, minutes: 5 } });
+  const plans = optimize({
+    items: [{ id: 'x', qty: 1 }],
+    products: [{ id: 'x', name: 'X', ref: 10 }],
+    stores: [collect('d#c', 'delhaize', 0, 30), collect('c#c', 'colruyt', 5.95, 0)],
+    chains: { delhaize: { index: 90 }, colruyt: { index: 100 } },
+    home,
+    settings: { maxStores: 1 },
+  });
+  const d = plans.find((p) => p.id === 'd#c');
+  assert.ok(d, 'Delhaize Collect proposé');
+  assert.equal(d.short[0].missing, 21);
+  assert.equal(plans[0].id, 'c#c'); // le plan faisable passe d'abord
 });
