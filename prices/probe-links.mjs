@@ -17,23 +17,10 @@ async function visit(url) {
     console.log(`  inputs=${JSON.stringify(inputs)}`);
   } catch (e) { console.log(`\n### ${url}\n  ERREUR ${e.message.slice(0, 200)}`); }
 }
-await visit('https://www.colruyt.be/fr');
-// Recherche via la barre du site
-try {
-  const box = page.locator('input[type="search"], input[name*="search" i], input[placeholder*="cherch" i]').filter({ visible: true }).first();
-  await box.fill('lait demi', { timeout: 5000 });
-  await box.press('Enter');
-  await sleep(6000);
-  console.log(`\n### recherche via la barre → ${page.url()}`);
-  const links = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')).filter((h) => /produ|product|\/p\//i.test(h)).slice(0, 12));
-  console.log(`  links=${JSON.stringify(links)}`);
-} catch (e) { console.log(`recherche : ${e.message.slice(0, 200)}`); }
 for (const u of [
-  'https://www.colruyt.be/fr/produits?searchTerm=lait',
-  'https://www.colruyt.be/fr/produits/1433',
-  'https://www.colruyt.be/nl/producten/1433',
-  'https://www.collectandgo.be/fr',
-  'https://www.delhaize.be/fr/shop/search?text=lait',
-  'https://www.delhaize.be/fr/shop/Verse-groenten-en-fruit/Vers-fruit/Appelen-en-peren/Appelen/Gekke-appelen-Verpakt/p/F2017071900003540000',
+  'https://www.delhaize.be/fr/cart',
+  'https://www.delhaize.be/fr/collect',
+  'https://www.delhaize.be/fr/shop/search?text=Pommes%20droles',
+  'https://www.collectandgo.be/',
 ]) await visit(u);
 await browser.close();
