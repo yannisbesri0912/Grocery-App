@@ -27,7 +27,7 @@ function defaults() {
 // On les efface pour repartir de l'adresse choisie par l'utilisateur.
 function migrate(saved) {
   const s = { ...defaults(), ...saved, settings: { ...defaults().settings, ...saved.settings } };
-  const legacy = !Array.isArray(saved.stores) || /triomphe/i.test(saved.home?.address ?? '');
+  const legacy = !Array.isArray(saved.stores); // les anciennes versions n'avaient pas de magasins trouvés
   if (legacy) { s.home = null; s.stores = []; }
   delete s.coords; delete s.geocoded; delete s.geocodeTried;
   s.settings.excluded = (s.settings.excluded ?? []).filter((id) => !/^(colruyt-|carrefourx-|aldi-|delhaize-|lidl-)/.test(id));
