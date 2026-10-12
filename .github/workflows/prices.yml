@@ -24,7 +24,7 @@ concurrency:
 jobs:
   prices:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     env:
       HAS_VPN: ${{ secrets.NORDVPN_USER != '' && secrets.NORDVPN_PASS != '' }}
     steps:
