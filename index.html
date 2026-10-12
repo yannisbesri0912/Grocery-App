@@ -3,35 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Courses Opti</title>
-  <meta name="description" content="Courses optimisées depuis le boulevard du Triomphe : liste auto, comparaison des enseignes, meilleur itinéraire.">
-  <meta name="theme-color" content="#0f766e">
+  <title>Grocery Opti</title>
+  <meta name="description" content="Tes courses au coût total le plus bas : liste, meilleur magasin et itinéraire, avec les vrais prix Colruyt, Delhaize et Aldi.">
+  <meta name="theme-color" content="#0b7a52">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
   <header class="top">
-    <div class="brand">
-      <img src="icon.svg" alt="" width="28" height="28">
-      <div>
-        <h1>Courses Opti</h1>
-        <p class="sub" id="home-label"></p>
-      </div>
+    <div class="top-in">
+      <div class="brand"><img src="icon.svg" alt=""> Grocery Opti</div>
+      <button class="loc" id="loc" data-tab="settings"></button>
     </div>
   </header>
 
   <main id="view" aria-live="polite"></main>
-
-  <nav class="tabs" role="tablist">
-    <button data-tab="list" role="tab">🧺<span>Liste</span></button>
-    <button data-tab="plan" role="tab">🧭<span>Plan</span></button>
-    <button data-tab="recurring" role="tab">🔁<span>Auto</span></button>
-    <button data-tab="prices" role="tab">💶<span>Prix</span></button>
-    <button data-tab="settings" role="tab">⚙️<span>Réglages</span></button>
-  </nav>
-
+  <div class="cta-bar" id="cta"></div>
+  <nav class="tabs" id="tabs" aria-label="Navigation"></nav>
   <div id="toast" role="status"></div>
   <script type="module" src="src/app.js"></script>
 </body>

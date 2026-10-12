@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Courses optimisées depuis le boulevard du Triomphe (Bruxelles)",
+  "description": "Courses au coût total le plus bas, avec les vrais prix des supermarchés belges",
   "scripts": {
     "test": "node --test",
     "start": "npx --yes serve -l 5173 .",
-    "build:artifact": "node scripts/build-artifact.mjs",
     "prices": "node prices/run.mjs"
   },
   "dependencies": {

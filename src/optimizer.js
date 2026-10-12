@@ -47,8 +47,11 @@ export function priceInfo(product, chainId, chains, overrides = {}, real = {}) {
   if (!chain) return null;
   const base = real[product.id]?.colruyt?.regular?.price ?? real[product.id]?.colruyt?.price;
   const colruytIndex = chains.colruyt?.index ?? 100;
+  // Le vrai prix Colruyt est celui de sa gamme la moins chère : une estimation
+  // tirée de lui ne descend jamais en dessous (sinon une enseigne sans vrai prix
+  // gagnerait toujours sur le papier).
   return base != null
-    ? { price: round2(base * (chain.index / colruytIndex)), kind: 'estimate' }
+    ? { price: round2(base * Math.max(1, chain.index / colruytIndex)), kind: 'estimate' }
     : { price: round2(product.ref * (chain.index / 100)), kind: 'estimate' };
 }
 
@@ -198,8 +201,12 @@ export function optimize({
     if (a.missing.length || a.goods < (d.minOrder ?? 0)) continue;
     let travel = travelCost(0, 0, settings);
     let pickup = null;
-    if (d.pickupStore) {
-      pickup = stores.find((s) => s.id === d.pickupStore);
+    if (d.pickupStore || d.pickupChain) {
+      // Retrait : magasin indiqué, ou le plus proche de l'enseigne.
+      pickup = d.pickupStore
+        ? stores.find((s) => s.id === d.pickupStore)
+        : stores.filter((s) => s.chain === d.pickupChain && !excluded.has(s.id))
+          .sort((a, b) => haversineKm(home, a) - haversineKm(home, b))[0];
       if (!pickup) continue;
       // Retrait : aller-retour au point de collecte, ~5 min sur place.
       const route = bestRoute(home, [pickup], settings.detour);
@@ -208,7 +215,7 @@ export function optimize({
     plans.push({
       id: d.id,
       kind: 'delivery',
-      label: d.name,
+      label: pickup ? `${d.name.replace(/\s*\(.*\)$/, '')} (retrait ${pickup.name})` : d.name,
       delivery: d,
       stops: [{ store: pickup ?? { ...d, address: 'Livraison à domicile' }, lines: a.byStore[d.id] }],
       goods: a.goods,
@@ -221,17 +228,26 @@ export function optimize({
   return plans.sort((x, y) => x.total - y.total || x.stops.length - y.stops.length);
 }
 
-// Lien Google Maps avec l'itinéraire domicile → magasins → domicile.
+// Lien Google Maps : départ = position actuelle du téléphone (on ne met pas
+// d'origine), étapes = magasins par nom + adresse (Google les reconnaît comme de
+// vrais lieux, pas des « repères placés »), arrivée = le domicile.
+export function placeQuery(store) {
+  if (store.address) return `${store.name}, ${store.address}`;
+  if (store.lat != null) return `${store.lat},${store.lng}`;
+  return store.name;
+}
+
 export function mapsUrl(home, plan, mode = 'walk') {
-  const pts = plan.stops.filter((s) => s.store.lat != null).map((s) => `${s.store.lat},${s.store.lng}`);
-  const origin = `${home.lat},${home.lng}`;
-  const params = new URLSearchParams({
-    api: '1',
-    origin,
-    destination: origin,
-    travelmode: (MODES[mode] ?? MODES.walk).gmaps,
-  });
-  if (pts.length) params.set('waypoints', pts.join('|'));
+  const stops = plan.stops.map((s) => s.store).filter((st) => st.address || st.lat != null).map(placeQuery);
+  const params = new URLSearchParams({ api: '1', travelmode: (MODES[mode] ?? MODES.walk).gmaps });
+  const back = home?.address || (home?.lat != null ? `${home.lat},${home.lng}` : null);
+  if (back) {
+    params.set('destination', back);
+    if (stops.length) params.set('waypoints', stops.join('|'));
+  } else if (stops.length) {
+    params.set('destination', stops.at(-1));
+    if (stops.length > 1) params.set('waypoints', stops.slice(0, -1).join('|'));
+  }
   return `https://www.google.com/maps/dir/?${params}`;
 }
 

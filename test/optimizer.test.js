@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   haversineKm, priceOf, isOpen, bestRoute, optimize, dueRecurring, learnFrequency, mapsUrl,
 } from '../src/optimizer.js';
-import { HOME, STORES, DELIVERY, CHAINS, PRODUCTS } from '../src/data.js';
+import { DELIVERY, CHAINS, PRODUCTS } from '../src/data.js';
 
 const chains = {
   cheap: { name: 'Cheap', index: 80 },
@@ -11,6 +11,15 @@ const chains = {
 };
 const home = { lat: 50.82, lng: 4.395 };
 const near = { id: 'near', chain: 'pricey', name: 'Near', lat: 50.8205, lng: 4.395 };
+// Quartier fictif pour le test « données réelles ».
+const HOME = { lat: 50.85, lng: 4.35 };
+const STORES = [
+  { id: 'c1', chain: 'colruyt', name: 'Colruyt A', lat: 50.852, lng: 4.353 },
+  { id: 'a1', chain: 'aldi', name: 'Aldi B', lat: 50.847, lng: 4.346 },
+  { id: 'l1', chain: 'lidl', name: 'Lidl C', lat: 50.856, lng: 4.36 },
+  { id: 'd1', chain: 'delhaize', name: 'Delhaize D', lat: 50.849, lng: 4.352 },
+  { id: 'x1', chain: 'carrefourx', name: 'Carrefour Express E', lat: 50.8505, lng: 4.3505 },
+];
 const far = { id: 'far', chain: 'cheap', name: 'Far', lat: 50.84, lng: 4.37 };
 const products = [
   { id: 'a', name: 'A', ref: 10 },
@@ -26,6 +35,14 @@ test('priceOf applique indice, override et indisponibilité', () => {
   assert.equal(priceOf(products[0], 'cheap', chains), 8);
   assert.equal(priceOf(products[0], 'cheap', chains, { a: { cheap: 7.5 } }), 7.5);
   assert.equal(priceOf(products[1], 'cheap', chains), null);
+});
+
+test('une estimation ne passe jamais sous le vrai prix Colruyt', () => {
+  const chainsBE = { colruyt: { index: 100 }, lidl: { index: 95 }, delhaize: { index: 113 } };
+  const real = { lait: { colruyt: { price: 0.52 } } };
+  const p = { id: 'lait', ref: 1.05 };
+  assert.equal(priceOf(p, 'lidl', chainsBE, {}, real), 0.52);
+  assert.equal(priceOf(p, 'delhaize', chainsBE, {}, real), 0.59);
 });
 
 test('isOpen respecte les horaires et le dimanche fermé', () => {
@@ -91,6 +108,18 @@ test('openNow exclut les magasins fermés', () => {
   assert.equal(plans.length, 0);
 });
 
+test('mapsUrl : départ = position actuelle, magasins par nom et adresse, retour au domicile', () => {
+  const plan = { stops: [
+    { store: { name: 'Colruyt Etterbeek', address: 'Rue A 1, 1040 Etterbeek', lat: 1, lng: 2 } },
+    { store: { name: 'Aldi', lat: 50.1, lng: 4.2 } },
+  ] };
+  const u = new URL(mapsUrl({ address: 'Rue B 2, 1040 Etterbeek', lat: 0, lng: 0 }, plan, 'walk'));
+  assert.equal(u.searchParams.get('origin'), null);
+  assert.equal(u.searchParams.get('destination'), 'Rue B 2, 1040 Etterbeek');
+  assert.equal(u.searchParams.get('waypoints'), 'Colruyt Etterbeek, Rue A 1, 1040 Etterbeek|50.1,4.2');
+  assert.equal(u.searchParams.get('travelmode'), 'walking');
+});
+
 test('récurrents : échéance et apprentissage de la fréquence', () => {
   const now = new Date('2026-10-12T10:00:00');
   const rec = [
@@ -115,4 +144,6 @@ test('données réelles : un plan complet est trouvé depuis le domicile', () =>
   const count = best.stops.reduce((n, s) => n + s.lines.length, 0);
   assert.equal(count, items.length);
   assert.match(mapsUrl(HOME, best), /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1/);
+  const collect = plans.find((p) => p.id === 'collectgo');
+  assert.equal(collect.stops[0].store.id, 'c1'); // retrait au Colruyt le plus proche
 });

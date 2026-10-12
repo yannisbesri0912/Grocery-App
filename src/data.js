@@ -1,70 +1,25 @@
-// Données de base : domicile, magasins autour du boulevard du Triomphe, enseignes, catalogue.
-// Les coordonnées sont approximatives : l'app les recalcule via OpenStreetMap
-// (Réglages → « Localiser »). Prix et indices sont des estimations à corriger
-// dans l'onglet Prix — l'app apprend ensuite des prix que tu saisis.
+// Données de base : enseignes, options de livraison, catalogue.
+// Aucune adresse ni aucun magasin écrits en dur : les magasins sont cherchés
+// autour de l'adresse de l'utilisateur (src/places.js, OpenStreetMap).
 
-// Domicile par défaut : la rue seulement (le numéro se règle dans l'app,
-// il reste sur ton appareil).
-export const HOME = {
-  address: 'Boulevard du Triomphe, 1160 Auderghem, Bruxelles',
-  lat: 50.8197,
-  lng: 4.3958,
-};
-
-// index : niveau de prix relatif (Colruyt = 100). fee : frais de service/livraison (€).
+// index : niveau de prix relatif (Colruyt = 100), utilisé quand on n'a pas le
+// vrai prix. domain : site de l'enseigne (sert à afficher son logo).
 export const CHAINS = {
-  colruyt:   { name: 'Colruyt',           index: 100, color: '#e2001a' },
-  aldi:      { name: 'Aldi',              index: 94,  color: '#00a0e2' },
-  lidl:      { name: 'Lidl',              index: 95,  color: '#0050aa' },
-  delhaize:  { name: 'Delhaize',          index: 113, color: '#d4202b' },
-  carrefourx:{ name: 'Carrefour Express', index: 126, color: '#004e9f' },
+  colruyt:    { name: 'Colruyt',           index: 100, color: '#e2001a', domain: 'colruyt.be' },
+  aldi:       { name: 'Aldi',              index: 94,  color: '#00a0e2', domain: 'aldi.be' },
+  lidl:       { name: 'Lidl',              index: 95,  color: '#0050aa', domain: 'lidl.be' },
+  delhaize:   { name: 'Delhaize',          index: 113, color: '#d4202b', domain: 'delhaize.be' },
+  carrefour:  { name: 'Carrefour',         index: 110, color: '#004e9f', domain: 'carrefour.be' },
+  carrefourx: { name: 'Carrefour Express', index: 126, color: '#004e9f', domain: 'carrefour.be' },
+  ah:         { name: 'Albert Heijn',      index: 105, color: '#00a0e2', domain: 'ah.be' },
 };
-
-// hours : [ouverture, fermeture] en heures décimales, index 0 = dimanche. null = fermé.
-const WEEK_8_20 = [null, [8, 20], [8, 20], [8, 20], [8, 20], [8, 21], [8, 20]];
-
-export const STORES = [
-  {
-    id: 'colruyt-triomphe', chain: 'colruyt', name: 'Colruyt Auderghem',
-    address: 'Boulevard du Triomphe 20, 1160 Auderghem',
-    lat: 50.8178, lng: 4.4009, hours: WEEK_8_20, parking: true,
-  },
-  {
-    id: 'carrefourx-166', chain: 'carrefourx', name: 'Carrefour Express Triomphe 166',
-    address: 'Boulevard du Triomphe 166, 1160 Auderghem',
-    lat: 50.8203, lng: 4.3947,
-    hours: [[8, 22], [7, 22], [7, 22], [7, 22], [7, 22], [7, 22], [7, 22]],
-  },
-  {
-    id: 'carrefourx-201', chain: 'carrefourx', name: 'Carrefour Express Triomphe 201',
-    address: 'Boulevard du Triomphe 201, 1160 Auderghem',
-    lat: 50.8211, lng: 4.3925,
-    hours: [[8, 20], [7, 20], [7, 20], [7, 20], [7, 20], [7, 20], [7, 20]],
-  },
-  {
-    id: 'aldi-wavre', chain: 'aldi', name: 'Aldi Chaussée de Wavre',
-    address: 'Chaussée de Wavre 1070, 1160 Auderghem',
-    lat: 50.8236, lng: 4.4003,
-    hours: [null, [8.5, 20], [8.5, 20], [8.5, 20], [8.5, 20], [8.5, 20], [8.5, 19]],
-  },
-  {
-    id: 'delhaize-debroux', chain: 'delhaize', name: 'Delhaize Herrmann-Debroux',
-    address: 'Avenue Herrmann-Debroux 26, 1160 Auderghem',
-    lat: 50.8137, lng: 4.4089, hours: WEEK_8_20,
-  },
-  {
-    id: 'lidl-wavre', chain: 'lidl', name: 'Lidl Ixelles',
-    address: 'Chaussée de Wavre 136, 1050 Ixelles',
-    lat: 50.8357, lng: 4.3722,
-    hours: [null, [8.5, 20], [8.5, 20], [8.5, 20], [8.5, 20], [8.5, 20], [8.5, 19]],
-  },
-];
 
 // Options sans déplacement (ou retrait). minOrder : minimum de commande (€).
+// pickupChain : retrait dans le magasin le plus proche de cette enseigne.
 export const DELIVERY = [
   {
-    id: 'collectgo', chain: 'colruyt', name: 'Collect&Go (retrait Colruyt Triomphe)',
-    fee: 0, minOrder: 0, pickupStore: 'colruyt-triomphe', url: 'https://www.collectandgo.be/',
+    id: 'collectgo', chain: 'colruyt', name: 'Collect&Go (retrait Colruyt)',
+    fee: 0, minOrder: 0, pickupChain: 'colruyt', url: 'https://www.collectandgo.be/',
   },
   {
     id: 'delhaize-home', chain: 'delhaize', name: 'Delhaize livraison à domicile',

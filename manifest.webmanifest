@@ -1,12 +1,19 @@
 {
-  "name": "Courses Opti",
+  "name": "Grocery Opti",
   "short_name": "Courses",
-  "description": "Courses optimisées depuis le boulevard du Triomphe, Bruxelles",
+  "description": "Tes courses au meilleur prix : liste, meilleur magasin et itinéraire",
   "lang": "fr-BE",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f7f5",
-  "theme_color": "#0f766e",
-  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "background_color": "#f3f5f1",
+  "theme_color": "#0b7a52",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }

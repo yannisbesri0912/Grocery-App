@@ -1,7 +1,7 @@
 # 🛒 Grocery Opti
 
 App web (installable sur téléphone) qui trouve **où faire ses courses au coût total le plus bas**
-autour du boulevard du Triomphe (Auderghem, Bruxelles), avec les **vrais prix** des enseignes.
+autour de ton adresse, avec les **vrais prix** des supermarchés belges.
 
 Coût total = prix des produits + frais éventuels + temps passé à se déplacer et en magasin
 (valorisé au taux horaire que tu choisis). L'app compare toutes les combinaisons de magasins et
@@ -13,8 +13,8 @@ l'ordre de passage, puis donne le meilleur plan, la liste par magasin et l'itin�
 « Ajouter à l'écran d'accueil ». Les prix sont mis à jour chaque nuit. Ta liste reste sur
 ton téléphone (onglet Réglages → Exporter pour la sauvegarder).
 
-Première fois : dans Réglages, mets ton adresse exacte puis « Localiser » pour des distances
-précises (elle reste sur ton appareil, jamais dans ce dépôt).
+Au premier lancement, l'app demande ton adresse (ou ta position) et cherche les supermarchés
+autour via OpenStreetMap. L'adresse reste sur ton téléphone, jamais dans ce dépôt.
 
 ## D'où viennent les prix
 
@@ -76,9 +76,10 @@ node prices/run.mjs colruyt promos   # seulement certaines sources
 
 ## Limites
 
-- Les prix Colruyt viennent du magasin choisi par le projet source, pas forcément d'Auderghem
+- Les prix Colruyt viennent du magasin choisi par le projet source, pas forcément du tien
   (les écarts entre magasins Colruyt sont faibles).
 - Le rapprochement produit ↔ article se fait par mots-clés : vérifie le rapport, et corrige une
   règle dans `src/match-rules.js` si un article retenu ne convient pas.
-- Horaires, frais Collect&Go et livraison Delhaize : valeurs indicatives (`src/data.js`).
+- Horaires : ceux renseignés dans OpenStreetMap (absents pour certains magasins). Frais Collect&Go
+  et livraison Delhaize : valeurs indicatives (`src/data.js`).
 - L'app ne passe pas commande à ta place.
