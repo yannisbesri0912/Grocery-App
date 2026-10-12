@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-12T14:02:20.776Z",
+ "updatedAt": "2026-10-12T15:40:55.810Z",
  "sources": {
   "colruyt": {
    "date": "2026-10-11",
@@ -9,17 +9,17 @@
   },
   "delhaize": {
    "date": "2026-10-12",
-   "matched": 5,
+   "matched": 29,
    "ok": true
   },
   "aldi": {
    "date": "2026-10-12",
-   "matched": 44,
+   "matched": 43,
    "ok": true
   },
   "promos": {
    "date": "2026-10-12",
-   "matched": 27,
+   "matched": 17,
    "ok": true,
    "note": "PrijsProfeet"
   }
@@ -35,13 +35,6 @@
    }
   },
   "pommes": {
-   "colruyt": {
-    "price": 1.7,
-    "article": "BONI appel jonagold 6st",
-    "pack": 1.7,
-    "unitPrice": 1.7,
-    "unit": "kg"
-   },
    "delhaize": {
     "price": 1.05,
     "article": "Delhaize Gekke appelen | Verpakt 1,5 kg",
@@ -51,13 +44,20 @@
     "url": "https://www.delhaize.be/nl/shop/Verse-groenten-en-fruit/Vers-fruit/Appelen-en-peren/Appelen/Gekke-appelen-Verpakt/p/F2017071900003540000",
     "promo": "one_plus_one",
     "until": "2026-10-14",
-    "promoOnly": true
+    "regular": {
+     "price": 3.87,
+     "article": "Appels | Jonagold | Verpakt | Bio 850 gr",
+     "pack": 3.29,
+     "unitPrice": 3.871,
+     "unit": "kg",
+     "url": "/nl/shop/Verse-groenten-en-fruit/Vers-fruit/Appelen-en-peren/Appelen/Appels-Jonagold-Verpakt-Bio/p/F2010011300393140000"
+    }
    },
-   "aldi": {
-    "price": 1.59,
-    "article": "Pommes duchesse 1 kg",
-    "pack": 1.59,
-    "unitPrice": 1.59,
+   "colruyt": {
+    "price": 1.7,
+    "article": "BONI appel jonagold 6st",
+    "pack": 1.7,
+    "unitPrice": 1.7,
     "unit": "kg"
    }
   },
@@ -111,6 +111,14 @@
     "pack": 0.98,
     "unitPrice": 0.981,
     "unit": "pc"
+   },
+   "delhaize": {
+    "price": 1.09,
+    "article": "Kropsla | Serre | Verpakt 1 st",
+    "pack": 1.09,
+    "unitPrice": 1.09,
+    "unit": "pc",
+    "url": "/nl/shop/Verse-groenten-en-fruit/Verse-groenten/Sla-en-bladgroenten/Sla-per-stuk/Kropsla-Serre-Verpakt/p/F2020051300058960000"
    }
   },
   "carottes": {
@@ -170,14 +178,6 @@
     "pack": 1.99,
     "unitPrice": 1.99,
     "unit": "kg"
-   },
-   "delhaize": {
-    "price": 6.73,
-    "article": "Spaghettis | de courgettes 400 gr",
-    "pack": 2.69,
-    "unitPrice": 6.725,
-    "unit": "kg",
-    "url": "/fr/shop/Vite-et-vraiment-bon/Pret-a-cuisiner/Composants-du-repas/Legumes-et-fruits/Spaghettis-de-courgettes/p/F2022041100098610000"
    }
   },
   "poivrons": {
@@ -204,6 +204,14 @@
     "unitPrice": 2,
     "unit": "kg"
    },
+   "delhaize": {
+    "price": 0.91,
+    "article": "Broccoli 600 gr",
+    "pack": 1.09,
+    "unitPrice": 1.817,
+    "unit": "kg",
+    "url": "/nl/shop/Diepvries/Diepvries-groenten-soepen-en-kruiden/Diepvries-natuurlijke-groenten/Diepvries-kolen/Broccoli/p/S1982012100271240000"
+   },
    "aldi": {
     "price": 0.9,
     "article": "Broccoli 1 kg",
@@ -220,11 +228,19 @@
     "unitPrice": 3.34,
     "unit": "kg"
    },
+   "delhaize": {
+    "price": 1.32,
+    "article": "Gesneden Champignons 450 gr",
+    "pack": 1.19,
+    "unitPrice": 2.644,
+    "unit": "kg",
+    "url": "/nl/shop/Diepvries/Diepvries-groenten-soepen-en-kruiden/Diepvries-natuurlijke-groenten/Andere-diepvriesproducten/Gesneden-Champignons/p/S2016071103658750000"
+   },
    "aldi": {
-    "price": 2.99,
-    "article": "Tagliatelle champignons of penne arrabbiata 400 g",
-    "pack": 2.39,
-    "unitPrice": 5.975,
+    "price": 3.82,
+    "article": "Gesneden champignons 300 g",
+    "pack": 2.29,
+    "unitPrice": 7.633,
     "unit": "kg"
    }
   },
@@ -245,6 +261,13 @@
     "unitPrice": 1.237,
     "unit": "kg"
    },
+   "aldi": {
+    "price": 0.99,
+    "article": "Bruin brood 800 g",
+    "pack": 0.99,
+    "unitPrice": 1.237,
+    "unit": "kg"
+   },
    "delhaize": {
     "price": 3.09,
     "article": "Boerkens Brood | Boerken | Volkoren 600 gr",
@@ -255,13 +278,6 @@
     "promo": "one_plus_one",
     "until": "2026-10-14",
     "promoOnly": true
-   },
-   "aldi": {
-    "price": 0.99,
-    "article": "Bruin brood 800 g",
-    "pack": 0.99,
-    "unitPrice": 1.237,
-    "unit": "kg"
    }
   },
   "baguette": {
@@ -287,6 +303,14 @@
     "pack": 1.33,
     "unitPrice": 1.773,
     "unit": "kg"
+   },
+   "delhaize": {
+    "price": 0.92,
+    "article": "Ontbijtgranen | Cornflakes 2 x 375 gr",
+    "pack": 1.38,
+    "unitPrice": 1.84,
+    "unit": "kg",
+    "url": "/nl/shop/Zoete-kruidenierswaren/Ontbijt/Ontbijtgranen/Klassieke-ontbijtgranen/Ontbijtgranen-Cornflakes/p/S2025112600906970000"
    }
   },
   "lait": {
@@ -316,12 +340,12 @@
     "unit": "pc"
    },
    "delhaize": {
-    "price": 4.19,
-    "article": "oeufs au sol | Mix calibre | 10pc",
-    "pack": 3.49,
-    "unitPrice": 0.349,
+    "price": 5.38,
+    "article": "Bois du roi eieren | Vrije uitloop | Groot 6 st",
+    "pack": 2.69,
+    "unitPrice": 0.448,
     "unit": "pc",
-    "url": "/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Oeufs/Oeufs-frais/oeufs-au-sol-Mix-calibre-10pc/p/F2022083100106340000"
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Eieren/Verse-eieren/Bois-du-roi-eieren-Vrije-uitloop-Groot/p/F2021052700081420000"
    },
    "aldi": {
     "price": 5.98,
@@ -339,6 +363,14 @@
     "unitPrice": 10.76,
     "unit": "kg"
    },
+   "delhaize": {
+    "price": 4.79,
+    "article": "Zachte boter | La Motte 250 gr",
+    "pack": 4.79,
+    "unitPrice": 19.16,
+    "unit": "kg",
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Boter-en-margarine/Ongezouten-boter/Zachte-boter-La-Motte/p/F2002031800102500000"
+   },
    "aldi": {
     "price": 3,
     "article": "Artisanale zachte boter 500 g",
@@ -355,6 +387,14 @@
     "unitPrice": 1.19,
     "unit": "kg"
    },
+   "delhaize": {
+    "price": 1.19,
+    "article": "Yoghurt | Mager | Natuur 8 x 125 gr",
+    "pack": 1.19,
+    "unitPrice": 1.19,
+    "unit": "kg",
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Yoghurt-en-plantaardige-alternatieven/Natuur/Yoghurt-natuur/Yoghurt-Mager-Natuur/p/F2009122200103900000"
+   },
    "aldi": {
     "price": 1.19,
     "article": "Magere yoghurt 8 x 125 g",
@@ -370,6 +410,14 @@
     "pack": 4.42,
     "unitPrice": 8.84,
     "unit": "kg"
+   },
+   "delhaize": {
+    "price": 3.17,
+    "article": "Gouda | Jong | Sneden 330 gr",
+    "pack": 3.49,
+    "unitPrice": 10.576,
+    "unit": "kg",
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Kaas/Kaas-in-sneden/Gouda/Gouda-Jong-Sneden/p/F2009122900150300000"
    }
   },
   "emmental": {
@@ -379,6 +427,14 @@
     "pack": 3.97,
     "unitPrice": 7.94,
     "unit": "kg"
+   },
+   "delhaize": {
+    "price": 1.64,
+    "article": "Emmental | Geraspt 200 gr",
+    "pack": 1.64,
+    "unitPrice": 8.2,
+    "unit": "kg",
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Kaas/Geraspte-kaas/Emmental/Emmental-Geraspt/p/F2020060900060200000"
    }
   },
   "mozzarella": {
@@ -388,6 +444,14 @@
     "pack": 0.69,
     "unitPrice": 5.52,
     "unit": "kg"
+   },
+   "delhaize": {
+    "price": 0.69,
+    "article": "Mozzarella | Bol 125 gr",
+    "pack": 0.69,
+    "unitPrice": 5.52,
+    "unit": "kg",
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Kaas/Ricotta-mascarpone-feta-en-mozzarella/Feta-en-mozzarella/Mozzarella-Bol/p/F2007062700176300000"
    },
    "aldi": {
     "price": 0.69,
@@ -407,23 +471,20 @@
    }
   },
   "skyr": {
+   "delhaize": {
+    "price": 1.4,
+    "article": "Skyr | Natuur | High Protein | 0% | FP 1 kg",
+    "pack": 2.79,
+    "unitPrice": 2.79,
+    "unit": "kg",
+    "url": "/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Yoghurt-en-plantaardige-alternatieven/Skyr-kefir-en-Turkse-yoghurt/Skyr-Natuur-High-Protein-0-FP/p/F2026041000259450000"
+   },
    "colruyt": {
     "price": 1.39,
     "article": "BONI Skyr natuur 500g",
     "pack": 1.39,
     "unitPrice": 2.78,
     "unit": "kg"
-   },
-   "delhaize": {
-    "price": 2.77,
-    "article": "Arla Skyr | Yoghurt | Natuur 450 gr",
-    "pack": 2.49,
-    "unitPrice": 5.533,
-    "unit": "kg",
-    "url": "https://www.delhaize.be/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Yoghurt-en-plantaardige-alternatieven/Skyr-kefir-en-Turkse-yoghurt/Skyr-Yoghurt-Natuur/p/F2017121400370810000",
-    "promo": "promo",
-    "until": "2026-10-14",
-    "promoOnly": true
    },
    "aldi": {
     "price": 1.39,
@@ -516,6 +577,14 @@
     "unitPrice": 7.45,
     "unit": "kg"
    },
+   "delhaize": {
+    "price": 3.02,
+    "article": "Tonijn | Natuur 150 gr",
+    "pack": 1.89,
+    "unitPrice": 12.6,
+    "unit": "kg",
+    "url": "/nl/shop/Conserven/Vis-in-conserve/Tonijn-in-conserve/Tonijn-Natuur/p/S2014080600127110000"
+   },
    "aldi": {
     "price": 1.93,
     "article": "Tonijn in olie 185 g",
@@ -534,11 +603,11 @@
    },
    "delhaize": {
     "price": 1.78,
-    "article": "Pâtes | Spaghetti 500 gr",
+    "article": "Pasta | Spaghetti 500 gr",
     "pack": 0.89,
     "unitPrice": 1.78,
     "unit": "kg",
-    "url": "/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Pates/Pates-blanches/Pates-Spaghetti/p/S2013041600151220000"
+    "url": "/nl/shop/Zoute-kruidenierswaren/Pasta-rijst-en-andere-zetmeelproducten/Pasta/Witte-pasta/Pasta-Spaghetti/p/S2013041600151220000"
    },
    "aldi": {
     "price": 0.9,
@@ -558,11 +627,11 @@
    },
    "delhaize": {
     "price": 1.84,
-    "article": "Riz | Basmati 1 kg",
+    "article": "Rijst | Basmati 1 kg",
     "pack": 1.84,
     "unitPrice": 1.84,
     "unit": "kg",
-    "url": "/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Riz/Riz-basmati/Riz-Basmati/p/S2018100200120350000"
+    "url": "/nl/shop/Zoute-kruidenierswaren/Pasta-rijst-en-andere-zetmeelproducten/Rijst/Basmati-rijst/Rijst-Basmati/p/S2018100200120350000"
    }
   },
   "farine": {
@@ -605,6 +674,14 @@
     "unitPrice": 5.99,
     "unit": "l"
    },
+   "delhaize": {
+    "price": 7.99,
+    "article": "Olijfolie | Extra vierge | Spanje 1 l",
+    "pack": 7.99,
+    "unitPrice": 7.99,
+    "unit": "l",
+    "url": "/nl/shop/Zoute-kruidenierswaren/Olie-en-azijn/Olijfolie/Olijfolie-Extra-vierge-Spanje/p/S2022120200662970000"
+   },
    "aldi": {
     "price": 9.99,
     "article": "Extra vierge olijfolie 750 ml",
@@ -621,6 +698,14 @@
     "unitPrice": 1.18,
     "unit": "kg"
    },
+   "delhaize": {
+    "price": 1.49,
+    "article": "Passata 700 gr",
+    "pack": 1.49,
+    "unitPrice": 2.129,
+    "unit": "kg",
+    "url": "/nl/shop/Conserven/Groenten-in-conserve/Tomaten-in-conserve/Pulp-en-passata-van-tomaat-in-conserve/Passata/p/S2025080800886990000"
+   },
    "aldi": {
     "price": 0.83,
     "article": "Passata 1 kg",
@@ -630,13 +715,6 @@
    }
   },
   "cafe": {
-   "colruyt": {
-    "price": 2.49,
-    "article": "EVERYDAY koffie gemalen Moka RFA 500g",
-    "pack": 2.49,
-    "unitPrice": 4.98,
-    "unit": "kg"
-   },
    "delhaize": {
     "price": 5.5,
     "article": "Rombouts Koffie | Dessert | Gemalen 250 gr",
@@ -646,7 +724,21 @@
     "url": "https://www.delhaize.be/nl/shop/Koude-en-warme-dranken/Koffie/Gemalen/Koffie-Dessert-Gemalen/p/S1999092400041820001",
     "promo": "one_plus_one",
     "until": "2026-10-14",
-    "promoOnly": true
+    "regular": {
+     "price": 12.38,
+     "article": "Koffie | Crema e Gusto | Gemalen 250 gr",
+     "pack": 6.19,
+     "unitPrice": 24.76,
+     "unit": "kg",
+     "url": "/nl/shop/Koude-en-warme-dranken/Koffie/Gemalen/Koffie-Crema-e-Gusto-Gemalen/p/S2019062100265590000"
+    }
+   },
+   "colruyt": {
+    "price": 2.49,
+    "article": "EVERYDAY koffie gemalen Moka RFA 500g",
+    "pack": 2.49,
+    "unitPrice": 4.98,
+    "unit": "kg"
    },
    "aldi": {
     "price": 3.89,
@@ -672,6 +764,14 @@
     "pack": 1.33,
     "unitPrice": 1.9,
     "unit": "kg"
+   },
+   "delhaize": {
+    "price": 2.22,
+    "article": "Confituur | Aardbeien 720 gr",
+    "pack": 3.55,
+    "unitPrice": 4.931,
+    "unit": "kg",
+    "url": "/nl/shop/Zoete-kruidenierswaren/Ontbijt/Broodbeleg/Confituur/Confituur-Aardbeien/p/S2010010400088020000"
    },
    "aldi": {
     "price": 1.99,
@@ -699,6 +799,14 @@
      "unit": "kg"
     }
    },
+   "delhaize": {
+    "price": 3.55,
+    "article": "Chocolade | Pure Chocolade | Noir De Noir 400 gr",
+    "pack": 7.09,
+    "unitPrice": 17.725,
+    "unit": "kg",
+    "url": "/nl/shop/Zoete-kruidenierswaren/Chocolade/Chocolade-tabletten/Pure-chocolade/Chocolade-Pure-Chocolade-Noir-De-Noir/p/S2000060800062380000"
+   },
    "aldi": {
     "price": 1.65,
     "article": "Pure chocolade 2 x 200 g",
@@ -724,23 +832,20 @@
    }
   },
   "mayonnaise": {
+   "delhaize": {
+    "price": 2.04,
+    "article": "Mayonaise | Eieren 1,1 l",
+    "pack": 4.49,
+    "unitPrice": 4.082,
+    "unit": "l",
+    "url": "/nl/shop/Zoute-kruidenierswaren/Sauzen/Mayonaise/Mayonaise-Eieren/p/S2013091800010760001"
+   },
    "colruyt": {
     "price": 1.15,
     "article": "EVERYDAY mayonaise met eieren 500ml",
     "pack": 1.15,
     "unitPrice": 2.3,
     "unit": "l"
-   },
-   "delhaize": {
-    "price": 2.21,
-    "article": "Calvé Mayonaise | Met eieren | 430 ml 43 cl",
-    "pack": 1.9,
-    "unitPrice": 4.419,
-    "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Zoute-kruidenierswaren/Sauzen/Mayonaise/Mayonaise-Met-eieren-430-ml/p/S2011031000010560000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "promoOnly": true
    },
    "aldi": {
     "price": 1.15,
@@ -785,23 +890,20 @@
    }
   },
   "pizza": {
+   "delhaize": {
+    "price": 0.97,
+    "article": "Pizza | Margherita 2 x 270 gr",
+    "pack": 1.49,
+    "unitPrice": 2.759,
+    "unit": "kg",
+    "url": "/nl/shop/Diepvries/Pizza-s/Italiaanse-stijl/Pizza-Margherita/p/S2021022600520190000"
+   },
    "colruyt": {
     "price": 1.45,
     "article": "BONI Pizza Mozzarella 2x335g",
     "pack": 2.78,
     "unitPrice": 4.149,
     "unit": "kg"
-   },
-   "delhaize": {
-    "price": 4.58,
-    "article": "Delhaize Pizza | Mozzarella | Pesto 420 gr",
-    "pack": 5.5,
-    "unitPrice": 13.095,
-    "unit": "kg",
-    "url": "https://www.delhaize.be/nl/shop/Snel-en-smakelijk/Klaar-om-te-eten/Pizza-en-pinsa/Pizza/Pizza-Mozzarella-Pesto/p/F2025052200157620000",
-    "promo": "multi_buy",
-    "until": "2026-12-31",
-    "promoOnly": true
    },
    "aldi": {
     "price": 2.15,
@@ -837,14 +939,6 @@
     "unitPrice": 0.213,
     "unit": "l"
    },
-   "delhaize": {
-    "price": 8.24,
-    "article": "Eau minérale | Non pétillante | PET 6 x 1 l",
-    "pack": 5.49,
-    "unitPrice": 0.915,
-    "unit": "l",
-    "url": "/fr/shop/Boissons-froides-et-chaudes/Eaux/Eau-plate/Eau-minerale-Non-petillante-PET/p/S2002010703194270000"
-   },
    "aldi": {
     "price": 1.92,
     "article": "Bruisend water 1.5 l",
@@ -861,6 +955,13 @@
     "unitPrice": 1.23,
     "unit": "l"
    },
+   "aldi": {
+    "price": 1.23,
+    "article": "Sinaasappelsap 1.5 l",
+    "pack": 1.85,
+    "unitPrice": 1.233,
+    "unit": "l"
+   },
    "lidl": {
     "price": 2.5,
     "article": "MCENNEDY Vers sinaasappelsap XXL 2 l",
@@ -871,13 +972,6 @@
     "promo": "promo",
     "until": "2026-10-13",
     "promoOnly": true
-   },
-   "aldi": {
-    "price": 1.23,
-    "article": "Sinaasappelsap 1.5 l",
-    "pack": 1.85,
-    "unitPrice": 1.233,
-    "unit": "l"
    }
   },
   "coca": {
@@ -886,6 +980,13 @@
     "article": "COCA-COLA Regular Original Taste 2L",
     "pack": 2.24,
     "unitPrice": 1.12,
+    "unit": "l"
+   },
+   "aldi": {
+    "price": 2.96,
+    "article": "Coca-Cola regular 2 l",
+    "pack": 2.99,
+    "unitPrice": 1.495,
     "unit": "l"
    },
    "delhaize": {
@@ -909,13 +1010,6 @@
     "promo": "promo",
     "until": "2026-10-18",
     "promoOnly": true
-   },
-   "aldi": {
-    "price": 2.96,
-    "article": "Coca-Cola regular 2 l",
-    "pack": 2.99,
-    "unitPrice": 1.495,
-    "unit": "l"
    }
   },
   "biere": {
@@ -968,6 +1062,14 @@
      "unit": "pc"
     }
    },
+   "delhaize": {
+    "price": 5.38,
+    "article": "Toiletpapier | 4 lagen | Eco 6 st",
+    "pack": 2.69,
+    "unitPrice": 0.448,
+    "unit": "pc",
+    "url": "/nl/shop/Onderhoud-en-huishouden/Toiletten/Toiletpapier/Toiletpapier-4-lagen-Eco/p/S2025032400833350000"
+   },
    "aldi": {
     "price": 4.73,
     "article": "Toiletpapier met motief, 9 st.",
@@ -1004,6 +1106,14 @@
     "unitPrice": 4.72,
     "unit": "l"
    },
+   "delhaize": {
+    "price": 3.49,
+    "article": "Tandpasta  | Verfrissende Kristal 7,5 cl",
+    "pack": 3.49,
+    "unitPrice": 46.533,
+    "unit": "l",
+    "url": "/nl/shop/Hygiene-en-verzorging/Tand-en-mondhygiene/Tandpasta/Volwassenen/Tandpasta-Verfrissende-Kristal/p/S2025072400672040098"
+   },
    "aldi": {
     "price": 0.35,
     "article": "Tandpasta 125 ml",
@@ -1020,6 +1130,14 @@
     "unitPrice": 2.38,
     "unit": "l"
    },
+   "delhaize": {
+    "price": 2.41,
+    "article": "Douche Gel | Sensitive care 40 cl",
+    "pack": 3.85,
+    "unitPrice": 9.625,
+    "unit": "l",
+    "url": "/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Douche/Douchegel-vrouwen/Douche-Gel-Sensitive-care/p/S2025040700841380000"
+   },
    "aldi": {
     "price": 0.65,
     "article": "Hydraterende douchegel 500 ml",
@@ -1029,13 +1147,6 @@
    }
   },
   "shampoing": {
-   "colruyt": {
-    "price": 0.29,
-    "article": "EVERYDAY shampoo oranjebloesem 500ml",
-    "pack": 0.49,
-    "unitPrice": 0.98,
-    "unit": "l"
-   },
    "delhaize": {
     "price": 1.61,
     "article": "Schauma Shampoo | Arganolie 40 cl",
@@ -1045,7 +1156,21 @@
     "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Haarverzorging/Shampoos/Vloeibare-shampoo/Shampoo-Arganolie/p/S2025121200912730000",
     "promo": "one_plus_one",
     "until": "2026-10-14",
-    "promoOnly": true
+    "regular": {
+     "price": 3.22,
+     "article": "Shampoo | Antiroos 40 cl",
+     "pack": 4.29,
+     "unitPrice": 10.725,
+     "unit": "l",
+     "url": "/nl/shop/Hygiene-en-verzorging/Haarverzorging/Shampoos/Vloeibare-shampoo/Shampoo-Antiroos/p/S2025121600913530000"
+    }
+   },
+   "colruyt": {
+    "price": 0.29,
+    "article": "EVERYDAY shampoo oranjebloesem 500ml",
+    "pack": 0.49,
+    "unitPrice": 0.98,
+    "unit": "l"
    },
    "aldi": {
     "price": 0.3,
@@ -1056,6 +1181,24 @@
    }
   },
   "deodorant": {
+   "delhaize": {
+    "price": 1.29,
+    "article": "Fa Deospray | Pink Passion 15 cl",
+    "pack": 1.29,
+    "unitPrice": 8.6,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Deodorant/Deospray-vrouwen/Deospray-Pink-Passion/p/S2016020203624280000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "regular": {
+     "price": 2.59,
+     "article": "Deospray | Pink Passion 15 cl",
+     "pack": 2.59,
+     "unitPrice": 17.267,
+     "unit": "l",
+     "url": "/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Deodorant/Deospray-vrouwen/Deospray-Pink-Passion/p/S2016020203624280000"
+    }
+   },
    "colruyt": {
     "price": 0.9,
     "article": "Fa deo Pink Passion 150ml",
@@ -1072,17 +1215,6 @@
      "unitPrice": 7.95,
      "unit": "l"
     }
-   },
-   "delhaize": {
-    "price": 1.29,
-    "article": "Fa Deospray | Pink Passion 15 cl",
-    "pack": 1.29,
-    "unitPrice": 8.6,
-    "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Deodorant/Deospray-vrouwen/Deospray-Pink-Passion/p/S2016020203624280000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "promoOnly": true
    },
    "aldi": {
     "price": 1.19,
@@ -1118,23 +1250,20 @@
    }
   },
   "vaisselle": {
+   "delhaize": {
+    "price": 0.93,
+    "article": "Afwasmiddel | Citroen 50 cl",
+    "pack": 0.93,
+    "unitPrice": 1.86,
+    "unit": "l",
+    "url": "/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmiddel/Afwasmiddel-Citroen/p/S2024101500793170000"
+   },
    "colruyt": {
     "price": 0.43,
     "article": "ACTAE afwasmiddel citroen 1L",
     "pack": 0.85,
     "unitPrice": 0.85,
     "unit": "l"
-   },
-   "delhaize": {
-    "price": 1.97,
-    "article": "Ecover Afwasmiddel | Citroen & aloe vera 95 cl",
-    "pack": 3.74,
-    "unitPrice": 3.937,
-    "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmiddel/Afwasmiddel-Citroen-and-aloe-vera/p/S2018010901375110000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "promoOnly": true
    },
    "aldi": {
     "price": 0.43,
@@ -1145,6 +1274,24 @@
    }
   },
   "tablettes-lv": {
+   "delhaize": {
+    "price": 17.78,
+    "article": "Dreft Vaatwascapsules | Citroen 45 st",
+    "pack": 20,
+    "unitPrice": 0.444,
+    "unit": "pc",
+    "url": "https://www.delhaize.be/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmachine/Vaatwascapsules-Citroen/p/S2025080100884580000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "regular": {
+     "price": 18.39,
+     "article": "Vaatwastabletten | AIO 45 st",
+     "pack": 20.69,
+     "unitPrice": 0.46,
+     "unit": "pc",
+     "url": "/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmachine/Vaatwastabletten-AIO/p/S2025013100322160000"
+    }
+   },
    "colruyt": {
     "price": 8.06,
     "article": "Finish Quantum vaatwas tabs regular 31st",
@@ -1163,17 +1310,6 @@
      "promo": true,
      "until": null
     }
-   },
-   "delhaize": {
-    "price": 17.78,
-    "article": "Dreft Vaatwascapsules | Citroen 45 st",
-    "pack": 20,
-    "unitPrice": 0.444,
-    "unit": "pc",
-    "url": "https://www.delhaize.be/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmachine/Vaatwascapsules-Citroen/p/S2025080100884580000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "promoOnly": true
    },
    "aldi": {
     "price": 2,
