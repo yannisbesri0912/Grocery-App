@@ -1,5 +1,5 @@
-// Hors-ligne : sert le cache immédiatement puis le met à jour en arrière-plan.
-const CACHE = 'grocery-opti-v7';
+// Hors-ligne : garde une copie de l'app ; en ligne, sert toujours la dernière version.
+const CACHE = 'grocery-opti-v8';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
   'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js', 'src/smart.js', 'src/matcher.js'];
 
@@ -16,21 +16,12 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  // Les prix et le catalogue changent chaque nuit : réseau d'abord, cache si hors ligne.
-  if (url.pathname.includes('/data/')) {
-    e.respondWith(fetch(e.request).then((res) => {
+  // Réseau d'abord (nouvelle version visible tout de suite), cache si hors ligne.
+  e.respondWith(fetch(e.request, { cache: 'no-cache' }).then((res) => {
+    if (res.ok) {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put(e.request, copy));
-      return res;
-    }).catch(() => caches.match(e.request)));
-    return;
-  }
-  e.respondWith(caches.open(CACHE).then(async (cache) => {
-    const cached = await cache.match(e.request);
-    const fresh = fetch(e.request).then((res) => {
-      if (res.ok) cache.put(e.request, res.clone());
-      return res;
-    }).catch(() => cached);
-    return cached ?? fresh;
-  }));
+    }
+    return res;
+  }).catch(() => caches.match(e.request)));
 });
