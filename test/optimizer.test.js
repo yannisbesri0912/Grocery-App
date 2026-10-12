@@ -120,6 +120,25 @@ test('mapsUrl : départ = position actuelle, magasins par nom et adresse, retour
   assert.equal(u.searchParams.get('travelmode'), 'walking');
 });
 
+test('retrait Collect : frais, minimum de commande et temps sur place réduit', () => {
+  const store = { id: 's', chain: 'cheap', name: 'S', lat: 50.821, lng: 4.395 };
+  const collect = { ...store, id: 's#collect', storeId: 's', name: 'Collect S', collect: { fee: 5, minOrder: 0, minutes: 5 } };
+  const plans = optimize({
+    items: [{ id: 'a', qty: 1 }], products, stores: [store, collect], chains, home,
+    settings: { valueOfTime: 60, maxStores: 2 },
+  });
+  const inStore = plans.find((p) => p.id === 's');
+  const pickup = plans.find((p) => p.id === 's#collect');
+  assert.equal(pickup.mode, 'collect');
+  assert.equal(pickup.fees, 5);
+  assert.equal(inStore.travel.minutes - pickup.travel.minutes, 7); // 12 min en rayon contre 5
+  assert.ok(!plans.some((p) => p.id.includes('s+s#collect') || p.id.includes('s#collect+s')), 'pas rayon + retrait au même magasin');
+  const minPlans = optimize({
+    items: [{ id: 'a', qty: 1 }], products, stores: [{ ...collect, collect: { fee: 0, minOrder: 30, minutes: 5 } }], chains, home,
+  });
+  assert.equal(minPlans.length, 0); // 8 € < minimum 30 €
+});
+
 test('récurrents : échéance et apprentissage de la fréquence', () => {
   const now = new Date('2026-10-12T10:00:00');
   const rec = [
@@ -144,6 +163,5 @@ test('données réelles : un plan complet est trouvé depuis le domicile', () =>
   const count = best.stops.reduce((n, s) => n + s.lines.length, 0);
   assert.equal(count, items.length);
   assert.match(mapsUrl(HOME, best), /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1/);
-  const collect = plans.find((p) => p.id === 'collectgo');
-  assert.equal(collect.stops[0].store.id, 'c1'); // retrait au Colruyt le plus proche
+
 });

@@ -133,9 +133,14 @@ function assign(lines, sellers, chains, overrides, real) {
   return { byStore, missing, goods: round2(goods) };
 }
 
+// Temps sur place : un retrait Collect (store.collect) est plus court qu'un
+// passage en rayon. nStops peut être un nombre ou la liste des arrêts.
 function travelCost(km, nStops, settings) {
   const mode = MODES[settings.mode] ?? MODES.walk;
-  const minutes = (km / mode.speed) * 60 + nStops * settings.minutesPerStore;
+  const onSite = Array.isArray(nStops)
+    ? nStops.reduce((m, s) => m + (s.collect?.minutes ?? settings.minutesPerStore), 0)
+    : nStops * settings.minutesPerStore;
+  const minutes = (km / mode.speed) * 60 + onSite;
   const cost = (minutes / 60) * settings.valueOfTime + km * mode.perKm;
   return { km, minutes: Math.round(minutes), cost: round2(cost) };
 }
@@ -179,17 +184,25 @@ export function optimize({
       // Un magasin sans article n'a rien à faire dans la tournée.
       const visited = subset.filter((s) => a.byStore[s.id].length);
       if (visited.length < subset.length) continue;
+      // Retrait Collect : minimum de commande par point de retrait.
+      const sub = (st) => a.byStore[st.id].reduce((t, l) => t + l.total, 0);
+      if (visited.some((st) => st.collect && sub(st) < (st.collect.minOrder ?? 0))) continue;
+      // Pas deux fois la même enseigne au même endroit (rayon + retrait).
+      if (new Set(visited.map((st) => st.storeId ?? st.id)).size < visited.length) continue;
       const route = bestRoute(home, visited, settings.detour);
-      const travel = travelCost(route.km, visited.length, settings);
+      const travel = travelCost(route.km, visited, settings);
+      const fees = round2(visited.reduce((f, st) => f + (st.collect?.fee ?? 0), 0));
+      const nCollect = visited.filter((st) => st.collect).length;
       plans.push({
         id: visited.map((s) => s.id).join('+'),
         kind: 'trip',
+        mode: nCollect === visited.length ? 'collect' : nCollect ? 'mixed' : 'store',
         label: visited.map((s) => s.name).join(' → '),
         stops: route.order.map((s) => ({ store: s, lines: a.byStore[s.id] })),
         goods: a.goods,
-        fees: 0,
+        fees,
         travel,
-        total: round2(a.goods + travel.cost),
+        total: round2(a.goods + fees + travel.cost),
       });
     }
   }
@@ -215,6 +228,7 @@ export function optimize({
     plans.push({
       id: d.id,
       kind: 'delivery',
+      mode: d.pickupStore || d.pickupChain ? 'collect' : 'delivery',
       label: pickup ? `${d.name.replace(/\s*\(.*\)$/, '')} (retrait ${pickup.name})` : d.name,
       delivery: d,
       stops: [{ store: pickup ?? { ...d, address: 'Livraison à domicile' }, lines: a.byStore[d.id] }],

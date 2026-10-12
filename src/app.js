@@ -1,4 +1,4 @@
-import { CHAINS, DELIVERY, CATEGORIES, PRODUCTS } from './data.js';
+import { CHAINS, COLLECT, DELIVERY, CATEGORIES, PRODUCTS } from './data.js';
 import {
   MODES, DEFAULT_SETTINGS, optimize, priceInfo, mapsUrl, dueRecurring, learnFrequency, isOpen, haversineKm,
 } from './optimizer.js';
@@ -16,7 +16,11 @@ function defaults() {
     overrides: {}, // { productId: { chain: prix } } prix saisis à la main
     custom: [], // produits ajoutés par l'utilisateur
     chainIndex: {}, // indices de prix modifiés
-    settings: { ...DEFAULT_SETTINGS, autoAdd: true, radiusKm: 3, reminderDay: 6, reminderTime: '10:00' },
+    settings: {
+      ...DEFAULT_SETTINGS, autoAdd: true, radiusKm: 3, reminderDay: 6, reminderTime: '10:00',
+      planMode: 'collect', // retrait Collect en priorité
+      collect: { colruyt: { fee: COLLECT.colruyt.fee, minOrder: COLLECT.colruyt.minOrder }, delhaize: { fee: COLLECT.delhaize.fee, minOrder: COLLECT.delhaize.minOrder } },
+    },
     home: null, // { address, lat, lng } : choisi par l'utilisateur
     stores: [], // supermarchés trouvés autour du domicile
     history: [],
@@ -26,7 +30,9 @@ function defaults() {
 // Anciennes versions : une adresse et des magasins étaient pré-remplis.
 // On les efface pour repartir de l'adresse choisie par l'utilisateur.
 function migrate(saved) {
-  const s = { ...defaults(), ...saved, settings: { ...defaults().settings, ...saved.settings } };
+  const d = defaults();
+  const s = { ...d, ...saved, settings: { ...d.settings, ...saved.settings } };
+  s.settings.collect = { ...d.settings.collect, ...(saved.settings?.collect ?? {}) };
   const legacy = !Array.isArray(saved.stores); // les anciennes versions n'avaient pas de magasins trouvés
   if (legacy) { s.home = null; s.stores = []; }
   delete s.coords; delete s.geocoded; delete s.geocodeTried;
@@ -98,16 +104,25 @@ function logo(chain, size = '') {
 
 const KIND = {
   promo: '<span class="pill promo">promo</span>',
-  estimate: '<span class="pill">estimé</span>',
+  estimate: '<span class="pill warn">approx.</span>',
   user: '<span class="pill">ton prix</span>',
   real: '',
 };
+
+// Points de retrait : chaque Colruyt / Delhaize trouvé peut servir de retrait Collect.
+function collectPoints() {
+  const ex = new Set(state.settings.excluded);
+  return state.stores.filter((st) => COLLECT[st.chain] && !ex.has(st.id)).map((st) => {
+    const c = { ...COLLECT[st.chain], ...(state.settings.collect?.[st.chain] ?? {}) };
+    return { ...st, id: `${st.id}#collect`, storeId: st.id, name: `${c.name} · ${st.name}`, collect: c };
+  });
+}
 
 function computePlans() {
   return optimize({
     items: state.list,
     products: allProducts(),
-    stores: state.stores,
+    stores: [...state.stores, ...collectPoints()],
     delivery: DELIVERY,
     chains: chains(),
     overrides: state.overrides,
@@ -299,9 +314,13 @@ function routeLogos(plan) {
   return `<div class="route">${plan.stops.map((s, i) => `${i ? `<span class="arrow">${icon('arrow')}</span>` : ''}${logo(s.store.chain)}`).join('')}</div>`;
 }
 
+const PLAN_MODES = [['collect', 'Retrait Collect'], ['store', 'En magasin'], ['all', 'Tout']];
+const modeOk = (p, m) => m === 'all' || p.mode === m;
+
 function prefsBar() {
   const s = state.settings;
   return `<div class="stack">
+    <div class="seg" role="group" aria-label="Façon de faire les courses">${PLAN_MODES.map(([k, l]) => `<button data-action="set" data-key="planMode" data-val="${k}" aria-pressed="${s.planMode === k}">${l}</button>`).join('')}</div>
     <div class="seg" role="group" aria-label="Déplacement">${Object.entries(MODES).map(([k, m]) => `<button data-action="set" data-key="mode" data-val="${k}" aria-pressed="${s.mode === k}">${m.label}</button>`).join('')}</div>
     <div class="seg" role="group" aria-label="Nombre de magasins au maximum">${[1, 2, 3].map((n) => `<button data-action="set" data-key="maxStores" data-val="${n}" data-num aria-pressed="${s.maxStores === n}">${n} magasin${n > 1 ? 's' : ''}</button>`).join('')}</div>
   </div>`;
@@ -310,9 +329,15 @@ function prefsBar() {
 function viewPlan() {
   if (!state.list.length) return `<h1>Meilleur plan</h1><div class="empty">${icon('route')}<b>Ajoute d'abord des produits à ta liste</b><button class="btn primary" data-tab="list">Ouvrir ma liste</button></div>`;
   if (!state.stores.length) return `<h1>Meilleur plan</h1><div class="card">${icon('pin')}<b>Aucun supermarché trouvé autour de ton adresse.</b><p class="small muted">Vérifie l'adresse ou élargis le rayon dans Réglages.</p><button class="btn primary" data-tab="settings">Réglages</button></div>`;
-  lastPlans = computePlans();
-  if (!lastPlans.length) return `<h1>Meilleur plan</h1>${prefsBar()}<div class="empty">${icon('route')}<b>Aucun plan possible</b><span>Magasins exclus, ou produits introuvables avec ces réglages.</span></div>`;
-  const singles = lastPlans.filter((p) => p.kind === 'trip' && p.stops.length === 1);
+  const allPlans = computePlans();
+  lastPlans = allPlans.filter((p) => modeOk(p, state.settings.planMode));
+  if (!lastPlans.length) {
+    const why = state.settings.planMode === 'collect'
+      ? 'Pas de Colruyt ou de Delhaize avec retrait dans ton rayon, ou commande sous le minimum (Delhaize Collect : 30 €).'
+      : 'Magasins exclus, ou produits introuvables avec ces réglages.';
+    return `<h1>Meilleur plan</h1>${prefsBar()}<div class="empty">${icon('route')}<b>Aucun plan possible</b><span>${why}</span>${allPlans.length ? '<button class="btn soft" data-action="set" data-key="planMode" data-val="all">Voir toutes les options</button>' : ''}</div>`;
+  }
+  const singles = allPlans.filter((p) => p.mode === 'store' && p.stops.length === 1);
   const nearest = [...singles].sort((a, b) => a.travel.km - b.travel.km)[0];
   const plan = lastPlans.find((p) => p.id === shownPlan) ?? lastPlans[0];
   const isBest = plan === lastPlans[0];
@@ -325,10 +350,12 @@ function viewPlan() {
     const status = st.hours ? (isOpen(st, new Date()) ? `<span class="pill good">ouvert · ${esc(todayHours(st.hours))}</span>` : `<span class="pill warn">fermé maintenant</span>`) : '';
     return `<div class="card">
       <div class="stop-head">
-        ${plan.kind === 'trip' ? `<span class="step-num">${i + 1}</span>` : ''}${logo(st.chain, 'lg')}
+        ${plan.kind === 'trip' && plan.stops.length > 1 ? `<span class="step-num">${i + 1}</span>` : ''}${logo(st.chain, 'lg')}
         <div class="grow"><h3>${esc(st.name)}</h3><div class="small muted">${esc(st.address ?? '')}${km != null ? ` · ${km.toFixed(1)} km` : ''}</div></div>
         <b class="num">${eur(sub)}</b>
       </div>
+      ${st.collect ? `<div class="row wrap"><span class="pill good">retrait${st.collect.fee ? ` · ${eur(st.collect.fee)} de frais` : ' gratuit'}${st.collect.minOrder ? ` · min. ${eur(st.collect.minOrder)}` : ''}</span><a class="btn soft" style="min-height:36px" target="_blank" rel="noopener" href="${esc(st.collect.url)}">${icon('cart')} Commander</a></div>
+        <p class="tiny muted">Choisis ce magasin comme point de retrait sur le site (vérifie qu'il propose le retrait).</p>` : ''}
       ${status ? `<div>${status}</div>` : ''}
       <ul class="items">${s.lines.map((l) => {
         const item = state.list.find((x) => x.id === l.product.id);
@@ -346,19 +373,21 @@ function viewPlan() {
     ${prefsBar()}
     <section class="hero">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div class="stack" style="gap:6px"><span class="eyebrow">${isBest ? 'Le moins cher au total' : 'Autre option'}${plan.kind === 'delivery' ? ' · commande en ligne' : ''}</span>
+        <div class="stack" style="gap:6px"><span class="eyebrow">${isBest ? 'Le moins cher au total' : 'Autre option'}${plan.mode === 'collect' ? ' · retrait' : plan.mode === 'mixed' ? ' · retrait + magasin' : plan.kind === 'delivery' ? ' · livraison' : ''}</span>
           <span class="plan-name">${esc(plan.label)}</span>
           <div class="total num">${eur(plan.total)}</div>
           ${isBest && saving > 0.01 ? `<span class="saving">−${eur(saving)} vs le magasin le plus proche</span>` : ''}
+          ${isBest && allPlans[0] && allPlans[0].total < plan.total - 0.01 && state.settings.planMode !== 'all' ? `<span class="tiny">Toutes options confondues : ${eur(allPlans[0].total)} (${esc(allPlans[0].label)})</span>` : ''}
         </div>
         ${routeLogos(plan)}
       </div>
       <div class="stats">
         <div><b class="num">${eur(plan.goods)}</b><span>courses</span></div>
         <div><b class="num">${plan.travel.minutes} min</b><span>${plan.travel.km.toFixed(1)} km</span></div>
-        <div><b class="num">${eur(plan.travel.cost + plan.fees)}</b><span>${plan.fees ? 'frais + temps' : 'ton temps'}</span></div>
+        <div><b class="num">${eur(plan.travel.cost + plan.fees)}</b><span>${plan.fees ? `dont ${eur(plan.fees)} de frais` : 'ton temps'}</span></div>
       </div>
     </section>
+    ${planWarnings(plan)}
     <div class="actions">
       ${plan.kind === 'trip' || plan.stops[0]?.store.lat != null
         ? `<a class="btn" target="_blank" rel="noopener" href="${esc(mapsUrl(state.home, plan, state.settings.mode))}">${icon('map')}Itinéraire</a>`
@@ -374,7 +403,7 @@ function viewPlan() {
         <span class="grow small">${esc(p.label)}</span>
         <span style="text-align:right"><b class="num">${eur(p.total)}</b><br><span class="diff num">+${eur(p.total - lastPlans[0].total)}</span></span>
       </button>`).join('')}</div>` : ''}
-    <p class="foot">${priceSourcesNote()}<br>Coût total = courses + frais + ton temps (${eur(state.settings.valueOfTime)}/h, modifiable dans Réglages).</p>`;
+    <p class="foot">${priceSourcesNote()} <a href="#" data-tab="prices">Fiabilité des prix</a><br>Coût total = courses + frais + ton temps (${eur(state.settings.valueOfTime)}/h, modifiable dans Réglages).</p>`;
 }
 
 function priceSourcesNote() {
@@ -382,6 +411,52 @@ function priceSourcesNote() {
   const real = ['colruyt', 'delhaize', 'aldi'].filter((c) => src[c]?.date).map((c) => `${CHAINS[c].name} ${dateFr(src[c].date)}`);
   const promos = src.promos?.date ? ' · Promos via <a href="https://www.prijsprofeet.be" target="_blank" rel="noopener">PrijsProfeet</a>' : '';
   return `${real.length ? `Prix réels : ${real.join(', ')}. Autres enseignes : estimés.` : 'Prix estimés.'}${promos} · Magasins © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>`;
+}
+
+// ---------- Fiabilité et fraîcheur des prix ----------
+const REAL_CHAINS = ['colruyt', 'delhaize', 'aldi'];
+const ageDays = (iso) => (iso ? Math.floor((Date.now() - new Date(`${iso.slice(0, 10)}T12:00:00`).getTime()) / DAY) : null);
+const STALE_DAYS = 2;
+
+function chainStatus(chain) {
+  const src = PRICES.sources?.[chain];
+  if (REAL_CHAINS.includes(chain) && src?.date) {
+    const age = ageDays(src.date);
+    const stale = src.ok === false || age > STALE_DAYS;
+    return { kind: 'real', date: src.date, age, stale, error: src.ok === false ? src.error : null };
+  }
+  return { kind: 'approx', promos: PRICES.sources?.promos?.date && ['lidl', 'colruyt', 'delhaize', 'aldi'].includes(chain) ? PRICES.sources.promos.date : null };
+}
+
+function ago(age) {
+  return age <= 0 ? "aujourd'hui" : age === 1 ? 'hier' : `il y a ${age} jours`;
+}
+
+function freshnessCard() {
+  const chainsShown = state.stores.length ? [...new Set(state.stores.map((st) => st.chain))] : Object.keys(CHAINS);
+  const robot = PRICES.updatedAt ? new Date(PRICES.updatedAt) : null;
+  return `<div class="card">
+    <div class="section-head"><h2>Fiabilité des prix</h2>${robot ? `<span class="tiny muted">robot : ${robot.toLocaleDateString('fr-BE', { day: 'numeric', month: 'short' })} ${robot.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}</span>` : ''}</div>
+    <div class="store-list">${chainsShown.map((c) => {
+      const st = chainStatus(c);
+      const line = st.kind === 'real'
+        ? `${st.stale ? '⚠️ ' : ''}Vrais prix relevés le ${dateFr(st.date)} (${ago(st.age)})${st.stale ? ' — pas mis à jour, le robot a peut-être été bloqué' : ''}`
+        : `Prix approximatifs, estimés d'après Colruyt${st.promos ? ` · promos du ${dateFr(st.promos)}` : ''}`;
+      return `<div class="store">${logo(c)}<div class="grow"><b>${esc(CHAINS[c].name)}</b><div class="small ${st.kind === 'real' && !st.stale ? 'muted' : 'warn-text'}">${esc(line)}</div></div>
+        <span class="pill ${st.kind === 'real' && !st.stale ? 'good' : 'warn'}">${st.kind === 'real' ? (st.stale ? 'ancien' : 'réel') : 'approx.'}</span></div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+// Alertes pour un plan : prix approximatifs ou périmés utilisés.
+function planWarnings(plan) {
+  const lines = plan.stops.flatMap((st) => st.lines.map((l) => ({ chain: st.store.chain, kind: l.info?.kind })));
+  const approx = [...new Set(lines.filter((l) => l.kind === 'estimate').map((l) => CHAINS[l.chain].name))];
+  const stale = [...new Set(plan.stops.map((st) => st.store.chain).filter((c) => chainStatus(c).stale))];
+  const out = [];
+  if (approx.length) out.push(`Prix approximatifs pour ${approx.join(', ')} : vérifie en magasin.`);
+  for (const c of stale) out.push(`Prix ${CHAINS[c].name} du ${dateFr(chainStatus(c).date)} : pas mis à jour depuis ${ageDays(chainStatus(c).date)} jours.`);
+  return out.length ? `<div class="banner warn-banner">⚠️<span class="grow small">${out.map(esc).join('<br>')}</span></div>` : '';
 }
 
 function planText(plan) {
@@ -487,6 +562,7 @@ function viewPrices() {
   const shown = state.stores.length ? [...new Set(state.stores.map((s) => s.chain))] : Object.keys(ch);
   return `
     <h1>Prix</h1>
+    ${freshnessCard()}
     <div class="searchbox">${icon('search')}<input type="search" id="price-search" placeholder="Comparer un produit…" value="${esc(priceSearch)}" autocomplete="off"></div>
     <p class="small muted">${q ? '' : state.list.length ? 'Les produits de ta liste.' : 'Quelques exemples.'} Touche un prix pour le corriger avec celui de ton ticket.</p>
     ${list.map((p) => {
@@ -515,6 +591,16 @@ function viewSettings() {
       <h2>Rayon de recherche</h2>
       <div class="seg">${[1.5, 3, 5].map((r) => `<button data-action="radius" data-val="${r}" aria-pressed="${s.radiusKm === r}">${String(r).replace('.', ',')} km</button>`).join('')}</div>
     </div>` : ''}
+    <div class="card">
+      <h2>Retrait (Collect)</h2>
+      <div class="grid2">
+        <label class="field"><span class="row">${logo('colruyt', 'sm')}Collect&Go : frais (€)</span><input type="number" min="0" step="0.05" data-collect="colruyt.fee" value="${s.collect.colruyt.fee}"></label>
+        <label class="field"><span class="row">${logo('colruyt', 'sm')}Collect&Go : minimum (€)</span><input type="number" min="0" step="1" data-collect="colruyt.minOrder" value="${s.collect.colruyt.minOrder}"></label>
+        <label class="field"><span class="row">${logo('delhaize', 'sm')}Delhaize Collect : frais (€)</span><input type="number" min="0" step="0.05" data-collect="delhaize.fee" value="${s.collect.delhaize.fee}"></label>
+        <label class="field"><span class="row">${logo('delhaize', 'sm')}Delhaize Collect : minimum (€)</span><input type="number" min="0" step="1" data-collect="delhaize.minOrder" value="${s.collect.delhaize.minOrder}"></label>
+      </div>
+      <p class="tiny muted">Valeurs relevées le 12 oct. 2026 (Collect&Go : « à partir de 5,95 € » ; Delhaize : retrait gratuit, minimum de 30 € encore indiqué sur une page). Corrige-les si ton panier en ligne affiche autre chose.</p>
+    </div>
     <div class="card">
       <h2>Calcul</h2>
       <div class="grid2">
@@ -698,6 +784,13 @@ view.addEventListener('change', (e) => {
     state.settings[t.dataset.setting] = v;
     save();
     render();
+    return;
+  }
+  if (t.dataset.collect) {
+    const [chain, key] = t.dataset.collect.split('.');
+    state.settings.collect[chain][key] = Math.max(0, Number(t.value) || 0);
+    save();
+    toast('Enregistré');
     return;
   }
   const a = t.dataset.action;

@@ -14,16 +14,21 @@ export const CHAINS = {
   ah:         { name: 'Albert Heijn',      index: 105, color: '#00a0e2', domain: 'ah.be' },
 };
 
-// Options sans déplacement (ou retrait). minOrder : minimum de commande (€).
-// pickupChain : retrait dans le magasin le plus proche de cette enseigne.
+// Retrait en magasin (« Collect ») : chaque magasin de ces enseignes peut servir
+// de point de retrait. Valeurs par défaut, modifiables dans Réglages :
+//  - Colruyt Collect&Go : frais de service « à partir de 5,95 € » (collectandgo.be)
+//  - Delhaize Collect : retrait gratuit (communiqué Delhaize) ; un minimum de 30 €
+//    figure encore sur une page du site, on le garde par prudence.
+export const COLLECT = {
+  colruyt: { name: 'Collect&Go', fee: 5.95, minOrder: 0, minutes: 5, url: 'https://www.collectandgo.be/fr' },
+  delhaize: { name: 'Delhaize Collect', fee: 0, minOrder: 30, minutes: 5, url: 'https://www.delhaize.be/fr/collect' },
+};
+
+// Livraison à domicile (sans déplacement).
 export const DELIVERY = [
   {
-    id: 'collectgo', chain: 'colruyt', name: 'Collect&Go (retrait Colruyt)',
-    fee: 0, minOrder: 0, pickupChain: 'colruyt', url: 'https://www.collectandgo.be/',
-  },
-  {
     id: 'delhaize-home', chain: 'delhaize', name: 'Delhaize livraison à domicile',
-    fee: 6.95, minOrder: 50, url: 'https://www.delhaize.be/',
+    fee: 6.95, minOrder: 50, url: 'https://www.delhaize.be/fr/shoponline',
   },
 ];
 

@@ -1,5 +1,5 @@
 // Hors-ligne : sert le cache immédiatement puis le met à jour en arrière-plan.
-const CACHE = 'grocery-opti-v3';
+const CACHE = 'grocery-opti-v4';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
   'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js'];
 
