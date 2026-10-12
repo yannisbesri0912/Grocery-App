@@ -1,0 +1,1221 @@
+{
+ "updatedAt": "2026-10-12T14:02:20.776Z",
+ "sources": {
+  "colruyt": {
+   "date": "2026-10-11",
+   "matched": 68,
+   "ok": true,
+   "note": "catalogue colruyt-products/2026-10-11-14-44-16.json"
+  },
+  "delhaize": {
+   "date": "2026-10-12",
+   "matched": 5,
+   "ok": true
+  },
+  "aldi": {
+   "date": "2026-10-12",
+   "matched": 44,
+   "ok": true
+  },
+  "promos": {
+   "date": "2026-10-12",
+   "matched": 27,
+   "ok": true,
+   "note": "PrijsProfeet"
+  }
+ },
+ "items": {
+  "bananes": {
+   "colruyt": {
+    "price": 1.13,
+    "article": "EVERYDAY bananen ±1kg",
+    "pack": 1.13,
+    "unitPrice": 1.13,
+    "unit": "kg"
+   }
+  },
+  "pommes": {
+   "colruyt": {
+    "price": 1.7,
+    "article": "BONI appel jonagold 6st",
+    "pack": 1.7,
+    "unitPrice": 1.7,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 1.05,
+    "article": "Delhaize Gekke appelen | Verpakt 1,5 kg",
+    "pack": 1.57,
+    "unitPrice": 1.047,
+    "unit": "kg",
+    "url": "https://www.delhaize.be/nl/shop/Verse-groenten-en-fruit/Vers-fruit/Appelen-en-peren/Appelen/Gekke-appelen-Verpakt/p/F2017071900003540000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 1.59,
+    "article": "Pommes duchesse 1 kg",
+    "pack": 1.59,
+    "unitPrice": 1.59,
+    "unit": "kg"
+   }
+  },
+  "oranges": {
+   "colruyt": {
+    "price": 2.69,
+    "article": "EVERYDAY Sinaasappel Eet | Pers 4kg",
+    "pack": 5.38,
+    "unitPrice": 1.345,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 2.5,
+    "article": "Sinaasappels 2 kg",
+    "pack": 2.5,
+    "unitPrice": 1.25,
+    "unit": "kg"
+   }
+  },
+  "citrons": {
+   "colruyt": {
+    "price": 0.99,
+    "article": "BONI Citroenen 1kg",
+    "pack": 1.98,
+    "unitPrice": 1.98,
+    "unit": "kg"
+   }
+  },
+  "tomates": {
+   "colruyt": {
+    "price": 1.29,
+    "article": "tomaten extra",
+    "pack": 1.29,
+    "unitPrice": 1.29,
+    "unit": "kg"
+   }
+  },
+  "concombre": {
+   "colruyt": {
+    "price": 0.89,
+    "article": "komkommer",
+    "pack": 0.89,
+    "unitPrice": 0.89,
+    "unit": "pc"
+   }
+  },
+  "salade": {
+   "colruyt": {
+    "price": 0.98,
+    "article": "sla uit serre 1st",
+    "pack": 0.98,
+    "unitPrice": 0.981,
+    "unit": "pc"
+   }
+  },
+  "carottes": {
+   "colruyt": {
+    "price": 0.72,
+    "article": "EVERYDAY wortelen 2kg",
+    "pack": 1.43,
+    "unitPrice": 0.715,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1,
+    "article": "Wortelen 1kg",
+    "pack": 1,
+    "unitPrice": 1,
+    "unit": "kg"
+   }
+  },
+  "oignons": {
+   "colruyt": {
+    "price": 0.9,
+    "article": "EVERYDAY uien 2kg",
+    "pack": 1.79,
+    "unitPrice": 0.895,
+    "unit": "kg"
+   }
+  },
+  "ail": {
+   "colruyt": {
+    "price": 1.34,
+    "article": "EVERYDAY Knoflook 250g",
+    "pack": 1.34,
+    "unitPrice": 5.36,
+    "unit": "kg"
+   }
+  },
+  "pdt": {
+   "colruyt": {
+    "price": 2.38,
+    "article": "Aardappelen matig vastkokend",
+    "pack": 0.95,
+    "unitPrice": 0.95,
+    "unit": "kg"
+   }
+  },
+  "courgettes": {
+   "colruyt": {
+    "price": 3.49,
+    "article": "Ronde Courgettes (los)",
+    "pack": 3.49,
+    "unitPrice": 3.49,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1.99,
+    "article": "Courgettes 1 kg",
+    "pack": 1.99,
+    "unitPrice": 1.99,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 6.73,
+    "article": "Spaghettis | de courgettes 400 gr",
+    "pack": 2.69,
+    "unitPrice": 6.725,
+    "unit": "kg",
+    "url": "/fr/shop/Vite-et-vraiment-bon/Pret-a-cuisiner/Composants-du-repas/Legumes-et-fruits/Spaghettis-de-courgettes/p/F2022041100098610000"
+   }
+  },
+  "poivrons": {
+   "colruyt": {
+    "price": 1.15,
+    "article": "rode paprika",
+    "pack": 2.29,
+    "unitPrice": 2.29,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 2.71,
+    "article": "Max paprika 2 x 275 g",
+    "pack": 2.98,
+    "unitPrice": 5.418,
+    "unit": "kg"
+   }
+  },
+  "brocoli": {
+   "colruyt": {
+    "price": 1,
+    "article": "broccoli 1st 500g",
+    "pack": 1,
+    "unitPrice": 2,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 0.9,
+    "article": "Broccoli 1 kg",
+    "pack": 1.79,
+    "unitPrice": 1.79,
+    "unit": "kg"
+   }
+  },
+  "champignons": {
+   "colruyt": {
+    "price": 1.67,
+    "article": "EVERYDAY champignons middelgroot 500g",
+    "pack": 1.67,
+    "unitPrice": 3.34,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 2.99,
+    "article": "Tagliatelle champignons of penne arrabbiata 400 g",
+    "pack": 2.39,
+    "unitPrice": 5.975,
+    "unit": "kg"
+   }
+  },
+  "avocats": {
+   "colruyt": {
+    "price": 0.98,
+    "article": "BONI hass avocado 5st",
+    "pack": 2.45,
+    "unitPrice": 0.49,
+    "unit": "pc"
+   }
+  },
+  "pain": {
+   "colruyt": {
+    "price": 0.99,
+    "article": "EVERYDAY bruin brood gesneden 800g",
+    "pack": 0.99,
+    "unitPrice": 1.237,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 3.09,
+    "article": "Boerkens Brood | Boerken | Volkoren 600 gr",
+    "pack": 2.32,
+    "unitPrice": 3.867,
+    "unit": "kg",
+    "url": "https://www.delhaize.be/nl/shop/Bakkerij-en-banket/Voorverpakt-brood/Voorverpakt-gesneden-brood/Duits-brood/Brood-Boerken-Volkoren/p/F2021090600086430000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 0.99,
+    "article": "Bruin brood 800 g",
+    "pack": 0.99,
+    "unitPrice": 1.237,
+    "unit": "kg"
+   }
+  },
+  "baguette": {
+   "colruyt": {
+    "price": 0.46,
+    "article": "EVERYDAY 1/2 wit stokbrood 4x150g",
+    "pack": 1.1,
+    "unitPrice": 1.833,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1.29,
+    "article": "Rustieke baguette 250 g",
+    "pack": 1.29,
+    "unitPrice": 5.16,
+    "unit": "kg"
+   }
+  },
+  "cereales": {
+   "colruyt": {
+    "price": 0.89,
+    "article": "EVERYDAY Cornflakes 750g",
+    "pack": 1.33,
+    "unitPrice": 1.773,
+    "unit": "kg"
+   }
+  },
+  "lait": {
+   "colruyt": {
+    "price": 0.52,
+    "article": "BONI halfvolle melk PET 1L",
+    "pack": 0.52,
+    "unitPrice": 0.52,
+    "unit": "l",
+    "promo": true,
+    "until": null
+   },
+   "aldi": {
+    "price": 0.85,
+    "article": "Halfvolle melk 1 l",
+    "pack": 0.85,
+    "unitPrice": 0.85,
+    "unit": "l"
+   }
+  },
+  "oeufs": {
+   "colruyt": {
+    "price": 3.99,
+    "article": "BONI Eieren vrij uitloopM 12st",
+    "pack": 3.99,
+    "unitPrice": 0.333,
+    "unit": "pc"
+   },
+   "delhaize": {
+    "price": 4.19,
+    "article": "oeufs au sol | Mix calibre | 10pc",
+    "pack": 3.49,
+    "unitPrice": 0.349,
+    "unit": "pc",
+    "url": "/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Oeufs/Oeufs-frais/oeufs-au-sol-Mix-calibre-10pc/p/F2022083100106340000"
+   },
+   "aldi": {
+    "price": 5.98,
+    "article": "Bio-eieren 6 st",
+    "pack": 2.99,
+    "unitPrice": 0.498,
+    "unit": "pc"
+   }
+  },
+  "beurre": {
+   "colruyt": {
+    "price": 2.69,
+    "article": "BONI boter HV ongezouten 250g",
+    "pack": 2.69,
+    "unitPrice": 10.76,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 3,
+    "article": "Artisanale zachte boter 500 g",
+    "pack": 5.99,
+    "unitPrice": 11.98,
+    "unit": "kg"
+   }
+  },
+  "yaourts": {
+   "colruyt": {
+    "price": 1.19,
+    "article": "EVERYDAY yoghurt mager 8x125g",
+    "pack": 1.19,
+    "unitPrice": 1.19,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1.19,
+    "article": "Magere yoghurt 8 x 125 g",
+    "pack": 1.19,
+    "unitPrice": 1.19,
+    "unit": "kg"
+   }
+  },
+  "gouda": {
+   "colruyt": {
+    "price": 2.65,
+    "article": "EVERYDAY gouda jong sneetjes korst 500g",
+    "pack": 4.42,
+    "unitPrice": 8.84,
+    "unit": "kg"
+   }
+  },
+  "emmental": {
+   "colruyt": {
+    "price": 1.59,
+    "article": "EVERYDAY emmental geraspt 500g",
+    "pack": 3.97,
+    "unitPrice": 7.94,
+    "unit": "kg"
+   }
+  },
+  "mozzarella": {
+   "colruyt": {
+    "price": 0.69,
+    "article": "EVERYDAY mozzarella 125g",
+    "pack": 0.69,
+    "unitPrice": 5.52,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 0.69,
+    "article": "Mozzarella 125 g",
+    "pack": 0.69,
+    "unitPrice": 5.52,
+    "unit": "kg"
+   }
+  },
+  "creme": {
+   "colruyt": {
+    "price": 1.09,
+    "article": "BONI Zure Room 15% vet 20cl",
+    "pack": 1.09,
+    "unitPrice": 5.45,
+    "unit": "l"
+   }
+  },
+  "skyr": {
+   "colruyt": {
+    "price": 1.39,
+    "article": "BONI Skyr natuur 500g",
+    "pack": 1.39,
+    "unitPrice": 2.78,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 2.77,
+    "article": "Arla Skyr | Yoghurt | Natuur 450 gr",
+    "pack": 2.49,
+    "unitPrice": 5.533,
+    "unit": "kg",
+    "url": "https://www.delhaize.be/nl/shop/Zuivel-kaas-en-plantaardige-alternatieven/Yoghurt-en-plantaardige-alternatieven/Skyr-kefir-en-Turkse-yoghurt/Skyr-Yoghurt-Natuur/p/F2017121400370810000",
+    "promo": "promo",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 1.39,
+    "article": "Skyr natuur 500 g",
+    "pack": 1.39,
+    "unitPrice": 2.78,
+    "unit": "kg"
+   }
+  },
+  "poulet": {
+   "colruyt": {
+    "price": 7.75,
+    "article": "Kipfilet 1kg",
+    "pack": 7.75,
+    "unitPrice": 7.75,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 6.24,
+    "article": "Kippenborstfilet 2 x 600 g",
+    "pack": 7.49,
+    "unitPrice": 6.242,
+    "unit": "kg"
+   },
+   "lidl": {
+    "price": 7.49,
+    "article": "Kippenborsthaasjes XXL 1 kg",
+    "pack": 7.49,
+    "unitPrice": 7.49,
+    "unit": "kg",
+    "url": "https://www.lidl.be/p/nl-BE/kippenborsthaasjes-xxl/p10031420",
+    "promo": "percentage",
+    "until": "2026-10-18",
+    "promoOnly": true
+   }
+  },
+  "hache": {
+   "colruyt": {
+    "price": 1.87,
+    "article": "GEHAKT VARKEN RUND ±500g",
+    "pack": 3.74,
+    "unitPrice": 3.74,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 4.2,
+    "article": "Bereid gehakt varken/kalf 1 kg",
+    "pack": 8.39,
+    "unitPrice": 8.39,
+    "unit": "kg"
+   }
+  },
+  "jambon": {
+   "colruyt": {
+    "price": 3.12,
+    "article": "BONI Beenham zonder gluten 150g",
+    "pack": 2.34,
+    "unitPrice": 15.6,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 3.45,
+    "article": "Beenham 150 g",
+    "pack": 2.59,
+    "unitPrice": 17.267,
+    "unit": "kg"
+   }
+  },
+  "saumon": {
+   "colruyt": {
+    "price": 5.99,
+    "article": "BONI Zalmfilet Atl. Graatls 2x125g",
+    "pack": 5.99,
+    "unitPrice": 23.96,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 6.69,
+    "article": "Verse zalmfilet 200 g",
+    "pack": 5.35,
+    "unitPrice": 26.75,
+    "unit": "kg"
+   }
+  },
+  "thon": {
+   "colruyt": {
+    "price": 1.79,
+    "article": "EVERYDAY tonijn zonnebloemolie MSC 200g",
+    "pack": 1.49,
+    "unitPrice": 7.45,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1.93,
+    "article": "Tonijn in olie 185 g",
+    "pack": 1.49,
+    "unitPrice": 8.054,
+    "unit": "kg"
+   }
+  },
+  "pates": {
+   "colruyt": {
+    "price": 0.9,
+    "article": "EVERYDAY spaghetti 500g",
+    "pack": 0.45,
+    "unitPrice": 0.9,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 1.78,
+    "article": "Pâtes | Spaghetti 500 gr",
+    "pack": 0.89,
+    "unitPrice": 1.78,
+    "unit": "kg",
+    "url": "/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Pates/Pates-blanches/Pates-Spaghetti/p/S2013041600151220000"
+   },
+   "aldi": {
+    "price": 0.9,
+    "article": "Spaghetti 500 g",
+    "pack": 0.45,
+    "unitPrice": 0.9,
+    "unit": "kg"
+   }
+  },
+  "riz": {
+   "colruyt": {
+    "price": 1.79,
+    "article": "BONI rijst basmati 2kg",
+    "pack": 3.58,
+    "unitPrice": 1.79,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 1.84,
+    "article": "Riz | Basmati 1 kg",
+    "pack": 1.84,
+    "unitPrice": 1.84,
+    "unit": "kg",
+    "url": "/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Riz/Riz-basmati/Riz-Basmati/p/S2018100200120350000"
+   }
+  },
+  "farine": {
+   "colruyt": {
+    "price": 0.35,
+    "article": "EVERYDAY bloem tarwe 1kg",
+    "pack": 0.35,
+    "unitPrice": 0.35,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 0.35,
+    "article": "Tarwebloem 1 kg",
+    "pack": 0.35,
+    "unitPrice": 0.35,
+    "unit": "kg"
+   }
+  },
+  "sucre": {
+   "colruyt": {
+    "price": 0.69,
+    "article": "EVERYDAY fijne kristalsuiker 1kg",
+    "pack": 0.69,
+    "unitPrice": 0.69,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 0.69,
+    "article": "Kristalsuiker 1 kg",
+    "pack": 0.69,
+    "unitPrice": 0.69,
+    "unit": "kg"
+   }
+  },
+  "huile": {
+   "colruyt": {
+    "price": 5.99,
+    "article": "EVERYDAY olijfolie bakken & braden 1L",
+    "pack": 5.99,
+    "unitPrice": 5.99,
+    "unit": "l"
+   },
+   "aldi": {
+    "price": 9.99,
+    "article": "Extra vierge olijfolie 750 ml",
+    "pack": 7.49,
+    "unitPrice": 9.987,
+    "unit": "l"
+   }
+  },
+  "tomates-conc": {
+   "colruyt": {
+    "price": 0.83,
+    "article": "EVERYDAY passata gezeefde tom. brik 500g",
+    "pack": 0.59,
+    "unitPrice": 1.18,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 0.83,
+    "article": "Passata 1 kg",
+    "pack": 1.18,
+    "unitPrice": 1.18,
+    "unit": "kg"
+   }
+  },
+  "cafe": {
+   "colruyt": {
+    "price": 2.49,
+    "article": "EVERYDAY koffie gemalen Moka RFA 500g",
+    "pack": 2.49,
+    "unitPrice": 4.98,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 5.5,
+    "article": "Rombouts Koffie | Dessert | Gemalen 250 gr",
+    "pack": 2.75,
+    "unitPrice": 11,
+    "unit": "kg",
+    "url": "https://www.delhaize.be/nl/shop/Koude-en-warme-dranken/Koffie/Gemalen/Koffie-Dessert-Gemalen/p/S1999092400041820001",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 3.89,
+    "article": "Gemalen koffie dessert 500 g",
+    "pack": 3.89,
+    "unitPrice": 7.78,
+    "unit": "kg"
+   }
+  },
+  "the": {
+   "colruyt": {
+    "price": 0.5,
+    "article": "BONI Earl Grey zwarte thee 25st",
+    "pack": 0.62,
+    "unitPrice": 0.025,
+    "unit": "pc"
+   }
+  },
+  "confiture": {
+   "colruyt": {
+    "price": 0.86,
+    "article": "EVERYDAY confituur aardbei 50% 700g",
+    "pack": 1.33,
+    "unitPrice": 1.9,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1.99,
+    "article": "Confituur rabarber-aardbei 450 g",
+    "pack": 1.99,
+    "unitPrice": 4.422,
+    "unit": "kg"
+   }
+  },
+  "chocolat": {
+   "colruyt": {
+    "price": 1.13,
+    "article": "Delacre Délichoc pure chocolade 150g",
+    "pack": 0.85,
+    "unitPrice": 5.667,
+    "unit": "kg",
+    "url": "https://www.colruyt.be/nl/producten/13203",
+    "promo": "percentage",
+    "until": "2026-10-20",
+    "regular": {
+     "price": 1.32,
+     "article": "BONI Choconimo Puur Chocolade 225g",
+     "pack": 1.49,
+     "unitPrice": 6.622,
+     "unit": "kg"
+    }
+   },
+   "aldi": {
+    "price": 1.65,
+    "article": "Pure chocolade 2 x 200 g",
+    "pack": 3.29,
+    "unitPrice": 8.225,
+    "unit": "kg"
+   }
+  },
+  "pois-chiches": {
+   "colruyt": {
+    "price": 0.85,
+    "article": "BONI PLAN'T kikkererwten 200g",
+    "pack": 0.43,
+    "unitPrice": 2.135,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 1.19,
+    "article": "Gekookte kikkererwten 400 g",
+    "pack": 1.19,
+    "unitPrice": 2.975,
+    "unit": "kg"
+   }
+  },
+  "mayonnaise": {
+   "colruyt": {
+    "price": 1.15,
+    "article": "EVERYDAY mayonaise met eieren 500ml",
+    "pack": 1.15,
+    "unitPrice": 2.3,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 2.21,
+    "article": "Calvé Mayonaise | Met eieren | 430 ml 43 cl",
+    "pack": 1.9,
+    "unitPrice": 4.419,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Zoute-kruidenierswaren/Sauzen/Mayonaise/Mayonaise-Met-eieren-430-ml/p/S2011031000010560000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 1.15,
+    "article": "Mayonaise met ei 500 ml",
+    "pack": 1.15,
+    "unitPrice": 2.3,
+    "unit": "l"
+   }
+  },
+  "nutella": {
+   "colruyt": {
+    "price": 3.66,
+    "article": "NUTELLA Chocopasta 1kg",
+    "pack": 4.88,
+    "unitPrice": 4.88,
+    "unit": "kg"
+   },
+   "aldi": {
+    "price": 4.79,
+    "article": "Nutella 750 g",
+    "pack": 4.79,
+    "unitPrice": 6.387,
+    "unit": "kg"
+   }
+  },
+  "legumes-surg": {
+   "colruyt": {
+    "price": 1.09,
+    "article": "BONI bladspinazie in porties 1,5kg",
+    "pack": 1.63,
+    "unitPrice": 1.087,
+    "unit": "kg"
+   }
+  },
+  "frites": {
+   "colruyt": {
+    "price": 1,
+    "article": "EVERYDAY frieten 2,5kg",
+    "pack": 2.49,
+    "unitPrice": 0.996,
+    "unit": "kg"
+   }
+  },
+  "pizza": {
+   "colruyt": {
+    "price": 1.45,
+    "article": "BONI Pizza Mozzarella 2x335g",
+    "pack": 2.78,
+    "unitPrice": 4.149,
+    "unit": "kg"
+   },
+   "delhaize": {
+    "price": 4.58,
+    "article": "Delhaize Pizza | Mozzarella | Pesto 420 gr",
+    "pack": 5.5,
+    "unitPrice": 13.095,
+    "unit": "kg",
+    "url": "https://www.delhaize.be/nl/shop/Snel-en-smakelijk/Klaar-om-te-eten/Pizza-en-pinsa/Pizza/Pizza-Mozzarella-Pesto/p/F2025052200157620000",
+    "promo": "multi_buy",
+    "until": "2026-12-31",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 2.15,
+    "article": "Pizza quattro formaggi 340 g",
+    "pack": 2.09,
+    "unitPrice": 6.147,
+    "unit": "kg"
+   }
+  },
+  "glace": {
+   "colruyt": {
+    "price": 1.19,
+    "article": "BONI Vanille ijs 1,5L",
+    "pack": 1.78,
+    "unitPrice": 1.187,
+    "unit": "l"
+   }
+  },
+  "eau": {
+   "colruyt": {
+    "price": 1.71,
+    "article": "EVERYDAY Plat water 2L",
+    "pack": 0.38,
+    "unitPrice": 0.19,
+    "unit": "l"
+   }
+  },
+  "eau-gaz": {
+   "colruyt": {
+    "price": 1.92,
+    "article": "EVERYDAY bruisend water 1,5L",
+    "pack": 0.32,
+    "unitPrice": 0.213,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 8.24,
+    "article": "Eau minérale | Non pétillante | PET 6 x 1 l",
+    "pack": 5.49,
+    "unitPrice": 0.915,
+    "unit": "l",
+    "url": "/fr/shop/Boissons-froides-et-chaudes/Eaux/Eau-plate/Eau-minerale-Non-petillante-PET/p/S2002010703194270000"
+   },
+   "aldi": {
+    "price": 1.92,
+    "article": "Bruisend water 1.5 l",
+    "pack": 0.32,
+    "unitPrice": 0.213,
+    "unit": "l"
+   }
+  },
+  "jus": {
+   "colruyt": {
+    "price": 1.23,
+    "article": "EVERYDAY Sinaasappelsap brik 1L",
+    "pack": 1.23,
+    "unitPrice": 1.23,
+    "unit": "l"
+   },
+   "lidl": {
+    "price": 2.5,
+    "article": "MCENNEDY Vers sinaasappelsap XXL 2 l",
+    "pack": 4.99,
+    "unitPrice": 2.495,
+    "unit": "l",
+    "url": "https://www.lidl.be/p/nl-BE/mcennedy-vers-sinaasappelsap-xxl/p10031294",
+    "promo": "promo",
+    "until": "2026-10-13",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 1.23,
+    "article": "Sinaasappelsap 1.5 l",
+    "pack": 1.85,
+    "unitPrice": 1.233,
+    "unit": "l"
+   }
+  },
+  "coca": {
+   "colruyt": {
+    "price": 2.22,
+    "article": "COCA-COLA Regular Original Taste 2L",
+    "pack": 2.24,
+    "unitPrice": 1.12,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 4.32,
+    "article": "Coca-Cola Original taste | Blik 15 x 33 cl",
+    "pack": 10.79,
+    "unitPrice": 2.18,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Koude-en-warme-dranken/Frisdrank/Cola/Klassieke-cola/Original-taste-Blik/p/S2021020300504360000",
+    "promo": "one_plus_one",
+    "until": "2026-10-21",
+    "promoOnly": true
+   },
+   "lidl": {
+    "price": 2.84,
+    "article": "COCA-COLA Frisdrank 1,25 l",
+    "pack": 1.79,
+    "unitPrice": 1.432,
+    "unit": "l",
+    "url": "https://www.lidl.be/p/nl-BE/coca-cola-frisdrank/p10031456",
+    "promo": "promo",
+    "until": "2026-10-18",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 2.96,
+    "article": "Coca-Cola regular 2 l",
+    "pack": 2.99,
+    "unitPrice": 1.495,
+    "unit": "l"
+   }
+  },
+  "biere": {
+   "colruyt": {
+    "price": 10.79,
+    "article": "Jupiler Pils 5,2% bak 24x33cl",
+    "pack": 14.24,
+    "unitPrice": 1.798,
+    "unit": "l",
+    "url": "https://www.colruyt.be/nl/producten/5037",
+    "promo": "percentage",
+    "until": "2026-10-20",
+    "regular": {
+     "price": 14.39,
+     "article": "JUPILER Pils 5,2% bak 24x33cl",
+     "pack": 18.99,
+     "unitPrice": 2.398,
+     "unit": "l",
+     "promo": true,
+     "until": null
+    }
+   },
+   "delhaize": {
+    "price": 11.75,
+    "article": "Jupiler Blond Bier | Pils | 5,2% alc. | Jumbo | Bak 24 x 33 cl",
+    "pack": 15.51,
+    "unitPrice": 1.958,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Bieren-Alcohol-and-Alcoholvrij/Bieren/Pils-and-Tafelbieren/Blond-Bier-Pils-5-2-alc-Jumbo-Bak/p/S2002070900195850000",
+    "promo": "one_plus_one",
+    "until": "2026-10-21",
+    "promoOnly": true
+   }
+  },
+  "pq": {
+   "colruyt": {
+    "price": 3.7,
+    "article": "Scottex toiletpapier decor 2l 140v 24r",
+    "pack": 7.4,
+    "unitPrice": 0.308,
+    "unit": "pc",
+    "url": "https://www.colruyt.be/nl/producten/15641",
+    "promo": "percentage",
+    "until": "2026-10-20",
+    "regular": {
+     "price": 3.84,
+     "article": "EVERYDAY toiletpapier sterk 3l 180v 12r",
+     "pack": 3.84,
+     "unitPrice": 0.32,
+     "unit": "pc"
+    }
+   },
+   "aldi": {
+    "price": 4.73,
+    "article": "Toiletpapier met motief, 9 st.",
+    "pack": 3.55,
+    "unitPrice": 0.394,
+    "unit": "pc"
+   }
+  },
+  "essuie-tout": {
+   "colruyt": {
+    "price": 2.72,
+    "article": "BONI keukenrol classic 3l 64v 6r",
+    "pack": 4.08,
+    "unitPrice": 0.68,
+    "unit": "pc"
+   },
+   "lidl": {
+    "price": 2.25,
+    "article": "FLORALYS Keukenpapier 3-lagig XXL 8 stuks",
+    "pack": 4.49,
+    "unitPrice": 0.561,
+    "unit": "pc",
+    "url": "https://www.lidl.be/p/nl-BE/floralys-keukenpapier-3-lagig-xxl/p10031454",
+    "promo": "promo",
+    "until": "2026-10-18",
+    "promoOnly": true
+   }
+  },
+  "dentifrice": {
+   "colruyt": {
+    "price": 0.35,
+    "article": "BONI tandpasta coolmint 125ml",
+    "pack": 0.59,
+    "unitPrice": 4.72,
+    "unit": "l"
+   },
+   "aldi": {
+    "price": 0.35,
+    "article": "Tandpasta 125 ml",
+    "pack": 0.59,
+    "unitPrice": 4.72,
+    "unit": "l"
+   }
+  },
+  "gel-douche": {
+   "colruyt": {
+    "price": 0.6,
+    "article": "EVERYDAY Douchegel Marine 300ml",
+    "pack": 0.71,
+    "unitPrice": 2.38,
+    "unit": "l"
+   },
+   "aldi": {
+    "price": 0.65,
+    "article": "Hydraterende douchegel 500 ml",
+    "pack": 1.29,
+    "unitPrice": 2.58,
+    "unit": "l"
+   }
+  },
+  "shampoing": {
+   "colruyt": {
+    "price": 0.29,
+    "article": "EVERYDAY shampoo oranjebloesem 500ml",
+    "pack": 0.49,
+    "unitPrice": 0.98,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 1.61,
+    "article": "Schauma Shampoo | Arganolie 40 cl",
+    "pack": 2.15,
+    "unitPrice": 5.375,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Haarverzorging/Shampoos/Vloeibare-shampoo/Shampoo-Arganolie/p/S2025121200912730000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 0.3,
+    "article": "Shampoo, 750 ml",
+    "pack": 0.74,
+    "unitPrice": 0.987,
+    "unit": "l"
+   }
+  },
+  "deodorant": {
+   "colruyt": {
+    "price": 0.9,
+    "article": "Fa deo Pink Passion 150ml",
+    "pack": 0.9,
+    "unitPrice": 6,
+    "unit": "l",
+    "url": "https://www.colruyt.be/nl/producten/23303",
+    "promo": "percentage",
+    "until": "2026-10-20",
+    "regular": {
+     "price": 1.19,
+     "article": "BONI deo Woman fris gevoel 200ml",
+     "pack": 1.59,
+     "unitPrice": 7.95,
+     "unit": "l"
+    }
+   },
+   "delhaize": {
+    "price": 1.29,
+    "article": "Fa Deospray | Pink Passion 15 cl",
+    "pack": 1.29,
+    "unitPrice": 8.6,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Deodorant/Deospray-vrouwen/Deospray-Pink-Passion/p/S2016020203624280000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 1.19,
+    "article": "Deodorant 200 ml",
+    "pack": 1.59,
+    "unitPrice": 7.95,
+    "unit": "l"
+   }
+  },
+  "mouchoirs": {
+   "colruyt": {
+    "price": 0.39,
+    "article": "EVERYDAY zakdoekjes box 2l 150st",
+    "pack": 0.59,
+    "unitPrice": 0.004,
+    "unit": "pc"
+   }
+  },
+  "lessive": {
+   "colruyt": {
+    "price": 3.19,
+    "article": "EVERYDAY wasmiddel white 45d 2,475L",
+    "pack": 3.59,
+    "unitPrice": 0.08,
+    "unit": "dose"
+   },
+   "aldi": {
+    "price": 2.63,
+    "article": "Vloeibaar wasmiddel 50 wasbeurten",
+    "pack": 3.29,
+    "unitPrice": 0.066,
+    "unit": "dose"
+   }
+  },
+  "vaisselle": {
+   "colruyt": {
+    "price": 0.43,
+    "article": "ACTAE afwasmiddel citroen 1L",
+    "pack": 0.85,
+    "unitPrice": 0.85,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 1.97,
+    "article": "Ecover Afwasmiddel | Citroen & aloe vera 95 cl",
+    "pack": 3.74,
+    "unitPrice": 3.937,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmiddel/Afwasmiddel-Citroen-and-aloe-vera/p/S2018010901375110000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 0.43,
+    "article": "Afwasmiddel, 1L",
+    "pack": 0.85,
+    "unitPrice": 0.85,
+    "unit": "l"
+   }
+  },
+  "tablettes-lv": {
+   "colruyt": {
+    "price": 8.06,
+    "article": "Finish Quantum vaatwas tabs regular 31st",
+    "pack": 6.25,
+    "unitPrice": 0.202,
+    "unit": "pc",
+    "url": "https://www.colruyt.be/nl/producten/3922",
+    "promo": "one_plus_one",
+    "until": "2026-10-20",
+    "regular": {
+     "price": 16.12,
+     "article": "FINISH QUANTUM vaatwas tabs regular 31st",
+     "pack": 12.49,
+     "unitPrice": 0.403,
+     "unit": "pc",
+     "promo": true,
+     "until": null
+    }
+   },
+   "delhaize": {
+    "price": 17.78,
+    "article": "Dreft Vaatwascapsules | Citroen 45 st",
+    "pack": 20,
+    "unitPrice": 0.444,
+    "unit": "pc",
+    "url": "https://www.delhaize.be/nl/shop/Onderhoud-en-huishouden/Keuken/Afwasmachine/Vaatwascapsules-Citroen/p/S2025080100884580000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "promoOnly": true
+   },
+   "aldi": {
+    "price": 2,
+    "article": "Vaatwastabletten classic, 100 st.",
+    "pack": 4.99,
+    "unitPrice": 0.05,
+    "unit": "pc"
+   }
+  },
+  "eponges": {
+   "colruyt": {
+    "price": 0.15,
+    "article": "EVERYDAY schuursponsen 10st",
+    "pack": 0.5,
+    "unitPrice": 0.05,
+    "unit": "pc"
+   }
+  },
+  "croquettes": {
+   "colruyt": {
+    "price": 7.12,
+    "article": "WHISKAS Dry tonijn +1jaar 1,9kg",
+    "pack": 6.76,
+    "unitPrice": 3.558,
+    "unit": "kg"
+   }
+  },
+  "litiere": {
+   "colruyt": {
+    "price": 1.99,
+    "article": "EVERYDAY kattenbakvulling ±7L",
+    "pack": 1.39,
+    "unitPrice": 0.199,
+    "unit": "l"
+   },
+   "aldi": {
+    "price": 4.49,
+    "article": "Kattenbakvulling hygiëne, 10 l",
+    "pack": 4.49,
+    "unitPrice": 0.449,
+    "unit": "l"
+   }
+  }
+ }
+}

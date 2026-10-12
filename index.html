@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Courses Opti</title>
+  <meta name="description" content="Courses optimisées depuis le boulevard du Triomphe : liste auto, comparaison des enseignes, meilleur itinéraire.">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icon.svg" alt="" width="28" height="28">
+      <div>
+        <h1>Courses Opti</h1>
+        <p class="sub" id="home-label"></p>
+      </div>
+    </div>
+  </header>
+
+  <main id="view" aria-live="polite"></main>
+
+  <nav class="tabs" role="tablist">
+    <button data-tab="list" role="tab">🧺<span>Liste</span></button>
+    <button data-tab="plan" role="tab">🧭<span>Plan</span></button>
+    <button data-tab="recurring" role="tab">🔁<span>Auto</span></button>
+    <button data-tab="prices" role="tab">💶<span>Prix</span></button>
+    <button data-tab="settings" role="tab">⚙️<span>Réglages</span></button>
+  </nav>
+
+  <div id="toast" role="status"></div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
