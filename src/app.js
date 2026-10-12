@@ -6,6 +6,9 @@ import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours
 import { SHOPS, orderLink } from './order.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
 import { TIERS, tierOf, candidatesFromRows, productOptions, buildBasket } from './smart.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes } from './recipes.js';
+import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
+import { parseSizes } from './matcher.js';
 
 // ---------- État (gardé sur le téléphone, jamais envoyé ailleurs) ----------
 const KEY = 'courses-opti:v1';
@@ -77,6 +80,7 @@ function loadCatalog() {
     .then((data) => {
       if (!data?.rows) return;
       CATALOG = data;
+      ingCache.clear();
       refreshCatalogPrices();
       if (search.trim()) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); }
     })
@@ -144,6 +148,7 @@ const ICONS = {
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
+  chef: '<path d="M6 13h12v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M6 13a4 4 0 0 1 1-7.9A5 5 0 0 1 17 5.1 4 4 0 0 1 18 13"/>',
   spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
 };
 const icon = (name) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -242,6 +247,7 @@ function ask(message, { input = null, text = null, ok = 'OK', cancel = 'Annuler'
 
 const TABS = [
   ['list', 'list', 'Liste'],
+  ['plats', 'chef', 'Plats'],
   ['plan', 'route', 'Plan'],
   ['recurring', 'repeat', 'Habitudes'],
   ['prices', 'tag', 'Prix'],
@@ -258,9 +264,9 @@ function render() {
     <button data-tab="${id}" aria-selected="${state.tab === id}">${icon(ic)}${id === 'list' && n ? `<span class="badge">${n}</span>` : ''}${label}</button>`).join('');
   const loc = document.getElementById('loc');
   loc.innerHTML = `${icon('pin')}<span>${esc(state.home?.address ?? 'Choisir mon adresse')}</span>`;
-  const showSetup = !state.home && state.tab !== 'prices' && state.tab !== 'recurring';
-  const views = { list: viewList, plan: viewPlan, recurring: viewRecurring, prices: viewPrices, settings: viewSettings };
-  if (smartOpen && state.tab === 'list') views.list = viewSmart;
+  const showSetup = !state.home && !['prices', 'recurring', 'plats'].includes(state.tab);
+  const views = { list: viewList, plats: viewPlats, plan: viewPlan, recurring: viewRecurring, prices: viewPrices, settings: viewSettings };
+  if (smartOpen && state.tab === 'list') views.list = quiz ? viewQuiz : viewSmart;
   view.innerHTML = showSetup && (state.tab === 'plan' || state.tab === 'settings' || !state.skipSetup) ? viewSetup() : (views[state.tab] ?? viewList)();
   const cta = document.getElementById('cta');
   const showCta = state.tab === 'list' && !smartOpen && state.list.length && !(showSetup && !state.skipSetup);
@@ -371,13 +377,88 @@ function viewList() {
     ${state.list.length ? `<div class="card">${listHtml}</div>` : `<div class="empty">${icon('cart')}<b>Ta liste est vide</b><span>Cherche un produit ou touche un ajout rapide.</span></div>`}`;
 }
 
+// ---------- Recettes : ingrédients, prix et ajout à la liste ----------
+const ingCache = new Map();
+const UNIT_BASE = { g: ['kg', 1000], ml: ['l', 1000], pc: ['pc', 1] };
+
+/**
+ * Ingrédient → produit à acheter, contenance d'un paquet (dans l'unité de la
+ * recette) et prix par unité. Produit de l'app : le moins cher chez Colruyt ;
+ * sinon l'article trouvé dans le catalogue Colruyt.
+ */
+function resolveIng(key) {
+  if (ingCache.has(key)) return ingCache.get(key);
+  const def = ING[key];
+  const [packAmount, unit] = def.pack;
+  let out;
+  if (def.p) {
+    const product = productById(def.p);
+    const price = CATALOG ? optionsFor(product)[0]?.price : priceInfo(product, 'colruyt', chains(), state.overrides, realPrices())?.price;
+    out = { product, pack: packAmount, perUnit: (price ?? product.ref) / packAmount };
+  } else {
+    const row = CATALOG ? searchCatalog(CATALOG.rows, def.q, 1)[0] : null;
+    out = { product: null, row, pack: packAmount, perUnit: def.ref / packAmount, name: def.name };
+    if (row) {
+      const [base, factor] = UNIT_BASE[unit];
+      const size = row[ROW.weight] === 1 ? { amount: 1, unit: base } : parseSizes(`${row[ROW.name]} ${row[ROW.content]}`).find((x) => x.unit === base);
+      if (size) out = { ...out, pack: size.amount * factor, perUnit: row[ROW.price] / (size.amount * factor) };
+      else if (row[ROW.unitPrice] && row[ROW.unit] === base) out = { ...out, perUnit: row[ROW.unitPrice] / factor };
+    }
+  }
+  if (CATALOG) ingCache.set(key, out);
+  return out;
+}
+
+const ingName = (key) => ING[key].name ?? productById(ING[key].p)?.name.replace(/\s*\(.*\)$/, '') ?? key;
+const dishCost = (r, servings = 1) => r.ingredients.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * servings * resolveIng(i.key).perUnit, 0);
+const recipeById = (id) => RECIPES.find((r) => r.id === id);
+
+function kitchen() {
+  state.settings.kitchen ??= Object.fromEntries(Object.keys(TOOLS).map((t) => [t, DEFAULT_PROFILE.kitchen.includes(t)]));
+  return state.settings.kitchen;
+}
+const recipeFilters = (extra = {}) => ({ kitchen: kitchen(), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], ...extra });
+
+// Ajoute une part de paquet à la liste : on n'ajoute un paquet que quand
+// le précédent est entamé (deux recettes à 250 g de pâtes = un paquet de 1 kg).
+function addNeed(id, fraction) {
+  state.dishNeed ??= {};
+  const before = Math.ceil((state.dishNeed[id] ?? 0) - 1e-6);
+  state.dishNeed[id] = (state.dishNeed[id] ?? 0) + fraction;
+  const delta = Math.ceil(state.dishNeed[id] - 1e-6) - before;
+  if (delta <= 0) return;
+  const it = state.list.find((l) => l.id === id);
+  if (it) it.qty += delta; else state.list.push({ id, qty: delta, checked: false });
+}
+
+/** Ingrédients d'une recette dans la liste (sans le placard). */
+function addDish(r, servings) {
+  for (const i of r.ingredients.filter((x) => !x.pantry)) {
+    const res = resolveIng(i.key);
+    let id = res.product?.id;
+    if (!id && res.row) {
+      const p = catalogProduct(res.row);
+      if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
+      id = p.id;
+    }
+    if (!id) { // catalogue indisponible : produit à ton prix
+      id = `perso-${i.key}`;
+      if (!state.custom.some((c) => c.id === id)) state.custom.push({ id, name: ING[i.key].name, cat: 4, ref: ING[i.key].ref, custom: true });
+    }
+    addNeed(id, (i.amount * servings) / res.pack);
+  }
+  state.menu = [...(state.menu ?? []), { id: r.id, servings }].slice(-30);
+}
+
 // ---------- Panier malin ----------
 let smartOpen = false;
+let quiz = null; // { mode, i, answers } : questions en cours
 let smartCands = null; // candidats du catalogue (calculés une fois)
 const optionCache = new Map();
 
 function smartSettings() {
   state.smart ??= { budget: 50, goal: 'best', pins: {}, optional: {}, removed: {} };
+  state.smart.dishes ??= [];
   return state.smart;
 }
 
@@ -405,7 +486,10 @@ function smartSuggestions() {
 function smartItems() {
   const sm = smartSettings();
   const fromList = state.list.map((l) => ({ id: l.id, qty: l.qty, must: !sm.optional[l.id], inList: true }));
-  const extras = smartSuggestions().map((id) => ({ id, qty: 1, must: false, inList: false }));
+  const inList = new Set(state.list.map((l) => l.id));
+  const extras = sm.profile
+    ? staplesFor(sm.profile).filter((x) => !inList.has(x.id) && !sm.removed[x.id]).map((x) => ({ ...x, must: false, inList: false }))
+    : smartSuggestions().map((id) => ({ id, qty: 1, must: false, inList: false }));
   return [...fromList.filter((i) => i.must), ...fromList.filter((i) => !i.must), ...extras]
     .map((i) => ({ ...i, p: productById(i.id) })).filter((i) => i.p)
     .map((i) => {
@@ -415,13 +499,44 @@ function smartItems() {
     });
 }
 
+// Plats proposés, au prix des paquets entiers qu'ils font acheter : un plat
+// paie les paquets qu'il entame, les plats suivants profitent des restes.
+function dishItems() {
+  const need = {};
+  return smartSettings().dishes.map((d) => ({ d, r: recipeById(d.id) })).filter((x) => x.r).map(({ d, r }) => {
+    let price = 0;
+    for (const i of r.ingredients.filter((x) => !x.pantry)) {
+      const res = resolveIng(i.key);
+      const before = Math.ceil((need[i.key] ?? 0) - 1e-6);
+      need[i.key] = (need[i.key] ?? 0) + (i.amount * d.servings) / res.pack;
+      price += (Math.ceil(need[i.key] - 1e-6) - before) * res.pack * res.perUnit;
+    }
+    return {
+      id: `dish:${r.id}`, qty: 1, must: false, dish: r, servings: d.servings, used: dishCost(r, d.servings),
+      options: [{ tier: 'house', label: 'Plat', price: Math.round(price * 100) / 100 }],
+    };
+  });
+}
+
+// Plats proposés d'après les réponses (ou remplacement d'un plat).
+function proposeDishes(profile, exclude = []) {
+  const pr = { ...DEFAULT_PROFILE, ...profile };
+  const filters = recipeFilters({ maxTime: pr.time });
+  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude });
+  const desserts = RECIPES.filter((r) => r.type === 'dessert' && !exclude.includes(r.id) && compatible(r, filters))
+    .sort((a, b) => dishCost(a) - dishCost(b)).slice(0, Number(pr.dessert) || 0).map((r) => r.id);
+  return [...ids, ...desserts].map((id) => ({ id, servings: recipeById(id).type === 'dessert' ? pr.people : servingsFor(pr) }));
+}
+
 function viewSmart() {
   const sm = smartSettings();
   if (!CATALOG) {
     loadCatalog().then(() => { if (smartOpen) render(); });
     return `<button class="btn ghost small" data-action="smart-close">← Ma liste</button><div class="empty"><span class="spin"></span><b>Je charge les prix Colruyt…</b></div>`;
   }
-  const items = smartItems();
+  const items = [...smartItems(), ...dishItems()];
+  // Ordre de remplissage : liste (indispensables), plats, puis propositions.
+  items.sort((a, b) => (b.must - a.must) || ((b.inList ? 1 : 0) - (a.inList ? 1 : 0)) || ((b.dish ? 1 : 0) - (a.dish ? 1 : 0)));
   const res = buildBasket(items, sm.budget, sm.goal);
   const picked = new Map(res.lines.map((l) => [l.id, l]));
   const pct = Math.min(100, (res.total / Math.max(sm.budget, 1)) * 100);
@@ -443,10 +558,30 @@ function viewSmart() {
       </div></li>`;
   };
   const mine = items.filter((i) => i.inList);
-  const extras = items.filter((i) => !i.inList);
+  const extras = items.filter((i) => !i.inList && !i.dish);
+  const dishes = items.filter((i) => i.dish);
+  const dishRow = (it) => {
+    const line = picked.get(it.id);
+    return `<li class="smart-item ${line ? '' : 'out'}">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
+        <span class="name">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
+        <b class="num">${eur(it.options[0].price)}</b></div>
+      <div class="row" style="gap:6px;justify-content:flex-end">
+        <button class="btn soft small" data-action="dish-swap" data-id="${it.dish.id}">Changer</button>
+        <button class="btn ghost small" data-action="recipe-open" data-id="${it.dish.id}">Recette</button>
+        <button class="icon-btn" data-action="dish-remove" data-id="${it.dish.id}" aria-label="Retirer">${icon('x')}</button></div></li>`;
+  };
+  const prof = sm.profile;
+  const quizCard = `<div class="card">
+      ${prof
+        ? `<div class="row" style="justify-content:space-between"><span class="small"><b>Tes réponses :</b> ${prof.people} pers. · ${prof.days} j · ${prof.dinners} repas · ${esc(DIETS[prof.diet]?.label ?? '')}</span></div>`
+        : '<span class="small">Réponds à quelques questions : je compose un panier avec des plats adaptés à ta cuisine.</span>'}
+      <div class="row" style="gap:8px"><button class="btn soft grow" data-action="quiz" data-val="simple">${prof ? 'Refaire · ' : ''}Simple · 5 questions</button>
+        <button class="btn soft grow" data-action="quiz" data-val="complet">Complet · 20 questions</button></div></div>`;
   return `
     <button class="btn ghost small" data-action="smart-close">← Ma liste</button>
     <h1>Panier malin</h1>
+    ${quizCard}
     <div class="card">
       <label class="field"><span>Mon budget pour les courses</span>
         <div class="row"><input type="number" id="smart-budget" min="1" step="1" inputmode="decimal" value="${sm.budget}" style="max-width:120px"> <b>€</b>
@@ -465,7 +600,11 @@ function viewSmart() {
         : `Il reste ${eur(res.left)}${res.skipped.length ? ` · ${res.skipped.length} proposition${res.skipped.length > 1 ? 's' : ''} hors budget` : ''}`}</span>
     </section>
     <p class="small muted">Touche une gamme pour l'imposer (retouche pour laisser l'app choisir). Les frais de retrait ne sont pas comptés.</p>
-    <ul class="items smart">${mine.map(row).join('')}</ul>
+    <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit au panier…" value="${esc(search)}" autocomplete="off" enterkeyhint="done"></div>
+      <div class="results" id="results">${searchResults()}</div></div>
+    ${mine.length ? `<span class="eyebrow">Ta liste</span><ul class="items smart">${mine.map(row).join('')}</ul>` : ''}
+    <div class="section-head"><span class="eyebrow">Plats proposés</span><button class="btn ghost small" data-tab="plats">+ Choisir un plat</button></div>
+    ${dishes.length ? `<ul class="items smart">${dishes.map(dishRow).join('')}</ul>` : '<p class="small muted">Aucun plat : réponds aux questions, ou choisis-en dans l\'onglet Plats.</p>'}
     ${extras.length ? `<span class="eyebrow">Je te propose aussi</span><ul class="items smart">${extras.map(row).join('')}</ul>` : ''}
     <button class="btn primary lg block" data-action="smart-apply" ${res.lines.length ? '' : 'disabled'}>${icon('check')} Mettre ce panier dans ma liste</button>`;
 }
@@ -473,13 +612,16 @@ function viewSmart() {
 // Le panier choisi remplace la liste : gamme choisie = article précis du catalogue.
 function applySmart() {
   const sm = smartSettings();
-  const items = smartItems();
+  const items = [...smartItems(), ...dishItems()];
+  items.sort((a, b) => (b.must - a.must) || ((b.inList ? 1 : 0) - (a.inList ? 1 : 0)) || ((b.dish ? 1 : 0) - (a.dish ? 1 : 0)));
   const res = buildBasket(items, sm.budget, sm.goal);
   const byId = new Map(items.map((i) => [i.id, i]));
   const rows = new Map(CATALOG.rows.map((r) => [r[ROW.id], r]));
   const list = [];
+  const dishes = [];
   for (const l of res.lines) {
     const it = byId.get(l.id);
+    if (it.dish) { dishes.push(it); continue; }
     const o = it.options[l.option];
     let id = l.id;
     // Produit du catalogue de l'app au premier choix : on garde le produit
@@ -494,10 +636,119 @@ function applySmart() {
   }
   const dropped = state.list.filter((x) => !res.lines.some((l) => l.id === x.id)).length;
   state.list = list;
+  state.dishNeed = {};
+  for (const it of dishes) addDish(it.dish, it.servings);
+  sm.dishes = [];
   smartOpen = false;
   save();
   toast(`Panier de ${eur(res.total)} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
   setTab('plan');
+}
+
+// ---------- Questions du panier malin ----------
+function startQuiz(mode) {
+  const sm = smartSettings();
+  const answers = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}), kitchen: Object.keys(kitchen()).filter((k) => kitchen()[k]), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [] };
+  quiz = { mode, i: 0, answers };
+}
+
+function viewQuiz() {
+  const qs = questionsFor(quiz.mode);
+  const q = qs[quiz.i];
+  const val = quiz.answers[q.id];
+  const on = (o) => (q.type === 'many' ? (val ?? []).map(String).includes(String(o.value)) : String(val) === String(o.value));
+  return `
+    <button class="btn ghost small" data-action="quiz-back">← ${quiz.i ? 'Question précédente' : 'Panier malin'}</button>
+    <section class="hero">
+      <span class="eyebrow">${quiz.mode === 'simple' ? 'Simple' : 'Complet'} · question ${quiz.i + 1} / ${qs.length}</span>
+      <div class="progress"><span style="width:${((quiz.i + 1) / qs.length) * 100}%"></span></div>
+      <span class="plan-name" style="font-size:1.25rem">${esc(q.text)}</span>
+    </section>
+    <div class="quiz-options">${q.options.map((o) => `<button class="quiz-opt" data-action="quiz-pick" data-val="${esc(o.value)}" aria-pressed="${on(o)}">${esc(o.label)}</button>`).join('')}</div>
+    ${q.type === 'many' ? '<p class="small muted">Plusieurs réponses possibles (ou aucune).</p>' : ''}
+    <button class="btn primary lg block" data-action="quiz-next">${quiz.i + 1 < qs.length ? 'Suivant' : 'Composer mon panier'} ${icon('arrow')}</button>`;
+}
+
+function finishQuiz() {
+  const sm = smartSettings();
+  const a = { ...quiz.answers };
+  const mode = quiz.mode;
+  quiz = null;
+  sm.profile = a;
+  sm.budget = Number(a.budget) || sm.budget;
+  if (mode === 'complet') {
+    sm.goal = a.gamme;
+    state.settings.kitchen = Object.fromEntries(Object.keys(TOOLS).map((t) => [t, a.kitchen.includes(t)]));
+    state.settings.allergies = a.allergies;
+  }
+  state.settings.diet = a.diet;
+  sm.removed = {};
+  sm.dishes = proposeDishes(a);
+  save();
+  render();
+  window.scrollTo({ top: 0 });
+}
+
+// ---------- Plats ----------
+let recipeOpen = null;
+let recipeType = 'plat';
+let recipeSearch = '';
+let recipeQuick = false;
+
+function recipeCard(r) {
+  const cost = dishCost(r);
+  return `<button class="recipe" data-action="recipe-open" data-id="${r.id}">
+    <span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}</span></span>
+    <span class="num price">≈ ${eur(cost)}<span class="sub">/ pers.</span></span></button>`;
+}
+
+function viewPlats() {
+  if (!CATALOG) loadCatalog().then(() => { if (state.tab === 'plats') render(); });
+  if (recipeOpen) return viewRecipe(recipeById(recipeOpen));
+  const k = kitchen();
+  const q = norm(recipeSearch.trim());
+  const filters = recipeFilters({ maxTime: recipeQuick ? 20 : Infinity });
+  const all = RECIPES.filter((r) => r.type === recipeType && (!q || norm(r.name).includes(q) || r.ingredients.some((i) => norm(ingName(i.key)).includes(q))));
+  const ok = all.filter((r) => compatible(r, filters)).sort((a, b) => dishCost(a) - dishCost(b));
+  const menu = (state.menu ?? []).map((m) => recipeById(m.id)).filter(Boolean);
+  return `
+    <h1>Plats</h1>
+    ${menu.length ? `<div class="card"><div class="section-head"><span class="eyebrow">Ajoutés à ta liste</span><button class="btn ghost small" data-action="menu-clear">Effacer</button></div>
+      <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${r.id}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
+    <div class="card">
+      <span class="eyebrow">Ma cuisine</span>
+      <div class="chips wrap">${Object.entries(TOOLS).map(([t, label]) => `<button class="chip" data-action="kitchen" data-val="${t}" aria-pressed="${Boolean(k[t])}">${k[t] ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
+      <span class="eyebrow">Alimentation</span>
+      <div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${d}" aria-pressed="${(state.settings.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
+    </div>
+    <div class="seg" role="group" aria-label="Type">${Object.entries(TYPES).map(([t, l]) => `<button data-action="recipe-type" data-val="${t}" aria-pressed="${recipeType === t}">${l}</button>`).join('')}</div>
+    <div class="row" style="gap:8px"><div class="searchbox grow">${icon('search')}<input type="search" id="recipe-search" placeholder="Plat ou ingrédient…" value="${esc(recipeSearch)}" autocomplete="off"></div>
+      <button class="chip" data-action="recipe-quick" aria-pressed="${recipeQuick}">≤ 20 min</button></div>
+    <p class="small muted">${ok.length} recette${ok.length > 1 ? 's' : ''} faisable${ok.length > 1 ? 's' : ''} avec ta cuisine${all.length > ok.length ? ` (${all.length - ok.length} autre${all.length - ok.length > 1 ? 's' : ''} demandent un autre appareil ou un autre régime)` : ''} · prix par personne, vrais prix Colruyt.</p>
+    <div class="recipes">${ok.map(recipeCard).join('') || '<div class="empty"><b>Aucune recette</b><span>Coche d\'autres appareils ou change de filtre.</span></div>'}</div>`;
+}
+
+function viewRecipe(r) {
+  if (!r) { recipeOpen = null; return viewPlats(); }
+  const n = state.settings.servings ?? smartSettings().profile?.people ?? 1;
+  const bought = r.ingredients.filter((i) => !i.pantry);
+  const pantry = r.ingredients.filter((i) => i.pantry);
+  const k = kitchen();
+  const missing = r.tools.filter((g) => !g.some((t) => k[t])).map((g) => g.map((t) => TOOLS[t]).join(' ou '));
+  return `
+    <button class="btn ghost small" data-action="recipe-back">← Plats</button>
+    <h1>${esc(r.name)}</h1>
+    <p class="small muted">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}</p>
+    ${missing.length ? `<div class="banner warn-banner">⚠️<span class="small">Il te faut : ${esc(missing.join(', '))}.</span></div>` : ''}
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><b>Personnes</b>
+        <span class="stepper"><button data-action="servings" data-d="-1" aria-label="Moins">${icon('minus')}</button><b class="num">${n}</b><button data-action="servings" data-d="1" aria-label="Plus">${icon('plus')}</button></span></div>
+      <ul class="items">${bought.map((i) => `<li><span class="name">${esc(ingName(i.key))}</span><span class="num">${formatAmount(i.amount * n, i.unit)}${i.unit === 'pc' ? '' : ''}</span><span class="num muted small" style="min-width:56px;text-align:right">${eur(i.amount * n * resolveIng(i.key).perUnit)}</span></li>`).join('')}</ul>
+      ${pantry.length ? `<p class="small muted">Dans ton placard : ${esc(pantry.map((i) => ingName(i.key)).join(', '))}.</p>` : ''}
+    </div>
+    <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p></div>
+    <button class="btn primary lg block" data-action="recipe-add" data-id="${r.id}">${icon('cart')} Ajouter à ma liste · ≈ ${eur(dishCost(r, n))}</button>
+    <p class="foot">Prix estimé avec la quantité utilisée ; en magasin on achète des paquets entiers (le reste servira pour d'autres plats).</p>`;
 }
 
 // ---------- Plan ----------
@@ -715,6 +966,7 @@ function finishShopping(plan) {
   state.history.unshift({ date: today, label: plan.label, total: plan.goods, items: bought.size });
   state.history = state.history.slice(0, 50);
   state.list = state.list.filter((l) => !bought.has(l.id)).map((l) => ({ ...l, checked: false }));
+  for (const id of bought) delete state.dishNeed?.[id];
   save();
   const left = state.list.length;
   toast(left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍');
@@ -899,7 +1151,7 @@ async function refreshStores() {
 // ---------- Événements ----------
 document.addEventListener('click', async (e) => {
   const tab = e.target.closest('[data-tab]');
-  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } if (tab.dataset.tab === 'list') smartOpen = false; setTab(tab.dataset.tab); return; }
+  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } if (tab.dataset.tab === 'list') { smartOpen = false; quiz = null; } if (tab.dataset.tab === 'plats' && state.tab === 'plats') recipeOpen = null; setTab(tab.dataset.tab); return; }
   // Panier assisté : ouvrir un produit sur le site le coche comme « dans le panier ».
   const open = e.target.closest('a[data-open]');
   if (open) {
@@ -921,6 +1173,78 @@ document.addEventListener('click', async (e) => {
     save();
     render();
     toast(`${productById(id)?.name.replace(/\s*\(.*\)$/, '')} ajouté`);
+  } else if (a === 'quiz') {
+    startQuiz(b.dataset.val);
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'quiz-pick') {
+    const q = questionsFor(quiz.mode)[quiz.i];
+    const v = q.options.find((o) => String(o.value) === b.dataset.val).value;
+    if (q.type === 'many') {
+      const cur = new Set((quiz.answers[q.id] ?? []).map(String));
+      if (cur.has(String(v))) cur.delete(String(v)); else cur.add(String(v));
+      quiz.answers[q.id] = q.options.map((o) => o.value).filter((x) => cur.has(String(x)));
+      render();
+    } else {
+      quiz.answers[q.id] = v;
+      if (quiz.i + 1 < questionsFor(quiz.mode).length) quiz.i++; else finishQuiz();
+      render();
+    }
+  } else if (a === 'quiz-next') {
+    if (quiz.i + 1 < questionsFor(quiz.mode).length) { quiz.i++; render(); } else finishQuiz();
+  } else if (a === 'quiz-back') {
+    if (quiz.i) quiz.i--; else quiz = null;
+    render();
+  } else if (a === 'dish-swap') {
+    const sm = smartSettings();
+    const cur = sm.dishes.find((d) => d.id === id);
+    const [next] = proposeDishes({ ...(sm.profile ?? {}), dinners: recipeById(id).type === 'plat' ? 1 : 0, dessert: recipeById(id).type === 'dessert' ? 1 : 0 },
+      [...sm.dishes.map((d) => d.id), ...(sm.swapped ?? [])]);
+    sm.swapped = [...(sm.swapped ?? []), id].slice(-40);
+    if (next && cur) Object.assign(cur, { id: next.id }); else toast('Pas d\'autre plat compatible');
+    save();
+    render();
+  } else if (a === 'dish-remove') {
+    const sm = smartSettings();
+    sm.dishes = sm.dishes.filter((d) => d.id !== id);
+    save();
+    render();
+  } else if (a === 'recipe-open') {
+    recipeOpen = id;
+    if (state.tab !== 'plats') { smartOpen = false; setTab('plats'); } else { render(); window.scrollTo({ top: 0 }); }
+  } else if (a === 'recipe-back') {
+    recipeOpen = null;
+    render();
+  } else if (a === 'recipe-type') {
+    recipeType = b.dataset.val;
+    render();
+  } else if (a === 'recipe-quick') {
+    recipeQuick = !recipeQuick;
+    render();
+  } else if (a === 'kitchen') {
+    const k = kitchen();
+    k[b.dataset.val] = !k[b.dataset.val];
+    save();
+    render();
+  } else if (a === 'diet') {
+    state.settings.diet = b.dataset.val;
+    save();
+    render();
+  } else if (a === 'servings') {
+    state.settings.servings = Math.max(1, (state.settings.servings ?? smartSettings().profile?.people ?? 1) + Number(b.dataset.d));
+    save();
+    render();
+  } else if (a === 'recipe-add') {
+    const r = recipeById(id);
+    addDish(r, state.settings.servings ?? smartSettings().profile?.people ?? 1);
+    save();
+    toast(`Ingrédients de « ${r.name} » ajoutés à ta liste`);
+    recipeOpen = null;
+    render();
+  } else if (a === 'menu-clear') {
+    state.menu = [];
+    save();
+    render();
   } else if (a === 'smart-open') {
     smartOpen = true;
     render();
@@ -973,11 +1297,12 @@ document.addEventListener('click', async (e) => {
   } else if (a === 'qty') {
     const it = state.list.find((l) => l.id === id);
     if (it) it.qty += Number(b.dataset.d);
+    if (state.dishNeed) delete state.dishNeed[id];
     state.list = state.list.filter((l) => l.qty > 0);
     save();
     render();
   } else if (a === 'clear') {
-    if (await ask('Vider la liste ?', { ok: 'Vider' })) { state.list = []; save(); render(); }
+    if (await ask('Vider la liste ?', { ok: 'Vider' })) { state.list = []; state.dishNeed = {}; save(); render(); }
   } else if (a === 'add-due') {
     autoAddDue();
     render();
@@ -1050,6 +1375,13 @@ view.addEventListener('input', (e) => {
   if (t.id === 'search') {
     search = t.value;
     document.getElementById('results').innerHTML = searchResults();
+  } else if (t.id === 'recipe-search') {
+    recipeSearch = t.value;
+    const pos = t.selectionStart;
+    render();
+    const el = document.getElementById('recipe-search');
+    el.focus();
+    el.setSelectionRange(pos, pos);
   } else if (t.id === 'price-search') {
     priceSearch = t.value;
     const pos = t.selectionStart;

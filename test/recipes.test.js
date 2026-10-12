@@ -1,0 +1,64 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { RECIPES, ING, TOOLS, compatible, pickDishes, formatAmount, recipeCost } from '../src/recipes.js';
+import { PRODUCTS } from '../src/data.js';
+import { QUESTIONS, questionsFor, staplesFor, servingsFor } from '../src/questions.js';
+
+test('recettes : ingrédients, unités et ustensiles connus', () => {
+  const ids = new Set(PRODUCTS.map((p) => p.id));
+  assert.ok(RECIPES.length >= 100);
+  assert.equal(new Set(RECIPES.map((r) => r.id)).size, RECIPES.length);
+  for (const r of RECIPES) {
+    for (const i of r.ingredients) {
+      assert.ok(ING[i.key], `${r.name} : ${i.key}`);
+      if (!i.pantry) assert.equal(i.unit, ING[i.key].pack[1], `${r.name} : unité de ${i.key}`);
+    }
+    for (const g of r.tools) for (const t of g) assert.ok(TOOLS[t], `${r.name} : ${t}`);
+  }
+  for (const def of Object.values(ING)) if (def.p) assert.ok(ids.has(def.p), def.p);
+});
+
+test('compatible : ustensiles, régime, allergies, temps', () => {
+  const r = (id) => RECIPES.find((x) => x.id === id);
+  const all = { plaques: true, four: true, micro: true, airfryer: true, bouilloire: true, mixeur: true };
+  assert.ok(compatible(r('poulet-pane-croustillant-et-frites'), { kitchen: { airfryer: true } }));
+  assert.ok(!compatible(r('pizza-maison'), { kitchen: { airfryer: true, plaques: true } }));
+  assert.ok(!compatible(r('pates-carbonara'), { kitchen: all, diet: 'sans-porc' }));
+  assert.ok(!compatible(r('pates-carbonara'), { kitchen: all, diet: 'vegetarien' }));
+  assert.ok(compatible(r('chili-sin-carne'), { kitchen: all, diet: 'vegan' }));
+  assert.ok(!compatible(r('lasagnes-a-la-bolognaise'), { kitchen: all, allergies: ['g'] }));
+  assert.ok(!compatible(r('carbonnade-flamande'), { kitchen: all, maxTime: 60 }));
+});
+
+test('pickDishes : nombre, variété et coût', () => {
+  const all = { plaques: true, four: true, micro: true, airfryer: true, bouilloire: true, mixeur: true };
+  const ids = pickDishes(5, { kitchen: all }, (r) => r.minutes, { meat: 'souvent', fish: 'jamais' });
+  assert.equal(ids.length, 5);
+  assert.equal(new Set(ids).size, 5);
+  assert.ok(ids.every((id) => !RECIPES.find((r) => r.id === id).flags.has('f')));
+  const vege = pickDishes(4, { kitchen: all, diet: 'vegetarien' }, () => 1);
+  assert.ok(vege.every((id) => !RECIPES.find((r) => r.id === id).flags.has('m')));
+});
+
+test('recipeCost et formatAmount', () => {
+  const r = RECIPES.find((x) => x.id === 'spaghetti-ail-et-huile');
+  assert.ok(recipeCost(r, 2, () => 1) > 0);
+  assert.equal(formatAmount(250, 'g'), '250 g');
+  assert.equal(formatAmount(1500, 'g'), '1,5 kg');
+  assert.equal(formatAmount(0.5, 'pc'), '0,5');
+});
+
+test('questions : 5 en simple, 20 en complet', () => {
+  assert.equal(questionsFor('simple').length, 5);
+  assert.equal(questionsFor('complet').length, 20);
+  assert.equal(QUESTIONS.length, 20);
+});
+
+test('staplesFor : quantités selon personnes × jours, régime respecté', () => {
+  const s = Object.fromEntries(staplesFor({ people: 2, days: 7, breakfast: 'tartines', lunch: 'sandwich', drinks: ['eau'], diet: 'tout' }).map((x) => [x.id, x.qty]));
+  assert.equal(s.pain, Math.ceil((14 * 100) / 800 + (14 * 120) / 800));
+  assert.ok(s.jambon >= 1 && s.eau >= 1 && s.bananes >= 1);
+  const veg = Object.fromEntries(staplesFor({ diet: 'vegan', breakfast: 'tartines', lunch: 'sandwich' }).map((x) => [x.id, x.qty]));
+  assert.ok(!veg.jambon && !veg.beurre);
+  assert.equal(servingsFor({ people: 2, lunch: 'maison' }), 4);
+});

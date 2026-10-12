@@ -87,6 +87,21 @@ en gamme avec ce qui reste (« Le meilleur dans mon budget ») — ou pas (« Le
 moins cher »). Toucher une gamme l'impose. « Mettre ce panier dans ma liste »
 remplace la liste ; le plan choisit ensuite les magasins.
 
+## Questions et plats
+
+- **Questions** (Panier malin) : *Simple* (5 questions : budget, personnes,
+  jours, repas à cuisiner, alimentation) ou *Complet* (20 : ustensiles,
+  temps, allergies, petit-déj, boissons, viande/poisson, entretien…). Les
+  réponses donnent les plats proposés et les produits de base
+  (`src/questions.js`).
+- **Plats** (onglet) : 104 recettes écrites pour l'app (`src/recipes.js`),
+  filtrées selon les appareils de la cuisine (taques, four, micro-ondes, air
+  fryer, bouilloire, mixeur), le régime et les allergies, avec un prix par
+  personne aux vrais prix Colruyt. « Ajouter à ma liste » ajoute les
+  ingrédients (en paquets entiers : deux recettes à 250 g de pâtes = un
+  paquet). Dans le panier malin, un plat compte le prix des paquets qu'il fait
+  acheter.
+
 ## Panier assisté (Collect&Go, Delhaize Collect)
 
 Dans le plan, **Préparer ma commande** liste les articles avec un bouton par
