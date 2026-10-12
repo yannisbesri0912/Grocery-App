@@ -17,10 +17,21 @@ async function visit(url) {
     console.log(`  inputs=${JSON.stringify(inputs)}`);
   } catch (e) { console.log(`\n### ${url}\n  ERREUR ${e.message.slice(0, 200)}`); }
 }
-for (const u of [
-  'https://www.delhaize.be/fr/cart',
-  'https://www.delhaize.be/fr/collect',
-  'https://www.delhaize.be/fr/shop/search?text=Pommes%20droles',
-  'https://www.collectandgo.be/',
-]) await visit(u);
+await visit('https://www.collectandgo.be/fr/home');
+try {
+  const box = page.locator('input[placeholder*="produit" i]').filter({ visible: true }).first();
+  await box.click({ timeout: 5000 }).catch(() => {});
+  await box.fill('lait demi-écrémé', { timeout: 5000 });
+  await sleep(1500);
+  const sugg = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')).filter((h) => /produ|zoek|search|recher/i.test(h)).slice(0, 10));
+  console.log(`  suggestions=${JSON.stringify(sugg)}`);
+  await box.press('Enter');
+  await sleep(6000);
+  console.log(`\n### recherche Collect&Go → ${page.url()}\n  title=${await page.title()}`);
+  const links = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')).filter((h) => /produ|product|artikel|article/i.test(h)).slice(0, 12));
+  console.log(`  links=${JSON.stringify(links)}`);
+  const txt = await page.evaluate(() => document.body.innerText.slice(0, 600).replace(/\s+/g, ' '));
+  console.log(`  texte=${txt}`);
+} catch (e) { console.log(`recherche : ${e.message.slice(0, 300)}`); }
+for (const u of ['https://www.collectandgo.be/fr/panier', 'https://www.collectandgo.be/fr/winkelmandje']) await visit(u);
 await browser.close();
