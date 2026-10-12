@@ -9,7 +9,7 @@ l'ordre de passage, puis donne le meilleur plan, la liste par magasin et l'itin�
 
 ## Utiliser l'app
 
-👉 **https://yannisbesri0912.github.io/grocery-app/** — à ouvrir sur le téléphone, puis
+👉 **https://yannisbesri0912.github.io/Grocery-App/** — à ouvrir sur le téléphone, puis
 « Ajouter à l'écran d'accueil ». Les prix sont mis à jour chaque nuit. Ta liste reste sur
 ton téléphone (onglet Réglages → Exporter pour la sauvegarder).
 

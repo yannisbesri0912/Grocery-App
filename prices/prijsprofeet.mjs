@@ -1,7 +1,7 @@
 // Promotions de la semaine via l'API publique PrijsProfeet (gratuite, sans clé).
 // https://github.com/PrijsProfeet/supermarkt-api — attribution obligatoire dans l'app.
 const BASE = 'https://www.prijsprofeet.be/api/v1';
-const UA = 'GroceryOpti/1.0 (+https://github.com/yannisbesri0912/grocery-app)';
+const UA = 'GroceryOpti/1.0 (+https://github.com/yannisbesri0912/Grocery-App)';
 
 // Clé PrijsProfeet → enseigne de l'app
 export const RETAILERS = { colruyt: 'colruyt', delhaize: 'delhaize', aldi_be: 'aldi', lidl_be: 'lidl' };
