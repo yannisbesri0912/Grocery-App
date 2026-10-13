@@ -482,3 +482,11 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 
 .link-plain { border: 0; background: none; padding: 0; font: inherit; font-weight: 650; color: var(--ink); text-align: left; cursor: pointer; }
 .promo-menu .items .name .sub.deal { white-space: normal; }
+
+/* Mon placard */
+.placard summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.placard summary::-webkit-details-marker { display: none; }
+.placard[open] { display: grid; gap: 10px; }
+.placard .placard-date { width: 132px; flex: none; font-size: .78rem; padding: 4px 6px; }
+.placard li.soon .name { color: var(--warn); }
+.items .name .sub.home { display: block; white-space: normal; font-size: .78rem; color: var(--muted); }

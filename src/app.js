@@ -964,6 +964,12 @@ function dealLine(p, qty) {
   return `<span class="sub deal">${text}${adv.add > 0 ? ` <button class="link" data-action="qty" data-id="${esc(p.id)}" data-d="${adv.add}">+${adv.add}</button>` : ''}</span>`;
 }
 
+// Déjà à la maison (placard) ?
+function homeLine(p) {
+  const k = ING_OF_PRODUCT[p.id];
+  return k && placardKeys().includes(k) ? `<span class="sub home">🏠 Tu en as déjà (noté le ${dateFr(state.pantry[k])})</span>` : '';
+}
+
 // « Moins cher pour la même chose » : marque du magasin équivalente, ou grand format.
 function cheaperLine(p) {
   const chain = p.colruyt ? 'colruyt' : p.shop?.chain;
@@ -1049,7 +1055,7 @@ function viewList() {
     .sort((a, b) => catRank(a[0]) - catRank(b[0]))
     .map(([cat, ls]) => [cat, order ? [...ls].sort((a, b) => aisleOf(a.p, order) - aisleOf(b.p, order)) : ls])
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}${cheaperLine(l.p)}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}${cheaperLine(l.p)}${homeLine(l.p)}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
@@ -1120,8 +1126,13 @@ const ingName = (key) => (ING[key]
 function haveIng(i) {
   const v = state.pantry?.[i.key];
   if (i.pantry) return v !== 'missing';
-  return typeof v === 'string' && v !== 'missing' && (Date.now() - new Date(v).getTime()) / DAY <= 10;
+  if (typeof v !== 'string' || v === 'missing') return false;
+  const until = state.pantryUntil?.[i.key];
+  return until ? until >= today() : (Date.now() - new Date(v).getTime()) / DAY <= 10;
 }
+// Ingrédient de recette ↔ produit de l'app (pour remplir le placard après les courses).
+const ING_OF_PRODUCT = Object.fromEntries(Object.entries(ING).filter(([, d]) => d.p).map(([k, d]) => [d.p, k]));
+const placardKeys = () => Object.entries(state.pantry ?? {}).filter(([k, v]) => v !== 'missing' && ING[k] && !ING[k].pantry && haveIng({ key: k })).map(([k]) => k);
 const dishCost = (r, servings = 1, chain = smartShop()) => r.ingredients.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * servings * resolveIng(i.key, chain).perUnit, 0);
 const recipeById = (id) => RECIPES.find((r) => r.id === id);
 
@@ -1539,6 +1550,30 @@ function promoMenuCard() {
   </div>`;
 }
 
+// ---------- Mon placard (anti-gaspi) ----------
+let placardOpen = false;
+document.addEventListener('toggle', (e) => { if (e.target.matches?.('details.placard')) placardOpen = e.target.open; }, true);
+function placardCard() {
+  const keys = placardKeys();
+  const until = state.pantryUntil ?? {};
+  const soon = keys.filter((k) => until[k] && until[k] <= new Date(Date.now() + 2 * DAY).toISOString().slice(0, 10));
+  const age = (k) => Math.max(0, Math.floor((Date.now() - new Date(state.pantry[k]).getTime()) / DAY));
+  const ideas = soon.length ? RECIPES.filter((r) => compatible(r, recipeFilters()) && r.ingredients.some((i) => soon.includes(i.key)))
+    .map((r) => ({ r, n: r.ingredients.filter((i) => keys.includes(i.key)).length })).sort((a, b) => b.n - a.n).slice(0, 4) : [];
+  const names = Object.entries(ING).filter(([, d]) => !d.pantry).map(([k]) => ingName(k)).sort((a, b) => a.localeCompare(b, 'fr'));
+  return `<details class="card placard" ${placardOpen ? 'open' : ''}>
+    <summary><b>🏠 Mon placard</b> <span class="small muted">${keys.length ? `${keys.length} produit${keys.length > 1 ? 's' : ''}` : 'vide'}${soon.length ? ` · <span class="warn-text">${soon.length} à finir vite</span>` : ''}</span></summary>
+    <p class="small muted">Ce que tu as déjà : rempli tout seul quand tu valides « Courses faites », ou à la main. Les recettes n'ajoutent pas ce que tu as.</p>
+    <div class="row" style="gap:8px"><input id="placard-add" list="ing-names" placeholder="Ajouter (ex. œufs, riz…)" autocomplete="off" style="flex:1;min-width:0"><button class="btn soft small" data-action="placard-add">Ajouter</button></div>
+    <datalist id="ing-names">${names.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
+    ${keys.length ? `<ul class="items">${keys.sort((a, b) => (until[a] ?? '9') .localeCompare(until[b] ?? '9')).map((k) => `<li class="${soon.includes(k) ? 'soon' : ''}">
+      <span class="name">${esc(ingName(k))}<span class="sub">depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}${until[k] ? ` · à consommer avant le ${dateFr(until[k])}` : ''}</span></span>
+      <input type="date" class="placard-date" data-until="${esc(k)}" value="${esc(until[k] ?? '')}" aria-label="Date limite ${esc(ingName(k))}">
+      <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
+    ${ideas.length ? `<p class="small"><b>À finir vite :</b> ${esc(soon.map(ingName).join(', '))}. Idées :</p><div class="chips wrap">${ideas.map(({ r }) => `<button class="chip" data-action="recipe-open" data-id="${r.id}">${esc(r.name)}</button>`).join('')}</div>` : ''}
+  </details>`;
+}
+
 function recipeCard(r) {
   const cost = dishCost(r);
   return `<button class="recipe" data-action="recipe-open" data-id="${r.id}">
@@ -1560,6 +1595,7 @@ function viewPlats() {
   const menu = (state.menu ?? []).map((m) => recipeById(m.id)).filter(Boolean);
   return `
     <h1>Plats</h1>
+    ${placardCard()}
     ${promoMenuCard()}
     ${menu.length ? `<div class="card"><div class="section-head"><span class="eyebrow">Ajoutés à ta liste</span><button class="btn ghost small" data-action="menu-clear">Effacer</button></div>
       <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${r.id}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
@@ -1882,6 +1918,9 @@ function finishShopping(plan, paid = null) {
   const checked = inPlan.filter((id) => state.list.find((l) => l.id === id)?.checked);
   const bought = new Set(checked.length ? checked : inPlan);
   state.recurring = state.recurring.map((r) => (bought.has(r.id) ? learnFrequency(r, today) : r));
+  // Placard : ce qui vient d'être acheté est à la maison.
+  state.pantry ??= {};
+  for (const id of bought) { const k = ING_OF_PRODUCT[id]; if (k) { state.pantry[k] = today; delete state.pantryUntil?.[k]; } }
   // Dépenses par rayon (ramenées au montant payé s'il est connu).
   const goods = lines.reduce((t, l) => t + l.total, 0);
   const k = paid != null && goods > 0 ? Math.max(0, paid - (plan.fees ?? 0)) / goods : 1;
@@ -2266,6 +2305,18 @@ document.addEventListener('click', async (e) => {
     save();
     toast(`${menu.length} plats ajoutés à ta liste`);
     render();
+  } else if (a === 'placard-add') {
+    const v = norm(document.getElementById('placard-add')?.value ?? '');
+    const k = Object.keys(ING).find((x) => !ING[x].pantry && norm(ingName(x)) === v) ?? Object.keys(ING).find((x) => !ING[x].pantry && v && norm(ingName(x)).includes(v));
+    if (!k) { toast('Produit inconnu : choisis-le dans la liste proposée'); return; }
+    state.pantry = { ...(state.pantry ?? {}), [k]: today() };
+    save();
+    render();
+  } else if (a === 'placard-remove') {
+    delete state.pantry?.[b.dataset.key];
+    delete state.pantryUntil?.[b.dataset.key];
+    save();
+    render();
   } else if (a === 'recipe-style') {
     const st = new Set(state.settings.recipeStyles ?? []);
     if (st.has(b.dataset.val)) st.delete(b.dataset.val); else st.add(b.dataset.val);
@@ -2479,6 +2530,13 @@ view.addEventListener('change', (e) => {
     if ('num' in t.dataset) v = Number(v);
     if ('boolCheck' in t.dataset) v = t.checked;
     state.settings[t.dataset.setting] = v;
+    save();
+    deferRender();
+    return;
+  }
+  if (t.dataset.until) {
+    state.pantryUntil = { ...(state.pantryUntil ?? {}), [t.dataset.until]: t.value || undefined };
+    if (!t.value) delete state.pantryUntil[t.dataset.until];
     save();
     deferRender();
     return;
