@@ -4,6 +4,7 @@
 // Chaque article donne un candidat pour le rapprochement (prix réels des
 // produits de l'app) et une ligne du catalogue cherchable dans l'app.
 import { openBrowser, acceptCookies, sleep } from './browser.mjs';
+import { parseSizes } from '../src/matcher.js';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 const num = (s) => { const m = String(s ?? '').replace(/\s/g, '').match(/(\d+(?:[.,]\d+)?)/); return m ? Number(m[1].replace(',', '.')) : null; };
@@ -19,17 +20,28 @@ function delhaizeRow(p) {
   const pr = p.price ?? {};
   const price = pr.value ?? num(pr.formattedValue);
   if (!(price > 0) || p.available === false) return null;
+  // Prix normal : les réductions Delhaize sont souvent conditionnelles (carte,
+  // 2e à moitié prix…) et feraient sous-estimer le panier. La promo est signalée.
   const promo = num(pr.discountedPriceFormatted);
-  const brand = p.manufacturerName && !/^delhaize$/i.test(p.manufacturerName) ? `${p.manufacturerName} ` : 'Delhaize ';
-  const name = `${brand}${p.name}`.replace(/\s+/g, ' ').trim();
-  const unit = UNIT_OF[pr.unitCode] ?? UNIT_OF[pr.unit] ?? '';
+  // « Raisins | Blanc | Sans pépins » → « DELHAIZE Raisins, blanc, sans pépins »
+  // (marque en capitales comme chez Colruyt : la recherche la reconnaît).
+  const brand = (p.manufacturerName && !/^delhaize$/i.test(p.manufacturerName) ? p.manufacturerName : 'Delhaize').toUpperCase();
+  const parts = p.name.split(/\s*\|\s*/).map((x, i) => (i && x !== x.toUpperCase() ? x[0].toLowerCase() + x.slice(1) : x));
+  const name = `${brand} ${parts.join(', ')}`.replace(/\s+/g, ' ').trim();
+  const content = pr.supplementaryPriceLabel2 ?? '';
+  // Prix au kilo / au litre : donné pour les articles pesés, sinon calculé d'après le format.
+  let unit = UNIT_OF[pr.unitCode] ?? UNIT_OF[pr.unit] ?? '';
+  let unitPrice = unit === 'kg' && pr.unitPrice > 0 ? r2(pr.unitPrice) : 0;
+  const size = parseSizes(content)[0];
+  if (!unitPrice && size?.amount > 0) { unit = size.unit; unitPrice = r2(price / size.amount); }
   return {
     id: p.code,
     name,
-    content: pr.supplementaryPriceLabel2 ?? '',
-    price: r2(promo && promo < price ? promo : price),
-    regular: promo && promo < price ? r2(price) : null,
-    unitPrice: pr.unitPrice > 0 ? r2(pr.unitPrice) : 0,
+    content,
+    price: r2(price),
+    regular: null,
+    promo: promo && promo < price ? r2(promo) : null,
+    unitPrice,
     unit,
     cat: DELHAIZE_CATS[p.firstLevelCategory?.code] ?? 4,
     frozen: Boolean(p.frozen) || p.firstLevelCategory?.code === 'v2FRO',
@@ -115,19 +127,34 @@ export async function fetchAldiCatalog({ log = console.log } = {}) {
     await acceptCookies(page);
     for (let i = 0; i < 20 && !url; i++) await sleep(500);
     if (!url) throw new Error('Aldi : recherche Algolia introuvable');
-    for (let pg = 0; pg < 10; pg++) {
-      const r = await page.evaluate(async ([u, p]) => {
-        const res = await fetch(u, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: JSON.stringify({ requests: [{ indexName: 'an_prd_be_fr_products2', query: '', hitsPerPage: 1000, page: p }] }) });
-        return res.ok ? (await res.json()).results?.[0] : { error: res.status };
-      }, [url, pg]);
-      if (!r || r.error) { log(`  Aldi page ${pg} : ${r?.error ?? 'vide'}`); break; }
+    const query = (q) => page.evaluate(async ([u, body]) => {
+      const res = await fetch(u, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: JSON.stringify({ requests: [{ indexName: 'an_prd_be_fr_products2', query: '', ...body }] }) });
+      return res.ok ? (await res.json()).results?.[0] : { error: res.status };
+    }, [url, q]);
+    // Une requête rend au plus 1000 articles : on lit rayon par rayon.
+    const all = await query({ hitsPerPage: 1000, facets: ['categoryIDs'], maxValuesPerFacet: 1000 });
+    if (!all || all.error) throw new Error(`Aldi : ${all?.error ?? 'réponse vide'}`);
+    const facets = Object.entries(all.facets?.categoryIDs ?? {});
+    log(`  Aldi : ${all.nbHits} articles, ${facets.length} rayons : ${facets.slice(0, 60).map(([c, n]) => `${c}=${n}`).join(' ')}`);
+    const seen = new Set();
+    const batches = [all];
+    for (const [cat, n] of facets) {
+      if (n > 1000) continue; // les sous-rayons couvrent ces articles
+      const r = await query({ hitsPerPage: 1000, facetFilters: [[`categoryIDs:${cat}`]] });
+      if (r && !r.error) batches.push(r);
+      await sleep(150);
+    }
+    for (const r of batches) {
       for (const h of r.hits ?? []) {
+        const key = String(h.objectID ?? h.productID ?? h.productSlug);
+        if (seen.has(key)) continue;
+        seen.add(key);
         const price = h.currentPrice?.priceValue;
         if (!(price > 0)) continue;
         const base = h.currentPrice?.basePrice?.[0];
         const unit = /kg/.test(base?.basePriceScale ?? '') ? 'kg' : /\bl\b|liter|litre/.test(base?.basePriceScale ?? '') ? 'l' : /st|pc|pi/.test(base?.basePriceScale ?? '') ? 'pc' : '';
         rows.push({
-          id: String(h.objectID ?? h.productID ?? h.productSlug),
+          id: key,
           name: `${h.brandName && !/aldi/i.test(h.brandName) ? `${h.brandName.replace(/®/g, '')} ` : ''}${h.name}`.trim(),
           content: h.salesUnit ?? '',
           price: r2(price),
@@ -138,12 +165,11 @@ export async function fetchAldiCatalog({ log = console.log } = {}) {
           frozen: /diepvries|surgel/.test((h.categoryIDs ?? []).join(' ')),
           url: h.productSlug ? `https://www.aldi.be/fr/produits/${h.productSlug}.html` : '',
           nutri: '',
+          catIds: h.categoryIDs,
         });
       }
-      log(`  Aldi page ${pg} : ${rows.length} articles (sur ${r.nbHits})`);
-      if ((pg + 1) * 1000 >= r.nbHits) break;
-      await sleep(500);
     }
+    log(`  Aldi : ${rows.length} articles avec prix (sur ${all.nbHits})`);
   } finally {
     await browser.close();
   }
@@ -155,7 +181,6 @@ export async function fetchAldiCatalog({ log = console.log } = {}) {
 export const toCandidate = (r) => ({
   name: r.content && !r.name.includes(r.content) ? `${r.name} ${r.content}` : r.name,
   price: r.price,
-  promo: Boolean(r.regular),
   frozen: r.frozen,
   kind: r.kind,
   url: r.url,
@@ -163,7 +188,8 @@ export const toCandidate = (r) => ({
 });
 
 /** Article → ligne compacte du catalogue de l'app (même forme que Colruyt + lien et Nutri-Score). */
-export const toRow = (r) => [r.id, r.name, r.content, r.price, r.unitPrice, r.unit, r.cat, r.regular ? 1 : 0, 0, '', r.url, r.nutri];
+// Lien sans le domaine (l'app le rajoute) : fichier plus léger.
+export const toRow = (r) => [r.id, r.name, r.content, r.price, r.unitPrice, r.unit, r.cat, r.promo ? 1 : 0, 0, '', r.url.replace(/^https:\/\/www\.[a-z]+\.be/, ''), r.nutri];
 
 // Lancement direct : node prices/catalogs.mjs [delhaize|aldi] → résumé.
 if (process.argv[1]?.endsWith('catalogs.mjs')) {
