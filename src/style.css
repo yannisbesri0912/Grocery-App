@@ -134,7 +134,7 @@ label.field { display: grid; gap: 6px; font-size: .84rem; color: var(--muted); f
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 .searchbox { position: relative; }
-.searchbox svg.i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.searchbox > svg.i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 .searchbox input { padding-left: 44px; min-height: 52px; font-size: 1.02rem; background: var(--surface); box-shadow: var(--shadow); border-color: transparent; }
 .results { display: grid; margin-top: 6px; background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
 .results:empty { display: none; }
@@ -300,3 +300,13 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .items.smart .sub { white-space: normal; }
 .items.smart .row > .name { flex: 1; min-width: 0; }
 .items.smart .row > b.num { flex: none; }
+
+/* Dictée et code-barres */
+.searchbox .sb-btn { position: absolute; top: 50%; transform: translateY(-50%); right: 6px; width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: none; color: var(--accent); cursor: pointer; border-radius: 10px; }
+.searchbox .sb-btn[data-action="voice"] { right: 46px; }
+.searchbox:has(.sb-btn) input { padding-right: 92px; }
+.searchbox .sb-btn:active { background: var(--accent-soft); }
+.scan-box video { width: 100%; max-height: 50vh; border-radius: 14px; background: #000; object-fit: cover; }
+.nutri { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; font-weight: 800; color: #fff; flex: none; }
+.nutri.nA { background: #038141; } .nutri.nB { background: #85bb2f; } .nutri.nC { background: #fecb02; color: #222; } .nutri.nD { background: #ee8100; } .nutri.nE { background: #e63e11; }
+.nutri.sm { width: 22px; height: 22px; border-radius: 6px; font-size: .72rem; }

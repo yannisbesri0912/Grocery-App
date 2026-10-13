@@ -9,6 +9,8 @@ import { TIERS, tierOf, candidatesFromRows, productOptions, buildBasket } from '
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
+import { parseVoice } from './voice.js';
+import { startScanner, lookupBarcode } from './scan.js';
 
 // ---------- État (gardé sur le téléphone, jamais envoyé ailleurs) ----------
 const KEY = 'courses-opti:v1';
@@ -119,6 +121,106 @@ function realPrices() {
   return real;
 }
 
+// ---------- Ajout à la voix et par code-barres ----------
+// Meilleur produit pour un nom dicté ou lu : produit général, sinon article Colruyt.
+function bestMatch(name) {
+  // Mot entier (« lait » ne doit pas trouver « laitue »), pluriel accepté.
+  const q = norm(name).replace(/[sx]\b/g, '').replace(/[^a-z0-9 ]/g, '').trim();
+  const re = new RegExp(`(^|[^a-z])${q}[sx]?([^a-z]|$)`);
+  const generic = q && allProducts().find((p) => !p.colruyt && re.test(norm(p.name)));
+  if (generic) return { product: generic };
+  const [r] = CATALOG ? searchCatalog(CATALOG.rows, name, 1) : [];
+  return r ? { row: r } : null;
+}
+
+function addItem(match, qty = 1) {
+  let p = match.product;
+  if (match.row) {
+    p = catalogProduct(match.row);
+    if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
+  }
+  const it = state.list.find((l) => l.id === p.id);
+  if (it) it.qty += qty; else state.list.push({ id: p.id, qty, checked: false });
+  return p;
+}
+
+async function dictate() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Dictée indisponible ici : utilise le micro de ton clavier dans la recherche'); return; }
+  if (!CATALOG) loadCatalog();
+  const rec = new SR();
+  rec.lang = 'fr-BE';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  toast('Je t\'écoute… (« ajoute 2 litres de lait et du pain »)');
+  rec.onresult = async (e) => {
+    const text = e.results[0][0].transcript;
+    await loadCatalog();
+    const added = [];
+    const missed = [];
+    for (const { qty, name } of parseVoice(text)) {
+      const m = bestMatch(name);
+      if (m) added.push(`${qty > 1 ? `${qty} × ` : ''}${addItem(m, qty).name.replace(/\s*\(.*\)$/, '')}`); else missed.push(name);
+    }
+    save();
+    render();
+    toast(`${added.length ? `Ajouté : ${added.join(', ')}` : 'Rien compris'}${missed.length ? ` · pas trouvé : ${missed.join(', ')}` : ''}`);
+  };
+  rec.onerror = (e) => toast(e.error === 'not-allowed' ? 'Autorise le micro pour dicter' : 'Je n\'ai pas entendu, réessaie');
+  rec.start();
+}
+
+async function scan() {
+  if (!navigator.mediaDevices?.getUserMedia) { toast('Caméra indisponible sur ce navigateur'); return; }
+  if (!CATALOG) loadCatalog();
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="modal-box scan-box" role="dialog" aria-modal="true">
+    <p><b>Vise le code-barres</b></p><video playsinline muted></video><div class="scan-result small muted">Lecture…</div>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-r="0">Fermer</button></div></div>`;
+  document.body.append(wrap);
+  let stop = () => {};
+  const close = () => { stop(); wrap.remove(); };
+  wrap.addEventListener('click', async (e) => {
+    if (e.target === wrap || e.target.closest('[data-r]')) return close();
+    const b = e.target.closest('[data-pick]');
+    if (!b) return;
+    const pick = JSON.parse(b.dataset.pick);
+    const m = pick.id ? { product: productById(pick.id) } : { row: CATALOG.rows.find((r) => r[ROW.id] === pick.row) };
+    const p = addItem(m, 1);
+    save();
+    render();
+    toast(`${p.name} ajouté`);
+    close();
+  });
+  const out = wrap.querySelector('.scan-result');
+  try {
+    stop = await startScanner(wrap.querySelector('video'), async (code) => {
+      out.textContent = `Code ${code} : je cherche le produit…`;
+      const info = await lookupBarcode(code).catch(() => null);
+      await loadCatalog();
+      if (!info) { out.innerHTML = `Code ${esc(code)} inconnu d'Open Food Facts. Cherche-le par son nom.`; return; }
+      const brand = norm(info.brand);
+      const rows = CATALOG ? searchCatalog(CATALOG.rows, info.name, 12) : [];
+      rows.sort((a, b) => (brand && norm(rowName(b)).includes(brand)) - (brand && norm(rowName(a)).includes(brand)));
+      const generic = bestMatch(info.name)?.product;
+      const choices = [
+        ...(generic ? [`<button class="btn soft block" data-pick='${esc(JSON.stringify({ id: generic.id }))}'>${esc(generic.name)} · produit général</button>`] : []),
+        ...rows.slice(0, 3).map((r) => `<button class="btn block" data-pick='${esc(JSON.stringify({ row: r[ROW.id] }))}'>${esc(rowName(r))} · ${eur(r[ROW.price])}</button>`),
+      ];
+      wrap.querySelector('video').remove();
+      wrap.querySelector('p b').textContent = 'Produit trouvé';
+      out.innerHTML = `<div class="row" style="gap:10px">${info.image ? `<img src="${esc(info.image)}" alt="" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff">` : ''}
+        <div class="grow"><b>${esc(info.name)}</b><br><span class="muted">${esc([info.brand, info.quantity].filter(Boolean).join(' · '))}</span></div>
+        ${info.nutriscore ? `<span class="nutri n${info.nutriscore}" title="Nutri-Score">${info.nutriscore}</span>` : ''}</div>
+        <p class="small">${choices.length ? 'Ajouter à ma liste :' : 'Pas trouvé chez Colruyt : cherche-le par son nom.'}</p><div class="stack" style="gap:6px">${choices.join('')}</div>
+        <p class="tiny muted">Données <a href="https://world.openfoodfacts.org/product/${esc(code)}" target="_blank" rel="noopener">Open Food Facts</a> (ODbL).</p>`;
+    });
+  } catch (e) {
+    out.textContent = e?.name === 'NotAllowedError' ? 'Autorise la caméra pour scanner.' : 'Caméra indisponible.';
+  }
+}
+
 // ---------- Utilitaires ----------
 const eur = (x) => x.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' });
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -148,6 +250,8 @@ const ICONS = {
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  scan: '<path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/>',
   chef: '<path d="M6 13h12v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M6 13a4 4 0 0 1 1-7.9A5 5 0 0 1 17 5.1 4 4 0 0 1 18 13"/>',
   spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
 };
@@ -371,7 +475,8 @@ function viewList() {
     <div class="section-head"><h1>Ma liste</h1>${state.list.length ? '<button class="btn ghost danger small" data-action="clear">Vider</button>' : ''}</div>
     ${state.list.length ? `<button class="banner smart-entry" data-action="smart-open">${icon('spark')}<span class="grow"><b>Panier malin</b><br><span class="small muted">Donne un budget : je compose le meilleur panier</span></span>${icon('arrow')}</button>` : ''}
     ${due.length ? `<div class="banner">${icon('repeat')}<span class="grow">${due.length} produit${due.length > 1 ? 's' : ''} habituel${due.length > 1 ? 's' : ''} à racheter</span><button class="btn primary" data-action="add-due">Ajouter</button></div>` : ''}
-    <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit…" value="${esc(search)}" autocomplete="off" enterkeyhint="done"></div>
+    <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit…" value="${esc(search)}" autocomplete="off" enterkeyhint="done">
+      <button class="sb-btn" data-action="voice" aria-label="Dicter">${icon('mic')}</button><button class="sb-btn" data-action="scan" aria-label="Scanner un code-barres">${icon('scan')}</button></div>
       <div class="results" id="results">${searchResults()}</div></div>
     ${quickChips()}
     ${state.list.length ? `<div class="card">${listHtml}</div>` : `<div class="empty">${icon('cart')}<b>Ta liste est vide</b><span>Cherche un produit ou touche un ajout rapide.</span></div>`}`;
@@ -610,7 +715,8 @@ function viewSmart() {
         : `Il reste ${eur(res.left)}${res.skipped.length ? ` · ${res.skipped.length} proposition${res.skipped.length > 1 ? 's' : ''} hors budget` : ''}`}</span>
     </section>
     <p class="small muted">Touche une gamme pour l'imposer (retouche pour laisser l'app choisir). Les frais de retrait ne sont pas comptés.</p>
-    <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit au panier…" value="${esc(search)}" autocomplete="off" enterkeyhint="done"></div>
+    <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit au panier…" value="${esc(search)}" autocomplete="off" enterkeyhint="done">
+      <button class="sb-btn" data-action="voice" aria-label="Dicter">${icon('mic')}</button><button class="sb-btn" data-action="scan" aria-label="Scanner un code-barres">${icon('scan')}</button></div>
       <div class="results" id="results">${searchResults()}</div></div>
     ${mine.length ? `<span class="eyebrow">Ta liste</span><ul class="items smart">${mine.map(row).join('')}</ul>` : ''}
     <div class="section-head"><span class="eyebrow">Plats proposés</span><button class="btn ghost small" data-tab="plats">+ Choisir un plat</button></div>
@@ -1264,6 +1370,10 @@ document.addEventListener('click', async (e) => {
     state.menu = [];
     save();
     render();
+  } else if (a === 'voice') {
+    dictate();
+  } else if (a === 'scan') {
+    scan();
   } else if (a === 'smart-open') {
     smartOpen = true;
     render();

@@ -116,13 +116,14 @@ export function searchCatalog(rows, query, limit = 12) {
     const fr = r[ROW.fr] || r[ROW.name];
     const head = norm(fr.replace(BRAND, ''));
     const nl = norm(r[ROW.name].replace(BRAND, ''));
+    const brand = norm(r[ROW.name].match(BRAND)?.[0] ?? ''); // « NUTELLA », « CÔTE D'OR »
     let found = 0;
     let points = 0;
     let first = false;
     for (const [k, alts] of terms.entries()) {
       let best = 0;
       for (const a of alts) {
-        for (const [text, base] of [[head, 4], [nl, 1]]) {
+        for (const [text, base] of [[head, 4], [nl, 1], [brand, 2]]) {
           const i = a.length <= 2 ? text.split(/[^a-z0-9]+/).indexOf(a) : text.indexOf(a);
           if (i < 0) continue;
           const startsWord = i === 0 || /[^a-z0-9]/.test(text[i - 1]);

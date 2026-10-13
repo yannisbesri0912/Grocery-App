@@ -1,7 +1,7 @@
 // Hors-ligne : garde une copie de l'app ; en ligne, sert toujours la dernière version.
-const CACHE = 'grocery-opti-v9';
+const CACHE = 'grocery-opti-v10';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
-  'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js', 'src/smart.js', 'src/matcher.js', 'src/recipes.js', 'src/questions.js'];
+  'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js', 'src/smart.js', 'src/matcher.js', 'src/recipes.js', 'src/questions.js', 'src/voice.js', 'src/scan.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
