@@ -16,7 +16,7 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - name: Catalogues complets (test)
-        run: node prices/catalogs.mjs delhaize aldi
+        run: node prices/catalogs.mjs delhaize
         continue-on-error: true
       - name: Enregistrer
         run: |

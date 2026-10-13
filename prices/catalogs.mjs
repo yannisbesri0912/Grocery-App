@@ -5,6 +5,7 @@
 // produits de l'app) et une ligne du catalogue cherchable dans l'app.
 import { openBrowser, acceptCookies, sleep } from './browser.mjs';
 import { parseSizes } from '../src/matcher.js';
+import { RULES } from '../src/match-rules.js';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 const num = (s) => { const m = String(s ?? '').replace(/\s/g, '').match(/(\d+(?:[.,]\d+)?)/); return m ? Number(m[1].replace(',', '.')) : null; };
@@ -15,6 +16,21 @@ const DELHAIZE_CATS = {
   v2FRO: 5, v2DRI: 6, v2ALC: 6, v2WIN: 6, v2HYG: 7, v2SPO: 7, v2CLE: 8, v2BAB: 9, v2PET: 9,
 };
 const UNIT_OF = { kilogram: 'kg', kg: 'kg', liter: 'l', litre: 'l', l: 'l', pieces: 'pc', piece: 'pc', pc: 'pc' };
+
+// Relevé des formes de promo rencontrées (diagnostic : node prices/catalogs.mjs delhaize).
+export const PROMO_SEEN = new Map();
+function seePromo(p, row) {
+  const pr = p.price ?? {};
+  const promos = p.potentialPromotions ?? [];
+  const key = promos.length
+    ? promos.map((x) => [x.promotionTypeCode, x.redemptionLevel, x.qualifyingCount, x.freeCount, x.percentageDiscount, x.range, x.pickAndMix].join('|')).join(' + ')
+    : pr.discountedPriceFormatted ? `(sans promo, prix réduit ${pr.wasPrice ? 'avec wasPrice' : ''} ${pr.showStrikethroughPrice ? 'barré' : ''})` : null;
+  if (!key) return;
+  const e = PROMO_SEEN.get(key) ?? { n: 0, ex: [] };
+  e.n++;
+  if (e.ex.length < 4) e.ex.push({ name: row.name, price: pr.value, discounted: pr.discountedPriceFormatted, was: pr.wasPrice, strike: pr.showStrikethroughPrice, promos: promos.map((x) => ({ title: x.title, msg: x.simplePromotionMessage, desc: x.description, type: x.promotionType, q: x.qualifyingCount, free: x.freeCount, pct: x.percentageDiscount, lvl: x.redemptionLevel, end: x.endDate, burn: x.priceToBurn, offerType: x.offerType, badge: x.alternativePromotionBadge })) });
+  PROMO_SEEN.set(key, e);
+}
 
 function delhaizeRow(p) {
   const pr = p.price ?? {};
@@ -50,6 +66,11 @@ function delhaizeRow(p) {
     kind: ['v2PET', 'v2BAB'].includes(p.firstLevelCategory?.code) ? (p.firstLevelCategory.code === 'v2PET' ? 'pet' : 'baby') : undefined,
   };
 }
+function delhaizeRowSeen(p) {
+  const row = delhaizeRow(p);
+  if (row) seePromo(p, row);
+  return row;
+}
 
 export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 } = {}) {
   const { browser, context } = await openBrowser();
@@ -57,7 +78,19 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
   try {
     const page = await context.newPage();
     let catUrl = null;
-    page.on('request', (r) => { if (/operationName=GetCategoryProductSearch/.test(r.url())) catUrl ??= r.url(); });
+    let searchUrl = null;
+    const codes = new Set(Object.keys(DELHAIZE_CATS));
+    page.on('request', (r) => {
+      if (/operationName=GetCategoryProductSearch/.test(r.url())) catUrl ??= r.url();
+      if (/operationName=GetProductSearch/.test(r.url())) searchUrl ??= r.url();
+    });
+    // Tous les rayons cités par le site (menu, en-tête) : certains, comme les
+    // conserves, n'apparaissent pas dans la liste de départ.
+    page.on('response', async (r) => {
+      if (!/\/api\/v1\//.test(r.url())) return;
+      const t = await r.text().catch(() => '');
+      for (const m of t.matchAll(/["/=](v2[A-Z]{3})\b/g)) codes.add(m[1]);
+    });
     // Accueil d'abord (cookies), puis un rayon : sa page appelle la recherche par rayon.
     await page.goto('https://www.delhaize.be/fr/shop', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await acceptCookies(page);
@@ -70,6 +103,8 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
       log(`  Delhaize ${path} : ${catUrl ? 'requête trouvée' : 'rien'}`);
     }
     if (!catUrl) throw new Error('Delhaize : requête de rayon introuvable');
+    for (const code of await page.evaluate(() => [...document.querySelectorAll('a[href*="/c/v2"]')].map((a) => a.getAttribute('href').match(/\/c\/(v2[A-Z]{3})/)?.[1]))) if (code) codes.add(code);
+    log(`  Delhaize : ${codes.size} rayons (${[...codes].join(' ')})`);
     const call = (vars) => page.evaluate(async ([url, v]) => {
       const x = new URL(url, location.origin);
       x.searchParams.set('variables', JSON.stringify({ ...JSON.parse(x.searchParams.get('variables')), ...v }));
@@ -80,7 +115,7 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
       return { products: ps?.products ?? [], totalPages: ps?.pagination?.totalPages ?? 0 };
     }, [catUrl, vars]);
     let pages = 0;
-    for (const cat of Object.keys(DELHAIZE_CATS)) {
+    for (const cat of codes) {
       let total = 1;
       for (let n = 0; n < total && pages < maxPages; n++) {
         let r = await call({ category: cat, pageNumber: n, pageSize: 50, lang: 'fr' });
@@ -89,11 +124,30 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
         total = r.totalPages;
         pages++;
         if (pages === 1) log(`  exemple : ${r.products.slice(0, 3).map((p) => p.name).join(' | ')}`);
-        for (const p of r.products) { const row = delhaizeRow(p); if (row) rows.set(row.id, row); }
+        for (const p of r.products) { const row = delhaizeRowSeen(p); if (row) rows.set(row.id, row); }
         await sleep(250 + Math.random() * 250);
       }
       log(`  Delhaize ${cat} : ${total} pages, ${rows.size} articles au total`);
     }
+    // Filet de sécurité : une recherche par produit suivi par l'app (50 premiers résultats).
+    await page.goto('https://www.delhaize.be/fr/shop/search?text=lait', { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+    await page.waitForResponse((r) => /GetProductSearch/.test(r.url()), { timeout: 15000 }).catch(() => {});
+    if (searchUrl) {
+      const before = rows.size;
+      const vars = JSON.parse(new URL(searchUrl).searchParams.get('variables'));
+      const textKey = Object.keys(vars).find((k) => vars[k] === 'lait');
+      for (const q of new Set(Object.values(RULES).map((r) => r.q).filter(Boolean))) {
+        const r = await page.evaluate(async ([url, v]) => {
+          const x = new URL(url, location.origin);
+          x.searchParams.set('variables', JSON.stringify({ ...JSON.parse(x.searchParams.get('variables')), ...v }));
+          const res = await fetch(x, { headers: { 'content-type': 'application/json', 'apollo-require-preflight': 'true' } });
+          return res.ok ? (await res.json()).data?.productSearch?.products ?? [] : [];
+        }, [searchUrl, { [textKey ?? 'searchQuery']: q, pageNumber: 0, pageSize: 50, lang: 'fr' }]).catch(() => []);
+        for (const p of r) { const row = delhaizeRowSeen(p); if (row && !rows.has(row.id)) rows.set(row.id, row); }
+        await sleep(200 + Math.random() * 200);
+      }
+      log(`  Delhaize recherches : +${rows.size - before} articles (clé « ${textKey} »)`);
+    } else log('  Delhaize : recherche introuvable, pas de filet de sécurité');
   } finally {
     await browser.close();
   }
@@ -101,20 +155,24 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
   return [...rows.values()];
 }
 
-// Rayons Aldi (identifiants Algolia) → rayons de l'app, par mots-clés.
+// Rayons Aldi (identifiants Algolia) → rayons de l'app. Un article a plusieurs
+// identifiants (rayon parent, sous-rayon, actions) : le premier groupe trouvé
+// dans l'ordre ci-dessous l'emporte, sinon épicerie.
+const ALDI_CATS = [
+  [5, ['diepvries', 'diepvries-pizza-maaltijden-snacks', 'diepvries-vis', 'diepvries-groenten-fruit', 'diepvries-vlees', 'diepvries-gebak-koeken', 'ijs', 'ijs-zomer', 'frietjes-aardappelproducten']],
+  [9, ['dierenvoeding', 'kat', 'hond', 'baby']],
+  [7, ['lichaamsverzorging', 'haarproducten', 'tandverzorging', 'gezichtsverzorging', 'intieme-hygiene', 'make-up', 'verzorging-winter']],
+  [8, ['huishouden', 'schoonmaakmiddelen-schoonmaakartikelen', 'wasmiddelen-wasverzachters', 'zakdoekjes-toiletpapier-keukenpapier', 'folie-huishoudzakken', 'afwassen-vaatwasmiddelen', 'batterijen-aanmaakblokjes', 'draagtassen-overige']],
+  [6, ['water-frisdrank-sappen-siroop', 'wijn', 'bier-sterke-dranken', 'frisdrank', 'koffie-thee', 'koffie', 'bier', 'sterke-dranken', 'rode-wijn', 'witte-wijn', 'rose-wijn', 'sappen-smoothies', 'energy-drinks-sportdrank', 'water', 'bubbels', 'dranken-zomer', 'dranken-eoy', 'thee-cacao', 'wijn-eoy', 'fou-d-o']],
+  [3, ['vlees', 'charcuterie', 'vis-zeevruchten', 'gevogelte', 'vis', 'varkensvlees', 'rundsvlees', 'zeevruchten', 'wild', 'mosselen', 'lamsvlees', 'barbecuevlees', 'vlees-eoy', 'vis-eoy']],
+  [2, ['zuivel-eieren-boter', 'kaas', 'yoghurt', 'melk', 'boter-margarine-room', 'eieren', 'desserts', 'kaas-eoy']],
+  [0, ['aardappelen-groenten-fruit', 'groenten', 'fruit', 'aardappelen', 'groente-fruit-eoy']],
+  [1, ['brood-bakkerij-zelf-bakken', 'brood', 'broodjes-sandwiches-afbakbrood', 'koffiekoeken-gebak', 'beschuiten-toast-crackers']],
+];
 function aldiCat(ids = []) {
-  const s = ids.join(' ');
-  if (/fruit|groente|legume|aardappel/.test(s)) return 0;
-  if (/brood|bakker|boulang|pain/.test(s)) return 1;
-  if (/zuivel|kaas|eieren|yoghurt|melk|cremerie|fromage/.test(s)) return 2;
-  if (/vlees|vis|charcut|viande|poisson|vegetari/.test(s)) return 3;
-  if (/diepvries|surgel|ijs/.test(s)) return 5;
-  if (/drank|wijn|bier|water|sap|boisson|vin|biere/.test(s)) return 6;
-  if (/verzorging|hygien|cosmet/.test(s)) return 7;
-  if (/huishoud|onderhoud|was|entretien|menage/.test(s)) return 8;
-  if (/baby|dier|animaux|kat|hond/.test(s)) return 9;
-  return 4;
+  return ALDI_CATS.find(([, list]) => ids.some((id) => list.includes(id)))?.[0] ?? 4;
 }
+const aldiKind = (ids = []) => (ids.some((id) => ['dierenvoeding', 'kat', 'hond'].includes(id)) ? 'pet' : ids.includes('baby') ? 'baby' : undefined);
 
 export async function fetchAldiCatalog({ log = console.log } = {}) {
   const { browser, context } = await openBrowser();
@@ -162,7 +220,8 @@ export async function fetchAldiCatalog({ log = console.log } = {}) {
           unitPrice: base?.basePriceValue > 0 ? r2(base.basePriceValue) : 0,
           unit,
           cat: aldiCat(h.categoryIDs),
-          frozen: /diepvries|surgel/.test((h.categoryIDs ?? []).join(' ')),
+          frozen: /diepvries/.test((h.categoryIDs ?? []).join(' ')),
+          kind: aldiKind(h.categoryIDs),
           url: h.productSlug ? `https://www.aldi.be/fr/produits/${h.productSlug}.html` : '',
           nutri: '',
           catIds: h.categoryIDs,
@@ -202,5 +261,6 @@ if (process.argv[1]?.endsWith('catalogs.mjs')) {
     console.log(`${chain} : ${rows.length} articles en ${Math.round((Date.now() - t) / 1000)} s`);
     console.log(rows.slice(0, 5));
     writeFileSync(`data-raw/catalog-${chain}.json`, JSON.stringify(rows));
+    if (chain === 'delhaize') writeFileSync('data-raw/delhaize-promos.json', JSON.stringify([...PROMO_SEEN].sort((a, b) => b[1].n - a[1].n), null, 1));
   }
 }
