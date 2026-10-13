@@ -42,7 +42,7 @@ export function parseReceipt(text) {
     if (!m) continue;
     const name = m[1].replace(/^\d+\s+/, '').replace(/\s+\d+\s*[xX]\s*$/, '').trim();
     const value = money(m[2]);
-    if (!name || name.length < 2) continue;
+    if (!name || name.length < 2 || value === 0) continue;
     if (value < 0) { // réduction : retirée de l'article précédent
       const last = items.at(-1);
       if (last) { last.total = Math.round((last.total + value) * 100) / 100; last.price = Math.round((last.total / last.qty) * 100) / 100; }

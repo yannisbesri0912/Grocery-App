@@ -8,6 +8,7 @@ import { searchCatalog, ROW, rowName } from './catalog.js';
 import { dealTotal, dealAdvice } from './deals.js';
 import { priceSignal, KEEPS } from './history.js';
 import { aisleKey, aisleOrder } from './aisles.js';
+import { addRatio, calibFactor } from './calib.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
@@ -647,6 +648,7 @@ function applyReceipt() {
   const { chain } = receipt;
   const used = receipt.items.filter((i) => i.use);
   let corrected = 0;
+  const calibrated = new Set();
   state.purchases ??= {};
   for (const it of used) {
     if (!it.match) continue;
@@ -664,7 +666,13 @@ function applyReceipt() {
       const size = parseSizes(it.name).find((x) => x.unit === rule.size[1]);
       const factor = size ? rule.size[0] / size.amount : (rule.size[1] === 'pc' && rule.size[0] === 1 ? 1 : null);
       if (factor && factor > 0.2 && factor < 5) {
-        state.overrides[pid] = { ...(state.overrides[pid] ?? {}), [chain]: Math.round(it.price * factor * 100) / 100 };
+        const paid = Math.round(it.price * factor * 100) / 100;
+        // Calibrage : l'app n'avait qu'une estimation pour ce produit dans ce magasin.
+        const own = { ...state.overrides };
+        delete own[pid];
+        const est = priceInfo(productById(pid), chain, baseChains(), own, realPrices());
+        if (est?.kind === 'estimate') { state.calib ??= {}; state.calib[chain] = addRatio(state.calib[chain], paid / est.price, today); calibrated.add(chain); }
+        state.overrides[pid] = { ...(state.overrides[pid] ?? {}), [chain]: paid };
         corrected++;
       }
     }
@@ -687,7 +695,8 @@ function applyReceipt() {
   receipt = null;
   save();
   render();
-  toast(`Ticket enregistré · ${corrected} prix corrigé${corrected > 1 ? 's' : ''}`);
+  const f = calibrated.has(chain) ? calibFactor(state.calib[chain]) : 1;
+  toast(`Ticket enregistré · ${corrected} prix corrigé${corrected > 1 ? 's' : ''}${f !== 1 ? ` · estimations ${CHAINS[chain]?.name ?? ''} ajustées (${f > 1 ? '+' : ''}${Math.round((f - 1) * 100)} %)` : ''}`);
 }
 
 // ---------- Utilitaires ----------
@@ -697,7 +706,9 @@ const norm = (s) => s.replace(/œ/gi, 'oe').replace(/æ/gi, 'ae').normalize('NFD
 const dateFr = (iso) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString('fr-BE', { day: 'numeric', month: 'short' }) : '');
 const allProducts = () => [...PRODUCTS, ...state.custom];
 const productById = (id) => allProducts().find((p) => p.id === id);
-const chains = () => Object.fromEntries(Object.entries(CHAINS).map(([k, c]) => [k, { ...c, index: state.chainIndex[k] ?? c.index }]));
+// Niveau de prix de chaque enseigne : réglage, corrigé par tes tickets (src/calib.js).
+const baseChains = () => Object.fromEntries(Object.entries(CHAINS).map(([k, c]) => [k, { ...c, index: state.chainIndex[k] ?? c.index }]));
+const chains = () => Object.fromEntries(Object.entries(baseChains()).map(([k, c]) => [k, { ...c, index: Math.round(c.index * calibFactor(state.calib?.[k]) * 10) / 10 }]));
 const kmFromHome = (s) => (state.home ? haversineKm(state.home, s) * state.settings.detour : null);
 
 const ICONS = {
@@ -1896,7 +1907,7 @@ function viewSettings() {
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
-          <label class="field"><span class="row">${logo(k, 'sm')}${esc(c.name)}</span><input type="number" min="50" max="200" data-action="index" data-chain="${k}" value="${c.index}"></label>`).join('')}</div>
+          <label class="field"><span class="row">${logo(k, 'sm')}${esc(c.name)}</span><input type="number" min="50" max="200" data-action="index" data-chain="${k}" value="${baseChains()[k].index}">${calibFactor(state.calib?.[k]) !== 1 ? `<span class="tiny muted">corrigé par tes tickets : ${calibFactor(state.calib[k]) > 1 ? '+' : ''}${Math.round((calibFactor(state.calib[k]) - 1) * 100)} % (${state.calib[k].length} articles)</span>` : ''}</label>`).join('')}</div>
         <p class="tiny muted" style="margin-top:8px">Colruyt = 100. Sert seulement quand on n'a pas le vrai prix.</p>
       </details>
     </div>
