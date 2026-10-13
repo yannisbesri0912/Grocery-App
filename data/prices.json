@@ -1,23 +1,23 @@
 {
- "updatedAt": "2026-10-13T05:06:04.141Z",
+ "updatedAt": "2026-10-13T11:50:21.094Z",
  "sources": {
   "colruyt": {
-   "date": "2026-10-11",
+   "date": "2026-10-12",
    "matched": 68,
    "ok": true,
-   "note": "catalogue colruyt-products/2026-10-11-14-44-16.json"
+   "note": "catalogue colruyt-products/2026-10-12-17-29-10.json"
   },
   "delhaize": {
    "date": "2026-10-13",
    "matched": 60,
    "ok": true,
-   "note": "catalogue complet (14380 articles)"
+   "note": "catalogue complet (14379 articles)"
   },
   "aldi": {
    "date": "2026-10-13",
    "matched": 53,
    "ok": true,
-   "note": "catalogue complet (2246 articles)"
+   "note": "catalogue complet (2247 articles)"
   },
   "promos": {
    "date": "2026-10-13",
@@ -53,20 +53,30 @@
     "unit": "kg"
    },
    "delhaize": {
-    "price": 1.39,
-    "article": "DELHAIZE Pommes drôles, emballé 1,5 kg",
-    "pack": 2.09,
-    "unitPrice": 1.393,
+    "price": 1.05,
+    "article": "Delhaize Gekke pommes | Verpakt 1,5 kg",
+    "pack": 1.57,
+    "unitPrice": 1.047,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Pommes-et-poires/Pommes/Pommes-droles-Emballe/p/F2017071900003540000"
+    "url": "https://www.delhaize.be/nl/shop/Verse-groenten-en-fruit/Vers-fruit/Appelen-en-peren/Appelen/Gekke-appelen-Verpakt/p/F2017071900003540000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "regular": {
+     "price": 1.39,
+     "article": "DELHAIZE Pommes drôles, emballé 1,5 kg",
+     "pack": 2.09,
+     "unitPrice": 1.393,
+     "unit": "kg",
+     "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Pommes-et-poires/Pommes/Pommes-droles-Emballe/p/F2017071900003540000"
+    }
    }
   },
   "oranges": {
    "colruyt": {
-    "price": 2.69,
+    "price": 2.49,
     "article": "EVERYDAY orange | à presser 4kg",
-    "pack": 5.38,
-    "unitPrice": 1.345,
+    "pack": 4.98,
+    "unitPrice": 1.245,
     "unit": "kg"
    },
    "delhaize": {
@@ -248,10 +258,10 @@
   },
   "poivrons": {
    "colruyt": {
-    "price": 1.15,
+    "price": 1.48,
     "article": "Poivron rouge",
-    "pack": 2.29,
-    "unitPrice": 2.29,
+    "pack": 2.96,
+    "unitPrice": 2.96,
     "unit": "kg"
    },
    "delhaize": {
@@ -273,10 +283,10 @@
   },
   "brocoli": {
    "colruyt": {
-    "price": 1,
+    "price": 1.29,
     "article": "Brocoli 1st 500g",
-    "pack": 1,
-    "unitPrice": 2,
+    "pack": 1.29,
+    "unitPrice": 2.58,
     "unit": "kg"
    },
    "aldi": {
@@ -390,13 +400,21 @@
   },
   "lait": {
    "colruyt": {
-    "price": 0.52,
-    "article": "BONI lait demi-écrémé PET 1L",
-    "pack": 0.52,
-    "unitPrice": 0.52,
+    "price": 0.79,
+    "article": "Boni Selection lait demi-écrémé PET 1L",
+    "pack": 0.79,
+    "unitPrice": 0.79,
     "unit": "l",
-    "promo": true,
-    "until": null
+    "url": "https://www.colruyt.be/nl/producten/1610",
+    "promo": "one_plus_one",
+    "until": "2026-10-20",
+    "regular": {
+     "price": 0.85,
+     "article": "EVERYDAY lait demi-écrémé brique 1L",
+     "pack": 0.85,
+     "unitPrice": 0.849,
+     "unit": "l"
+    }
    },
    "delhaize": {
     "price": 1.05,
@@ -615,6 +633,13 @@
     "unitPrice": 7.75,
     "unit": "kg"
    },
+   "aldi": {
+    "price": 6.24,
+    "article": "Kippenborstfilet 2 x 600 g",
+    "pack": 7.49,
+    "unitPrice": 6.242,
+    "unit": "kg"
+   },
    "lidl": {
     "price": 7.49,
     "article": "Kippenborsthaasjes XXL 1 kg",
@@ -625,21 +650,14 @@
     "promo": "percentage",
     "until": "2026-10-18",
     "promoOnly": true
-   },
-   "aldi": {
-    "price": 6.24,
-    "article": "Kippenborstfilet 2 x 600 g",
-    "pack": 7.49,
-    "unitPrice": 6.242,
-    "unit": "kg"
    }
   },
   "hache": {
    "colruyt": {
-    "price": 1.87,
+    "price": 3.75,
     "article": "Haché porc bœuf ±500g",
-    "pack": 3.74,
-    "unitPrice": 3.74,
+    "pack": 7.49,
+    "unitPrice": 7.49,
     "unit": "kg"
    }
   },
@@ -1184,17 +1202,6 @@
     "unitPrice": 1.23,
     "unit": "l"
    },
-   "lidl": {
-    "price": 2.5,
-    "article": "MCENNEDY jus d'orange frais XXL 2 l",
-    "pack": 4.99,
-    "unitPrice": 2.495,
-    "unit": "l",
-    "url": "https://www.lidl.be/p/nl-BE/mcennedy-vers-sinaasappelsap-xxl/p10031294",
-    "promo": "promo",
-    "until": "2026-10-13",
-    "promoOnly": true
-   },
    "delhaize": {
     "price": 1.3,
     "article": "DELHAIZE Jus d'orange 10 x 20 cl",
@@ -1210,15 +1217,52 @@
     "unitPrice": 1.233,
     "unit": "l",
     "url": "https://www.aldi.be/fr/produits/jus-dorange-3013732.html"
+   },
+   "lidl": {
+    "price": 2.5,
+    "article": "MCENNEDY jus d'orange frais XXL 2 l",
+    "pack": 4.99,
+    "unitPrice": 2.495,
+    "unit": "l",
+    "url": "https://www.lidl.be/p/nl-BE/mcennedy-vers-sinaasappelsap-xxl/p10031294",
+    "promo": "promo",
+    "until": "2026-10-13",
+    "promoOnly": true
    }
   },
   "coca": {
    "colruyt": {
-    "price": 2.22,
+    "price": 2.96,
     "article": "COCA-COLA Regular Original Taste 2L",
-    "pack": 2.24,
-    "unitPrice": 1.12,
+    "pack": 2.99,
+    "unitPrice": 1.495,
     "unit": "l"
+   },
+   "delhaize": {
+    "price": 4.32,
+    "article": "Coca-Cola Original taste | en boîte 15 x 33 cl",
+    "pack": 10.79,
+    "unitPrice": 2.18,
+    "unit": "l",
+    "url": "https://www.delhaize.be/nl/shop/Koude-en-warme-dranken/Frisdrank/Cola/Klassieke-cola/Original-taste-Blik/p/S2021020300504360000",
+    "promo": "one_plus_one",
+    "until": "2026-10-21",
+    "regular": {
+     "price": 5.08,
+     "article": "COCA-COLA Original taste, canette 15 x 33 cl",
+     "pack": 12.69,
+     "unitPrice": 2.564,
+     "unit": "l",
+     "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Sodas/Colas/Cola-classique/Original-taste-Canette/p/S2021020300504360000"
+    }
+   },
+   "aldi": {
+    "price": 2.96,
+    "article": "COCA-COLA Coca-Cola regular 2 l",
+    "pack": 2.99,
+    "unitPrice": 1.495,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/coca-cola-regular-4409.html"
    },
    "lidl": {
     "price": 2.84,
@@ -1230,22 +1274,6 @@
     "promo": "promo",
     "until": "2026-10-18",
     "promoOnly": true
-   },
-   "delhaize": {
-    "price": 5.08,
-    "article": "COCA-COLA Original taste, canette 15 x 33 cl",
-    "pack": 12.69,
-    "unitPrice": 2.564,
-    "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Sodas/Colas/Cola-classique/Original-taste-Canette/p/S2021020300504360000"
-   },
-   "aldi": {
-    "price": 2.96,
-    "article": "COCA-COLA Coca-Cola regular 2 l",
-    "pack": 2.99,
-    "unitPrice": 1.495,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/coca-cola-regular-4409.html"
    }
   },
   "biere": {
@@ -1269,12 +1297,22 @@
     }
    },
    "delhaize": {
-    "price": 14.69,
-    "article": "JUPILER Bière Blonde, pils, 5,2% alc., jumbo, caisse 24 x 33 cl",
-    "pack": 19.39,
-    "unitPrice": 2.448,
+    "price": 11.75,
+    "article": "Jupiler Blond bière | pils | 5,2% alc. | Jumbo | casier 24 x 33 cl",
+    "pack": 15.51,
+    "unitPrice": 1.958,
     "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Bieres-Alcools-and-Non-Alcoolises/Bieres/Pils-and-Bieres-de-Table/Biere-Blonde-Pils-5-2-alc-Jumbo-Caisse/p/S2002070900195850000"
+    "url": "https://www.delhaize.be/nl/shop/Bieren-Alcohol-and-Alcoholvrij/Bieren/Pils-and-Tafelbieren/Blond-Bier-Pils-5-2-alc-Jumbo-Bak/p/S2002070900195850000",
+    "promo": "one_plus_one",
+    "until": "2026-10-21",
+    "regular": {
+     "price": 14.69,
+     "article": "JUPILER Bière Blonde, pils, 5,2% alc., jumbo, caisse 24 x 33 cl",
+     "pack": 19.39,
+     "unitPrice": 2.448,
+     "unit": "l",
+     "url": "https://www.delhaize.be/fr/shop/Bieres-Alcools-and-Non-Alcoolises/Bieres/Pils-and-Bieres-de-Table/Biere-Blonde-Pils-5-2-alc-Jumbo-Caisse/p/S2002070900195850000"
+    }
    },
    "aldi": {
     "price": 16.18,
@@ -1328,6 +1366,14 @@
     "unitPrice": 0.68,
     "unit": "pc"
    },
+   "delhaize": {
+    "price": 2.85,
+    "article": "DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc",
+    "pack": 2.85,
+    "unitPrice": 0.713,
+    "unit": "pc",
+    "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Essuie-tout/Essuie-tout-4x64-Feuillles-3plis-Eco/p/S2023021000680470000"
+   },
    "lidl": {
     "price": 2.25,
     "article": "FLORALYS essuie-tout 3-lagig XXL 8 pièces",
@@ -1338,14 +1384,6 @@
     "promo": "promo",
     "until": "2026-10-18",
     "promoOnly": true
-   },
-   "delhaize": {
-    "price": 2.85,
-    "article": "DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc",
-    "pack": 2.85,
-    "unitPrice": 0.713,
-    "unit": "pc",
-    "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Essuie-tout/Essuie-tout-4x64-Feuillles-3plis-Eco/p/S2023021000680470000"
    }
   },
   "dentifrice": {
@@ -1407,12 +1445,22 @@
     "unit": "l"
    },
    "delhaize": {
-    "price": 4.34,
-    "article": "NIVEA Shampoing, care Express, 2en1, 400ML 40 cl",
-    "pack": 5.79,
-    "unitPrice": 14.475,
+    "price": 1.61,
+    "article": "Schauma Shampoo | Arganolie 40 cl",
+    "pack": 2.15,
+    "unitPrice": 5.375,
     "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-des-cheveux/Shampoings/Shampooing-liquide/Shampoing-Care-Express-2en1-400ML/p/S2021120700592730000"
+    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Haarverzorging/Shampoos/Vloeibare-shampoo/Shampoo-Arganolie/p/S2025121200912730000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "regular": {
+     "price": 4.34,
+     "article": "NIVEA Shampoing, care Express, 2en1, 400ML 40 cl",
+     "pack": 5.79,
+     "unitPrice": 14.475,
+     "unit": "l",
+     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-des-cheveux/Shampoings/Shampooing-liquide/Shampoing-Care-Express-2en1-400ML/p/S2021120700592730000"
+    }
    },
    "aldi": {
     "price": 0.3,
@@ -1442,12 +1490,22 @@
     }
    },
    "delhaize": {
-    "price": 2.59,
-    "article": "FA Deo, divine Moments 15 cl",
-    "pack": 2.59,
-    "unitPrice": 17.267,
+    "price": 1.29,
+    "article": "Fa Deospray | Pink Passion 15 cl",
+    "pack": 1.29,
+    "unitPrice": 8.6,
     "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-du-corps/Deodorants/Deospray-femmes/Deo-Divine-Moments/p/S2017030903695240000"
+    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Deodorant/Deospray-vrouwen/Deospray-Pink-Passion/p/S2016020203624280000",
+    "promo": "one_plus_one",
+    "until": "2026-10-14",
+    "regular": {
+     "price": 2.59,
+     "article": "FA Deo, divine Moments 15 cl",
+     "pack": 2.59,
+     "unitPrice": 17.267,
+     "unit": "l",
+     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-du-corps/Deodorants/Deospray-femmes/Deo-Divine-Moments/p/S2017030903695240000"
+    }
    },
    "aldi": {
     "price": 1.19,
@@ -1596,11 +1654,11 @@
    },
    "delhaize": {
     "price": 7.36,
-    "article": "WHISKAS Aliment chat, croquettes, boeuf 1,9 kg",
+    "article": "WHISKAS Aliment chat, croquettes, poulet 1,9 kg",
     "pack": 6.99,
     "unitPrice": 3.679,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Animaux/Chats/Aliments-secs/Aliment-chat-Croquettes-Boeuf/p/S2017070604159580000"
+    "url": "https://www.delhaize.be/fr/shop/Animaux/Chats/Aliments-secs/Aliment-chat-Croquettes-Poulet/p/S2017070604159680000"
    },
    "aldi": {
     "price": 2.59,
