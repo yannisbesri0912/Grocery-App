@@ -1129,7 +1129,8 @@ function addDish(r, servings) {
 }
 
 // ---------- Panier malin ----------
-let smartOpen = false;
+let smartOpen = Boolean(state.smartOpen); // rouvert là où on l'avait laissé
+function setSmartOpen(v) { smartOpen = v; state.smartOpen = v; save(); }
 let quiz = null; // { mode, i, answers } : questions en cours
 const smartCands = {}; // enseigne → candidats du catalogue (calculés une fois)
 const optionCache = new Map();
@@ -1360,7 +1361,7 @@ function applySmart() {
   state.dishNeed = {};
   for (const it of dishes) addDish(it.dish, it.servings);
   sm.dishes = [];
-  smartOpen = false;
+  setSmartOpen(false);
   save();
   toast(`Panier de ${eur(res.total)} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
   setTab('plan');
@@ -1988,9 +1989,19 @@ async function refreshStores() {
 }
 
 // ---------- Événements ----------
+// Un champ modifié puis un bouton touché aussitôt : le champ perd le focus
+// (« change ») avant le clic. Redessiner tout de suite ferait disparaître le
+// bouton sous le doigt et le clic serait perdu : on attend un peu.
+let deferred = null;
+function deferRender() {
+  clearTimeout(deferred);
+  deferred = setTimeout(() => { deferred = null; render(); }, 600);
+}
+
 document.addEventListener('click', async (e) => {
+  if (deferred) { clearTimeout(deferred); deferred = null; setTimeout(render, 0); }
   const tab = e.target.closest('[data-tab]');
-  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } if (tab.dataset.tab === 'list') { smartOpen = false; quiz = null; } if (tab.dataset.tab === 'plats' && state.tab === 'plats') recipeOpen = null; setTab(tab.dataset.tab); return; }
+  if (tab) { if (tab.dataset.tab === 'plan') { shownPlan = null; orderStop = null; } if (tab.dataset.tab === 'list') { setSmartOpen(false); quiz = null; } if (tab.dataset.tab === 'plats' && state.tab === 'plats') recipeOpen = null; setTab(tab.dataset.tab); return; }
   // Panier assisté : ouvrir un produit sur le site le coche comme « dans le panier ».
   const open = e.target.closest('a[data-open]');
   if (open) {
@@ -2050,7 +2061,7 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'recipe-open') {
     recipeOpen = id;
-    if (state.tab !== 'plats') { smartOpen = false; setTab('plats'); } else { render(); window.scrollTo({ top: 0 }); }
+    if (state.tab !== 'plats') { setSmartOpen(false); setTab('plats'); } else { render(); window.scrollTo({ top: 0 }); }
   } else if (a === 'recipe-back') {
     recipeOpen = null;
     render();
@@ -2096,11 +2107,11 @@ document.addEventListener('click', async (e) => {
   } else if (a === 'scan') {
     scan();
   } else if (a === 'smart-open') {
-    smartOpen = true;
+    setSmartOpen(true);
     render();
     window.scrollTo({ top: 0 });
   } else if (a === 'smart-close') {
-    smartOpen = false;
+    setSmartOpen(false);
     render();
   } else if (a === 'smart-budget') {
     smartSettings().budget = Number(b.dataset.val);
@@ -2292,13 +2303,13 @@ view.addEventListener('change', (e) => {
     if ('boolCheck' in t.dataset) v = t.checked;
     state.settings[t.dataset.setting] = v;
     save();
-    render();
+    deferRender();
     return;
   }
   if (t.dataset.card) {
     state.settings.cards = { ...(state.settings.cards ?? {}), [t.dataset.card]: t.checked };
     save();
-    render();
+    deferRender();
     return;
   }
   if (t.dataset.collect) {
@@ -2312,7 +2323,7 @@ view.addEventListener('change', (e) => {
   if (t.id === 'smart-budget') {
     smartSettings().budget = Math.max(1, Number(String(t.value).replace(',', '.')) || 1);
     save();
-    render();
+    deferRender();
     return;
   }
   const a = t.dataset.action;
@@ -2320,7 +2331,7 @@ view.addEventListener('change', (e) => {
     const opt = smartSettings().optional;
     if (t.checked) delete opt[t.dataset.id]; else opt[t.dataset.id] = true;
     save();
-    render();
+    deferRender();
   } else if (a === 'check') {
     const item = state.list.find((l) => l.id === t.dataset.id);
     if (item) item.checked = t.checked;
@@ -2331,19 +2342,19 @@ view.addEventListener('change', (e) => {
     const r = state.recurring.find((x) => x.id === t.dataset.id);
     if (r) r.every = Math.max(1, Number(t.value) || 1);
     save();
-    render();
+    deferRender();
   } else if (a === 'price') {
     const val = Number(t.value);
     state.overrides[t.dataset.id] = { ...(state.overrides[t.dataset.id] ?? {}) };
     if (t.value === '' || Number.isNaN(val)) delete state.overrides[t.dataset.id][t.dataset.chain];
     else state.overrides[t.dataset.id][t.dataset.chain] = Math.round(val * 100) / 100;
     save();
-    render();
+    deferRender();
     toast('Prix enregistré');
   } else if (a === 'index') {
     state.chainIndex[t.dataset.chain] = Number(t.value) || CHAINS[t.dataset.chain].index;
     save();
-    render();
+    deferRender();
   } else if (a === 'toggle-store') {
     const ex = new Set(state.settings.excluded);
     if (t.checked) ex.delete(t.dataset.id); else ex.add(t.dataset.id);
@@ -2354,7 +2365,7 @@ view.addEventListener('change', (e) => {
       try {
         state = migrate(JSON.parse(txt));
         save();
-        render();
+        deferRender();
         toast('Données importées');
       } catch { toast('Fichier invalide'); }
     });
