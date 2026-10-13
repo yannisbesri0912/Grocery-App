@@ -471,3 +471,5 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 /* Partage de liste */
 .share-box .qr { display: grid; place-items: center; min-height: 120px; background: #fff; border-radius: 14px; padding: 10px; }
 .share-box .qr svg { width: min(240px, 70vw); height: auto; }
+
+.items .name .sub.tip { display: block; white-space: normal; font-size: .78rem; color: var(--ink); }

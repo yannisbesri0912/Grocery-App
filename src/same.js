@@ -6,7 +6,7 @@ import { norm, parseSizes } from './matcher.js';
 import { ROW, BRAND } from './catalog.js';
 import { toFrench } from './translate.js';
 
-const STORE_BRANDS = new Set(['boni', 'everyday', 'boni selection', 'delhaize', '365', 'taste of inspirations', 'delhaize bio', 'kiddies', 'nalys', 'care', 'jeff de bruges']);
+export const STORE_BRANDS = new Set(['boni', 'everyday', 'boni selection', 'delhaize', '365', 'taste of inspirations', 'delhaize bio', 'kiddies', 'nalys', 'care', 'jeff de bruges']);
 const STOP = new Set(['de', 'du', 'la', 'le', 'les', 'des', 'a', 'au', 'aux', 'en', 'et', 'avec', 'pour', 'sur', 'x', 'pc', 'pcs', 'st', 'stuks', 'pieces', 'piece', 'g', 'gr', 'kg', 'cl', 'ml', 'l', 'boite', 'canette', 'bouteille', 'pet', 'blik', 'fles', 'pack', 'emballe', 'met', 'van', 'het', 'een', 'voor', 'in', 'en', 'alc', 'vol', 'fp', 'mp', 'family']);
 // Mots équivalents d'une enseigne à l'autre.
 const SYN = { regular: 'original', classic: 'original', classique: 'original', zero: 'zero', sugar: '', taste: '', light: 'light', pils: 'pils', blonde: '', biere: '', bier: '', chocopasta: 'tartiner', pate: '', choco: 'chocolat', chocolade: 'chocolat', hazelnoten: 'noisette', noisettes: 'noisette', hazeln: 'noisette', casier: 'caisse', bak: 'caisse' };
@@ -35,7 +35,7 @@ function countOf(text) {
 }
 const sameSize = (a, b) => a && b && a.unit === b.unit && Math.abs(a.amount - b.amount) <= Math.max(a.amount, b.amount) * 0.03;
 
-function describe(r, chain) {
+export function describe(r, chain) {
   const name = r[ROW.name];
   const brand = brandOf(name);
   const rest = name.replace(BRAND, '');

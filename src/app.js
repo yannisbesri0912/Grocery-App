@@ -10,6 +10,7 @@ import { priceSignal, KEEPS } from './history.js';
 import { aisleKey, aisleOrder } from './aisles.js';
 import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
+import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
@@ -951,12 +952,30 @@ function dealLine(p, qty) {
     .sort((a, b) => a.adv.each - b.adv.each)[0];
   if (!best) return '';
   const { chain, deal, adv } = best;
+  const x = best;
   const where = esc(CHAINS[chain].name);
-  const card = deal.m && !hasCard(chain) ? ' (carte Plus)' : '';
+  const needCard = deal.m && !hasCard(chain);
+  const card = needCard && !/carte/i.test(deal.txt) ? ' (carte Plus)' : '';
   const text = adv.add > 0
     ? `${where} : ${esc(deal.txt)}${card} → prends-en ${adv.target} : ${eur(adv.each)} pièce`
-    : `${where} : ${esc(deal.txt)}${card} · ${adv.saving > 0 ? `−${eur(adv.saving)}` : 'comptée'}`;
+    : needCard
+      ? `${where} : ${esc(deal.txt)}${card} · −${eur(adv.saving || Math.round(x.price * qty * deal.d * 100) / 100)} avec la carte`
+      : `${where} : ${esc(deal.txt)} · ${adv.saving > 0 ? `−${eur(adv.saving)}` : 'comptée'}`;
   return `<span class="sub deal">${text}${adv.add > 0 ? ` <button class="link" data-action="qty" data-id="${esc(p.id)}" data-d="${adv.add}">+${adv.add}</button>` : ''}</span>`;
+}
+
+// « Moins cher pour la même chose » : marque du magasin équivalente, ou grand format.
+function cheaperLine(p) {
+  const chain = p.colruyt ? 'colruyt' : p.shop?.chain;
+  const id = p.colruyt?.id ?? p.shop?.id;
+  const row = chain && rowById(chain, id);
+  if (!row) return '';
+  const { swap, bigger } = cheaperOptions(row, CATALOGS[chain].rows, chain);
+  const btn = (r, label) => `<button class="link" data-action="swap" data-id="${esc(p.id)}" data-chain="${chain}" data-row="${esc(r[ROW.id])}">${label}</button>`;
+  const name = (r) => esc(`${rowName(r)}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` ${r[ROW.content]}` : ''}`);
+  if (swap) return `<span class="sub tip">💡 ${name(swap.r)} : ${eur(swap.r[ROW.price])}, −${eur(swap.saving)} à quantité égale ${btn(swap.r, 'Remplacer')}</span>`;
+  if (bigger) return `<span class="sub tip">💡 Grand format ${name(bigger.r)} : ${eur(bigger.r[ROW.price])}, −${Math.round(bigger.pct * 100)} % au kilo ${btn(bigger.r, 'Prendre')}</span>`;
+  return '';
 }
 
 // Article de la liste vendu dans les deux enseignes : les deux vrais prix, le moins cher en vert.
@@ -1030,7 +1049,7 @@ function viewList() {
     .sort((a, b) => catRank(a[0]) - catRank(b[0]))
     .map(([cat, ls]) => [cat, order ? [...ls].sort((a, b) => aisleOf(a.p, order) - aisleOf(b.p, order)) : ls])
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}${cheaperLine(l.p)}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
@@ -2123,6 +2142,17 @@ document.addEventListener('click', async (e) => {
     smartSettings().budget = Number(b.dataset.val);
     save();
     render();
+  } else if (a === 'swap') {
+    const r = rowById(b.dataset.chain, b.dataset.row);
+    const it = state.list.find((l) => l.id === id);
+    if (!r || !it) return;
+    const p = catalogProduct(r, b.dataset.chain);
+    if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
+    const dup = state.list.find((l) => l.id === p.id);
+    if (dup) { dup.qty += it.qty; state.list = state.list.filter((l) => l !== it); } else it.id = p.id;
+    save();
+    render();
+    toast(`Remplacé par ${p.name}`);
   } else if (a === 'report') {
     reportProblem();
   } else if (a === 'share-list') {
