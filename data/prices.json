@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-13T11:50:21.094Z",
+ "updatedAt": "2026-10-13T13:40:19.338Z",
  "sources": {
   "colruyt": {
    "date": "2026-10-12",
@@ -11,7 +11,7 @@
    "date": "2026-10-13",
    "matched": 60,
    "ok": true,
-   "note": "catalogue complet (14379 articles)"
+   "note": "catalogue complet (14380 articles)"
   },
   "aldi": {
    "date": "2026-10-13",
@@ -41,7 +41,16 @@
     "pack": 1.29,
     "unitPrice": 1.29,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Bananes/Bananes/p/F2021012500075590000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Bananes/Bananes/p/F2021012500075590000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1008,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "pommes": {
@@ -53,25 +62,32 @@
     "unit": "kg"
    },
    "delhaize": {
-    "price": 1.05,
-    "article": "Delhaize Gekke pommes | Verpakt 1,5 kg",
-    "pack": 1.57,
-    "unitPrice": 1.047,
+    "price": 1.39,
+    "article": "DELHAIZE Pommes drôles, emballé 1,5 kg",
+    "pack": 2.09,
+    "unitPrice": 1.393,
     "unit": "kg",
-    "url": "https://www.delhaize.be/nl/shop/Verse-groenten-en-fruit/Vers-fruit/Appelen-en-peren/Appelen/Gekke-appelen-Verpakt/p/F2017071900003540000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "regular": {
-     "price": 1.39,
-     "article": "DELHAIZE Pommes drôles, emballé 1,5 kg",
-     "pack": 2.09,
-     "unitPrice": 1.393,
-     "unit": "kg",
-     "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Pommes-et-poires/Pommes/Pommes-droles-Emballe/p/F2017071900003540000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Pommes-et-poires/Pommes/Pommes-droles-Emballe/p/F2017071900003540000",
+    "deal": {
+     "k": "g",
+     "q": 2,
+     "d": 0.25,
+     "m": 1,
+     "r": 1,
+     "end": "2026-10-14",
+     "txt": "2ème à -50%"
     }
    }
   },
   "oranges": {
+   "aldi": {
+    "price": 2.5,
+    "article": "Oranges 2 kg",
+    "pack": 2.5,
+    "unitPrice": 1.25,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/oranges-6109.html"
+   },
    "colruyt": {
     "price": 2.49,
     "article": "EVERYDAY orange | à presser 4kg",
@@ -85,15 +101,16 @@
     "pack": 3.59,
     "unitPrice": 1.795,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Agrumes/Oranges-classiques/Oranges-de-table/p/F2023020900116140000"
-   },
-   "aldi": {
-    "price": 2.5,
-    "article": "Oranges 2 kg",
-    "pack": 2.5,
-    "unitPrice": 1.25,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/oranges-6109.html"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Agrumes/Oranges-classiques/Oranges-de-table/p/F2023020900116140000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1003,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "citrons": {
@@ -110,7 +127,16 @@
     "pack": 2.09,
     "unitPrice": 2.09,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Agrumes/Citrons/Citrons/p/F2025010800152010000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Fruits-frais/Agrumes/Citrons/Citrons/p/F2025010800152010000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1005,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "tomates": {
@@ -127,7 +153,16 @@
     "pack": 2.89,
     "unitPrice": 5.78,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Tomates/Tomates-classiques/Tomates-San-Marzano/p/F2018022100013050000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Tomates/Tomates-classiques/Tomates-San-Marzano/p/F2018022100013050000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1003,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "concombre": {
@@ -136,7 +171,16 @@
     "article": "Concombre",
     "pack": 0.89,
     "unitPrice": 0.89,
-    "unit": "pc"
+    "unit": "pc",
+    "deal": {
+     "k": "f",
+     "q": 2,
+     "d": 0.5,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "0,45 € pièce dès 2"
+    }
    },
    "delhaize": {
     "price": 0.99,
@@ -144,7 +188,16 @@
     "pack": 0.99,
     "unitPrice": 0.99,
     "unit": "pc",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Aubergines-courgettes-concombres-et-poivrons/Concombres/Concombre/p/F2021081200085550000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Aubergines-courgettes-concombres-et-poivrons/Concombres/Concombre/p/F2021081200085550000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.101,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "salade": {
@@ -161,10 +214,27 @@
     "pack": 1.09,
     "unitPrice": 1.09,
     "unit": "pc",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Salades-et-legumes-feuilles/Salade-a-la-piece/Laitue-pommee-Racines/p/F2015060800331900000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Salades-et-legumes-feuilles/Salade-a-la-piece/Laitue-pommee-Racines/p/F2015060800331900000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1009,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "carottes": {
+   "aldi": {
+    "price": 1,
+    "article": "Carottes 1 kg",
+    "pack": 1,
+    "unitPrice": 1,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/carottes-6216.html"
+   },
    "colruyt": {
     "price": 0.72,
     "article": "EVERYDAY carottes 2kg",
@@ -179,14 +249,6 @@
     "unitPrice": 1.49,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Carottes-et-legumes-racines/Carottes/Carottes/p/F2013100800315600000"
-   },
-   "aldi": {
-    "price": 1,
-    "article": "Carottes 1 kg",
-    "pack": 1,
-    "unitPrice": 1,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/carottes-6216.html"
    }
   },
   "oignons": {
@@ -203,7 +265,16 @@
     "pack": 1.99,
     "unitPrice": 0.995,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Ail-et-oignon/Oignons/Oignons-Jaunes-Filet/p/F2022102600109140000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Ail-et-oignon/Oignons/Oignons-Jaunes-Filet/p/F2022102600109140000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1005,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "ail": {
@@ -220,7 +291,16 @@
     "pack": 1.49,
     "unitPrice": 5.96,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Ail-et-oignon/Ail/Ail-Filet/p/F2022102600109150000"
+    "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Ail-et-oignon/Ail/Ail-Filet/p/F2022102600109150000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1007,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "pdt": {
@@ -241,22 +321,39 @@
    }
   },
   "courgettes": {
-   "colruyt": {
-    "price": 3.49,
-    "article": "Ronde Courgettes (los)",
-    "pack": 3.49,
-    "unitPrice": 3.49,
-    "unit": "kg"
-   },
    "aldi": {
     "price": 1.99,
     "article": "Courgettes 1 kg",
     "pack": 1.99,
     "unitPrice": 1.99,
     "unit": "kg"
+   },
+   "colruyt": {
+    "price": 3.49,
+    "article": "Ronde Courgettes (los)",
+    "pack": 3.49,
+    "unitPrice": 3.49,
+    "unit": "kg",
+    "deal": {
+     "k": "f",
+     "q": 3,
+     "d": 0.0802,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "3,21 € pièce dès 3"
+    }
    }
   },
   "poivrons": {
+   "aldi": {
+    "price": 1.43,
+    "article": "Poivrons pointus 2 x 500 g",
+    "pack": 2.85,
+    "unitPrice": 2.85,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/poivrons-pointus-7038.html"
+   },
    "colruyt": {
     "price": 1.48,
     "article": "Poivron rouge",
@@ -271,33 +368,42 @@
     "unitPrice": 5.58,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Aubergines-courgettes-concombres-et-poivrons/Poivrons/Poivrons-Mix/p/F2020122400074000000"
-   },
-   "aldi": {
-    "price": 1.43,
-    "article": "Poivrons pointus 2 x 500 g",
-    "pack": 2.85,
-    "unitPrice": 2.85,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/poivrons-pointus-7038.html"
    }
   },
   "brocoli": {
-   "colruyt": {
-    "price": 1.29,
-    "article": "Brocoli 1st 500g",
-    "pack": 1.29,
-    "unitPrice": 2.58,
-    "unit": "kg"
-   },
    "aldi": {
     "price": 0.9,
     "article": "Brocoli 1 kg",
     "pack": 1.79,
     "unitPrice": 1.79,
     "unit": "kg"
+   },
+   "colruyt": {
+    "price": 1.29,
+    "article": "Brocoli 1st 500g",
+    "pack": 1.29,
+    "unitPrice": 2.58,
+    "unit": "kg",
+    "deal": {
+     "k": "f",
+     "q": 2,
+     "d": 0.031,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "1,25 € pièce dès 2"
+    }
    }
   },
   "champignons": {
+   "aldi": {
+    "price": 3.82,
+    "article": "DAYLICIOUS Champignons coupés 300 g",
+    "pack": 2.29,
+    "unitPrice": 7.633,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/champignons-coupes-1152.html"
+   },
    "colruyt": {
     "price": 1.67,
     "article": "EVERYDAY champignons middelgroot 500g",
@@ -312,14 +418,6 @@
     "unitPrice": 3.78,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Fruits-et-legumes-frais/Legumes-frais/Champignons/Champignons-blancs/Champignons-blancs-Belges/p/F2015021100304110000"
-   },
-   "aldi": {
-    "price": 3.82,
-    "article": "DAYLICIOUS Champignons coupés 300 g",
-    "pack": 2.29,
-    "unitPrice": 7.633,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/champignons-coupes-1152.html"
    }
   },
   "avocats": {
@@ -332,6 +430,14 @@
    }
   },
   "pain": {
+   "aldi": {
+    "price": 0.99,
+    "article": "DÉLIPAIN Pain gris 800 g",
+    "pack": 0.99,
+    "unitPrice": 1.237,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/pain-gris-1725.html"
+   },
    "colruyt": {
     "price": 0.99,
     "article": "EVERYDAY pain gris coupé 800g",
@@ -345,18 +451,27 @@
     "pack": 1.85,
     "unitPrice": 2.313,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Boulangerie-et-patisserie/Pain-frais-baguettes-et-petits-pains/Pain-frais/Pain-gris/Pain-de-campagne-Gris-Pre-emballe/p/S2026021000934160000"
-   },
-   "aldi": {
-    "price": 0.99,
-    "article": "DÉLIPAIN Pain gris 800 g",
-    "pack": 0.99,
-    "unitPrice": 1.237,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/pain-gris-1725.html"
+    "url": "https://www.delhaize.be/fr/shop/Boulangerie-et-patisserie/Pain-frais-baguettes-et-petits-pains/Pain-frais/Pain-gris/Pain-de-campagne-Gris-Pre-emballe/p/S2026021000934160000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1027,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "baguette": {
+   "aldi": {
+    "price": 0.99,
+    "article": "Baguette bûcheron 400 g",
+    "pack": 1.59,
+    "unitPrice": 3.975,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/baguette-bucheron-3007203.html"
+   },
    "colruyt": {
     "price": 0.46,
     "article": "EVERYDAY 1/2 baguette blanc 4x150g",
@@ -371,14 +486,6 @@
     "unitPrice": 1.833,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Boulangerie-et-patisserie/Pains-preemballes/A-cuire/Pain-blanc/Baguette-Blanc-2-pieces/p/F2024071100140830000"
-   },
-   "aldi": {
-    "price": 0.99,
-    "article": "Baguette bûcheron 400 g",
-    "pack": 1.59,
-    "unitPrice": 3.975,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/baguette-bucheron-3007203.html"
    }
   },
   "cereales": {
@@ -399,31 +506,6 @@
    }
   },
   "lait": {
-   "colruyt": {
-    "price": 0.79,
-    "article": "Boni Selection lait demi-écrémé PET 1L",
-    "pack": 0.79,
-    "unitPrice": 0.79,
-    "unit": "l",
-    "url": "https://www.colruyt.be/nl/producten/1610",
-    "promo": "one_plus_one",
-    "until": "2026-10-20",
-    "regular": {
-     "price": 0.85,
-     "article": "EVERYDAY lait demi-écrémé brique 1L",
-     "pack": 0.85,
-     "unitPrice": 0.849,
-     "unit": "l"
-    }
-   },
-   "delhaize": {
-    "price": 1.05,
-    "article": "LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l",
-    "pack": 6.29,
-    "unitPrice": 1.048,
-    "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Lait/Demi-ecreme/Lait-Demi-ecreme/p/S2018032200041330099"
-   },
    "aldi": {
     "price": 0.85,
     "article": "MILSANI Lait demi-écrémé 1 l",
@@ -431,9 +513,41 @@
     "unitPrice": 0.85,
     "unit": "l",
     "url": "https://www.aldi.be/fr/produits/lait-demi-ecreme-0602.html"
+   },
+   "colruyt": {
+    "price": 0.85,
+    "article": "EVERYDAY lait demi-écrémé brique 1L",
+    "pack": 0.85,
+    "unitPrice": 0.849,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 1.05,
+    "article": "LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l",
+    "pack": 6.29,
+    "unitPrice": 1.048,
+    "unit": "l",
+    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Lait/Demi-ecreme/Lait-Demi-ecreme/p/S2018032200041330099",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1002,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "oeufs": {
+   "aldi": {
+    "price": 2.39,
+    "article": "MAMIE POULE Œufs de poules élevées au sol 18 pcs",
+    "pack": 3.59,
+    "unitPrice": 0.199,
+    "unit": "pc",
+    "url": "https://www.aldi.be/fr/produits/oeufs-de-poules-elevees-au-sol-3011902.html"
+   },
    "colruyt": {
     "price": 3.99,
     "article": "BONI œufs plein air 12st",
@@ -447,18 +561,27 @@
     "pack": 3.49,
     "unitPrice": 0.349,
     "unit": "pc",
-    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Oeufs/Oeufs-frais/oeufs-au-sol-Mix-calibre-10pc/p/F2022083100106340000"
-   },
-   "aldi": {
-    "price": 2.39,
-    "article": "MAMIE POULE Œufs de poules élevées au sol 18 pcs",
-    "pack": 3.59,
-    "unitPrice": 0.199,
-    "unit": "pc",
-    "url": "https://www.aldi.be/fr/produits/oeufs-de-poules-elevees-au-sol-3011902.html"
+    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Oeufs/Oeufs-frais/oeufs-au-sol-Mix-calibre-10pc/p/F2022083100106340000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1003,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "beurre": {
+   "aldi": {
+    "price": 1.89,
+    "article": "MILSANI Beurre de laiterie 250 g",
+    "pack": 1.89,
+    "unitPrice": 7.56,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/beurre-de-laiterie-6599.html"
+   },
    "colruyt": {
     "price": 2.69,
     "article": "BONI beurre HV non salé 250g",
@@ -473,17 +596,17 @@
     "unitPrice": 7.56,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Beurres-et-margarines/Beurre-doux/Beurre-de-laiterie/p/F2022122100113870000"
-   },
-   "aldi": {
-    "price": 1.89,
-    "article": "MILSANI Beurre de laiterie 250 g",
-    "pack": 1.89,
-    "unitPrice": 7.56,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/beurre-de-laiterie-6599.html"
    }
   },
   "yaourts": {
+   "aldi": {
+    "price": 1.19,
+    "article": "MILSANI Yaourt maigre 8 x 125 g",
+    "pack": 1.19,
+    "unitPrice": 1.19,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/yaourt-maigre-2112.html"
+   },
    "colruyt": {
     "price": 1.19,
     "article": "EVERYDAY yaourt maigre 8x125g",
@@ -497,15 +620,16 @@
     "pack": 1.19,
     "unitPrice": 1.19,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Yaourts-et-alternatives-vegetales/Nature/Yaourt-nature/Yaourt-Maigre-Nature/p/F2009122200103900000"
-   },
-   "aldi": {
-    "price": 1.19,
-    "article": "MILSANI Yaourt maigre 8 x 125 g",
-    "pack": 1.19,
-    "unitPrice": 1.19,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/yaourt-maigre-2112.html"
+    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Yaourts-et-alternatives-vegetales/Nature/Yaourt-nature/Yaourt-Maigre-Nature/p/F2009122200103900000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1008,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "gouda": {
@@ -526,6 +650,14 @@
    }
   },
   "emmental": {
+   "aldi": {
+    "price": 1.67,
+    "article": "MILSANI Emmental râpé 250 g",
+    "pack": 2.09,
+    "unitPrice": 8.36,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/emmental-rape-3001383.html"
+   },
    "colruyt": {
     "price": 1.59,
     "article": "EVERYDAY emmental râpé 500g",
@@ -540,17 +672,17 @@
     "unitPrice": 8.2,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Fromages/Fromage-rape/Emmental/Emmental-Rape/p/F2020060900060200000"
-   },
-   "aldi": {
-    "price": 1.67,
-    "article": "MILSANI Emmental râpé 250 g",
-    "pack": 2.09,
-    "unitPrice": 8.36,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/emmental-rape-3001383.html"
    }
   },
   "mozzarella": {
+   "aldi": {
+    "price": 0.69,
+    "article": "CUCINA Mozzarella 125 g",
+    "pack": 0.69,
+    "unitPrice": 5.52,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/mozzarella-6586.html"
+   },
    "colruyt": {
     "price": 0.69,
     "article": "EVERYDAY mozzarella 125g",
@@ -565,17 +697,17 @@
     "unitPrice": 5.52,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Fromages/Ricotta-mascarpone-feta-et-mozzarella/Feta-et-mozzarella/Mozzarella-Boule/p/F2007062700176300000"
-   },
-   "aldi": {
-    "price": 0.69,
-    "article": "CUCINA Mozzarella 125 g",
-    "pack": 0.69,
-    "unitPrice": 5.52,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/mozzarella-6586.html"
    }
   },
   "creme": {
+   "aldi": {
+    "price": 0.79,
+    "article": "MILSANI Crème fraîche 200 ml",
+    "pack": 0.79,
+    "unitPrice": 3.95,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/creme-fraiche-0619.html"
+   },
    "colruyt": {
     "price": 1.09,
     "article": "BONI crème aigre 15% vet 20cl",
@@ -590,17 +722,17 @@
     "unitPrice": 5.4,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Cremes-et-alternatives/Creme-fraiche/Creme-fraiche/p/F2004052400131000000"
-   },
-   "aldi": {
-    "price": 0.79,
-    "article": "MILSANI Crème fraîche 200 ml",
-    "pack": 0.79,
-    "unitPrice": 3.95,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/creme-fraiche-0619.html"
    }
   },
   "skyr": {
+   "aldi": {
+    "price": 1.39,
+    "article": "MILSANI Skyr nature 500 g",
+    "pack": 1.39,
+    "unitPrice": 2.78,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/skyr-nature-2128.html"
+   },
    "colruyt": {
     "price": 1.39,
     "article": "BONI Skyr nature 500g",
@@ -614,25 +746,19 @@
     "pack": 2.79,
     "unitPrice": 2.79,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Yaourts-et-alternatives-vegetales/Skyr-kefir-et-yaourt-turc/Skyr-Nature-High-Protein-0-FP/p/F2026041000259450000"
-   },
-   "aldi": {
-    "price": 1.39,
-    "article": "MILSANI Skyr nature 500 g",
-    "pack": 1.39,
-    "unitPrice": 2.78,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/skyr-nature-2128.html"
+    "url": "https://www.delhaize.be/fr/shop/Cremerie-fromage-et-alternatives-vegetales/Yaourts-et-alternatives-vegetales/Skyr-kefir-et-yaourt-turc/Skyr-Nature-High-Protein-0-FP/p/F2026041000259450000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1004,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "poulet": {
-   "colruyt": {
-    "price": 7.75,
-    "article": "Filet de poulet 1kg",
-    "pack": 7.75,
-    "unitPrice": 7.75,
-    "unit": "kg"
-   },
    "aldi": {
     "price": 6.24,
     "article": "Kippenborstfilet 2 x 600 g",
@@ -650,6 +776,22 @@
     "promo": "percentage",
     "until": "2026-10-18",
     "promoOnly": true
+   },
+   "colruyt": {
+    "price": 7.75,
+    "article": "Filet de poulet 1kg",
+    "pack": 7.75,
+    "unitPrice": 7.75,
+    "unit": "kg",
+    "deal": {
+     "k": "f",
+     "q": 2,
+     "d": 0.1948,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "6,24 € pièce dès 2"
+    }
    }
   },
   "hache": {
@@ -662,12 +804,28 @@
    }
   },
   "jambon": {
+   "aldi": {
+    "price": 3.45,
+    "article": "Jambon à l'os 150 g",
+    "pack": 2.59,
+    "unitPrice": 17.267,
+    "unit": "kg"
+   },
    "colruyt": {
     "price": 3.12,
     "article": "BONI jambon à l'os sans gluten 150g",
     "pack": 2.34,
     "unitPrice": 15.6,
-    "unit": "kg"
+    "unit": "kg",
+    "deal": {
+     "k": "f",
+     "q": 2,
+     "d": 0.2991,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "1,64 € pièce dès 2"
+    }
    },
    "delhaize": {
     "price": 2.71,
@@ -676,16 +834,17 @@
     "unitPrice": 13.548,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Viandes-poissons-et-produits-vegetariens/Charcuterie/Jambons-cuits/Jambon-classique/Jambon-cuit-Degraisse-MP/p/F2021011800074880000"
-   },
-   "aldi": {
-    "price": 3.45,
-    "article": "Jambon à l'os 150 g",
-    "pack": 2.59,
-    "unitPrice": 17.267,
-    "unit": "kg"
    }
   },
   "saumon": {
+   "aldi": {
+    "price": 5.3,
+    "article": "GOLDEN SEAFOOD Filet de saumon frais avec peau, 3 pcs 3 x 125 g",
+    "pack": 7.95,
+    "unitPrice": 21.2,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/filet-de-saumon-frais-avec-peau-3-pcs-3006617.html"
+   },
    "colruyt": {
     "price": 5.99,
     "article": "BONI filet de saumon Atl. Graatls 2x125g",
@@ -699,18 +858,27 @@
     "pack": 5.51,
     "unitPrice": 21.192,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Viandes-poissons-et-produits-vegetariens/Poissonnerie/Poissons-frais/Saumon/Filet-de-saumon-Avec-peau/p/F1996110400213800000"
-   },
-   "aldi": {
-    "price": 5.3,
-    "article": "GOLDEN SEAFOOD Filet de saumon frais avec peau, 3 pcs 3 x 125 g",
-    "pack": 7.95,
-    "unitPrice": 21.2,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/filet-de-saumon-frais-avec-peau-3-pcs-3006617.html"
+    "url": "https://www.delhaize.be/fr/shop/Viandes-poissons-et-produits-vegetariens/Poissonnerie/Poissons-frais/Saumon/Filet-de-saumon-Avec-peau/p/F1996110400213800000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.0998,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "thon": {
+   "aldi": {
+    "price": 1.93,
+    "article": "GOLDEN SEAFOOD Thon à l'huile 185 g",
+    "pack": 1.49,
+    "unitPrice": 8.054,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/thon-a-lhuile-3007722.html"
+   },
    "colruyt": {
     "price": 1.79,
     "article": "EVERYDAY thon zonnebloemolie MSC 200g",
@@ -724,18 +892,26 @@
     "pack": 4.49,
     "unitPrice": 7.483,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Conserves/Poissons-en-conserve/Thon-en-conserve/Thon-Huile-de-tournesol/p/S2024081900785930099"
-   },
-   "aldi": {
-    "price": 1.93,
-    "article": "GOLDEN SEAFOOD Thon à l'huile 185 g",
-    "pack": 1.49,
-    "unitPrice": 8.054,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/thon-a-lhuile-3007722.html"
+    "url": "https://www.delhaize.be/fr/shop/Conserves/Poissons-en-conserve/Thon-en-conserve/Thon-Huile-de-tournesol/p/S2024081900785930099",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1002,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "pates": {
+   "aldi": {
+    "price": 0.9,
+    "article": "Spaghetti 500 g",
+    "pack": 0.45,
+    "unitPrice": 0.9,
+    "unit": "kg"
+   },
    "colruyt": {
     "price": 0.9,
     "article": "EVERYDAY spaghetti 500g",
@@ -749,17 +925,27 @@
     "pack": 0.45,
     "unitPrice": 0.9,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Pates/Pates-blanches/Pates-Spaghetti/p/S2023112700732170000"
-   },
-   "aldi": {
-    "price": 0.9,
-    "article": "Spaghetti 500 g",
-    "pack": 0.45,
-    "unitPrice": 0.9,
-    "unit": "kg"
+    "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Pates/Pates-blanches/Pates-Spaghetti/p/S2023112700732170000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1111,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "11 % carte Plus"
+    }
    }
   },
   "riz": {
+   "aldi": {
+    "price": 1.79,
+    "article": "BON-RI Riz basmati 1 kg",
+    "pack": 1.79,
+    "unitPrice": 1.79,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/riz-basmati-3011332.html"
+   },
    "colruyt": {
     "price": 1.79,
     "article": "BONI riz basmati 2kg",
@@ -773,18 +959,27 @@
     "pack": 1.84,
     "unitPrice": 1.84,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Riz/Riz-basmati/Riz-Basmati/p/S2018100200120350000"
-   },
-   "aldi": {
-    "price": 1.79,
-    "article": "BON-RI Riz basmati 1 kg",
-    "pack": 1.79,
-    "unitPrice": 1.79,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/riz-basmati-3011332.html"
+    "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Pates-riz-et-autres-feculents/Riz/Riz-basmati/Riz-Basmati/p/S2018100200120350000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.0978,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "farine": {
+   "aldi": {
+    "price": 0.35,
+    "article": "ALBONA Farine de blé 1 kg",
+    "pack": 0.35,
+    "unitPrice": 0.35,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/farine-de-ble-0528.html"
+   },
    "colruyt": {
     "price": 0.35,
     "article": "EVERYDAY farine froment 1kg",
@@ -798,25 +993,19 @@
     "pack": 0.35,
     "unitPrice": 0.35,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Epicerie-sucree/Preparations-desserts/Farines/Farine-De-ble-/p/S2023020100678500000"
-   },
-   "aldi": {
-    "price": 0.35,
-    "article": "ALBONA Farine de blé 1 kg",
-    "pack": 0.35,
-    "unitPrice": 0.35,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/farine-de-ble-0528.html"
+    "url": "https://www.delhaize.be/fr/shop/Epicerie-sucree/Preparations-desserts/Farines/Farine-De-ble-/p/S2023020100678500000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.0857,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "9 % carte Plus"
+    }
    }
   },
   "sucre": {
-   "colruyt": {
-    "price": 0.69,
-    "article": "EVERYDAY sucre cristallisé fin 1kg",
-    "pack": 0.69,
-    "unitPrice": 0.69,
-    "unit": "kg"
-   },
    "aldi": {
     "price": 0.69,
     "article": "MOUNTAIN Sucre cristallisé 1 kg",
@@ -824,9 +1013,24 @@
     "unitPrice": 0.69,
     "unit": "kg",
     "url": "https://www.aldi.be/fr/produits/sucre-cristallise-0506.html"
+   },
+   "colruyt": {
+    "price": 0.69,
+    "article": "EVERYDAY sucre cristallisé fin 1kg",
+    "pack": 0.69,
+    "unitPrice": 0.69,
+    "unit": "kg"
    }
   },
   "huile": {
+   "aldi": {
+    "price": 5.99,
+    "article": "BELLASAN Huile d'olive culinaire 1 l",
+    "pack": 5.99,
+    "unitPrice": 5.99,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/huile-dolive-culinaire-3891.html"
+   },
    "colruyt": {
     "price": 5.99,
     "article": "EVERYDAY huile d'olive bakken & braden 1L",
@@ -840,18 +1044,26 @@
     "pack": 5.99,
     "unitPrice": 5.99,
     "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Huiles-et-vinaigres/Huile-d-olive/Huile-d-Olive-Culinaire/p/S2019081300291230000"
-   },
-   "aldi": {
-    "price": 5.99,
-    "article": "BELLASAN Huile d'olive culinaire 1 l",
-    "pack": 5.99,
-    "unitPrice": 5.99,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/huile-dolive-culinaire-3891.html"
+    "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Huiles-et-vinaigres/Huile-d-olive/Huile-d-Olive-Culinaire/p/S2019081300291230000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1002,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "tomates-conc": {
+   "aldi": {
+    "price": 0.83,
+    "article": "Passata 1 kg",
+    "pack": 1.18,
+    "unitPrice": 1.18,
+    "unit": "kg"
+   },
    "colruyt": {
     "price": 0.83,
     "article": "EVERYDAY passata gezeefde tom. brique 500g",
@@ -865,17 +1077,27 @@
     "pack": 1.49,
     "unitPrice": 2.129,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Conserves/Legumes-en-conserve/Tomates-en-conserve/Pulpe-et-passata-de-tomates-en-conserve/Passata/p/S2025080800886990000"
-   },
-   "aldi": {
-    "price": 0.83,
-    "article": "Passata 1 kg",
-    "pack": 1.18,
-    "unitPrice": 1.18,
-    "unit": "kg"
+    "url": "https://www.delhaize.be/fr/shop/Conserves/Legumes-en-conserve/Tomates-en-conserve/Pulpe-et-passata-de-tomates-en-conserve/Passata/p/S2025080800886990000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1007,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "cafe": {
+   "aldi": {
+    "price": 3.89,
+    "article": "Café moulu dessert 500 g",
+    "pack": 3.89,
+    "unitPrice": 7.78,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/cafe-moulu-dessert-3008517.html"
+   },
    "colruyt": {
     "price": 2.49,
     "article": "EVERYDAY café moulu Moka RFA 500g",
@@ -890,14 +1112,6 @@
     "unitPrice": 7.7,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Cafe/Moulus/Cafe-Tradition-Moulu/p/S2022062200633260000"
-   },
-   "aldi": {
-    "price": 3.89,
-    "article": "Café moulu dessert 500 g",
-    "pack": 3.89,
-    "unitPrice": 7.78,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/cafe-moulu-dessert-3008517.html"
    }
   },
   "the": {
@@ -910,6 +1124,14 @@
    }
   },
   "confiture": {
+   "aldi": {
+    "price": 0.87,
+    "article": "GRANDESSA Confiture aux fraises 700 g",
+    "pack": 1.35,
+    "unitPrice": 1.929,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/confiture-aux-fraises-3010563.html"
+   },
    "colruyt": {
     "price": 0.86,
     "article": "EVERYDAY confiture fraise 50% 700g",
@@ -924,33 +1146,23 @@
     "unitPrice": 2.422,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Epicerie-sucree/Petit-dejeuner/Tartinables/Confitures/Confiture-fraises/p/S2022072200641370000"
-   },
-   "aldi": {
-    "price": 0.87,
-    "article": "GRANDESSA Confiture aux fraises 700 g",
-    "pack": 1.35,
-    "unitPrice": 1.929,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/confiture-aux-fraises-3010563.html"
    }
   },
   "chocolat": {
-   "colruyt": {
-    "price": 1.13,
-    "article": "Delacre Délichoc chocolat noir 150g",
-    "pack": 0.85,
-    "unitPrice": 5.667,
+   "aldi": {
+    "price": 1.65,
+    "article": "CHOCEUR Chocolat fondant 2 x 200 g",
+    "pack": 3.29,
+    "unitPrice": 8.225,
     "unit": "kg",
-    "url": "https://www.colruyt.be/nl/producten/13203",
-    "promo": "percentage",
-    "until": "2026-10-20",
-    "regular": {
-     "price": 1.32,
-     "article": "BONI Choconimo chocolat noir 225g",
-     "pack": 1.49,
-     "unitPrice": 6.622,
-     "unit": "kg"
-    }
+    "url": "https://www.aldi.be/fr/produits/chocolat-fondant-3958.html"
+   },
+   "colruyt": {
+    "price": 1.32,
+    "article": "BONI Choconimo chocolat noir 225g",
+    "pack": 1.49,
+    "unitPrice": 6.622,
+    "unit": "kg"
    },
    "delhaize": {
     "price": 1.65,
@@ -959,17 +1171,17 @@
     "unitPrice": 8.25,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Epicerie-sucree/Chocolats/Tablettes-de-chocolat/Chocolat-noir/Chocolat-Noir/p/S2023080400718030000"
-   },
-   "aldi": {
-    "price": 1.65,
-    "article": "CHOCEUR Chocolat fondant 2 x 200 g",
-    "pack": 3.29,
-    "unitPrice": 8.225,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/chocolat-fondant-3958.html"
    }
   },
   "pois-chiches": {
+   "aldi": {
+    "price": 1.19,
+    "article": "TAGINE Pois chiches cuits 400 g",
+    "pack": 1.19,
+    "unitPrice": 2.975,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/pois-chiches-cuits-3001049.html"
+   },
    "colruyt": {
     "price": 0.85,
     "article": "BONI PLAN'T pois chiches 200g",
@@ -984,17 +1196,17 @@
     "unitPrice": 2.965,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Cuisine-du-monde/Mediteranneen/Espagne/Pois-chiches-Cuit/p/S2020040800418810000"
-   },
-   "aldi": {
-    "price": 1.19,
-    "article": "TAGINE Pois chiches cuits 400 g",
-    "pack": 1.19,
-    "unitPrice": 2.975,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/pois-chiches-cuits-3001049.html"
    }
   },
   "mayonnaise": {
+   "aldi": {
+    "price": 1.15,
+    "article": "REGALO Mayonnaise aux œufs 500 ml",
+    "pack": 1.15,
+    "unitPrice": 2.3,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/mayonnaise-aux-oeufs-0830.html"
+   },
    "colruyt": {
     "price": 1.15,
     "article": "EVERYDAY mayonnaise avec œufs 500ml",
@@ -1009,17 +1221,17 @@
     "unitPrice": 3.633,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Epicerie-salee/Sauces/Mayonnaise/Mayonnaise-oeufs/p/S2024013000748660000"
-   },
-   "aldi": {
-    "price": 1.15,
-    "article": "REGALO Mayonnaise aux œufs 500 ml",
-    "pack": 1.15,
-    "unitPrice": 2.3,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/mayonnaise-aux-oeufs-0830.html"
    }
   },
   "nutella": {
+   "aldi": {
+    "price": 3.74,
+    "article": "NUTELLA Pâte à tartiner aux noisettes 1 kg",
+    "pack": 4.99,
+    "unitPrice": 4.99,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/pate-a-tartiner-aux-noisettes-3007819.html"
+   },
    "colruyt": {
     "price": 3.66,
     "article": "NUTELLA pâte à tartiner choco 1kg",
@@ -1034,17 +1246,17 @@
     "unitPrice": 5.15,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Epicerie-sucree/Petit-dejeuner/Tartinables/Pates-a-tartiner/Pate-a-tartiner-Choco-noisettes/p/S2023112400731840000"
-   },
-   "aldi": {
-    "price": 3.74,
-    "article": "NUTELLA Pâte à tartiner aux noisettes 1 kg",
-    "pack": 4.99,
-    "unitPrice": 4.99,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/pate-a-tartiner-aux-noisettes-3007819.html"
    }
   },
   "legumes-surg": {
+   "aldi": {
+    "price": 1.09,
+    "article": "ALL SEASONS Épinards en branches 1 kg",
+    "pack": 1.09,
+    "unitPrice": 1.09,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/epinards-en-branches-3002378.html"
+   },
    "colruyt": {
     "price": 1.09,
     "article": "BONI épinards en branches en porties 1,5kg",
@@ -1059,17 +1271,17 @@
     "unitPrice": 1.22,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Surgeles/Legumes-soupes-et-epices-surgeles/Legumes-nature-surgeles/Epinards-surgeles/Epinards-Feuilles-Portions/p/S2024041600763410000"
-   },
-   "aldi": {
-    "price": 1.09,
-    "article": "ALL SEASONS Épinards en branches 1 kg",
-    "pack": 1.09,
-    "unitPrice": 1.09,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/epinards-en-branches-3002378.html"
    }
   },
   "frites": {
+   "aldi": {
+    "price": 1,
+    "article": "PRIMO FRIES Frites 2.5 kg",
+    "pack": 2.49,
+    "unitPrice": 0.996,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/frites-6004.html"
+   },
    "colruyt": {
     "price": 1,
     "article": "EVERYDAY frites 2,5kg",
@@ -1083,18 +1295,27 @@
     "pack": 1.22,
     "unitPrice": 1.22,
     "unit": "kg",
-    "url": "https://www.delhaize.be/fr/shop/Surgeles/Frites-et-produits-a-base-de-pomme-de-terre/Frites-surgelees/Pommes-frites/p/S2024080600784230000"
-   },
-   "aldi": {
-    "price": 1,
-    "article": "PRIMO FRIES Frites 2.5 kg",
-    "pack": 2.49,
-    "unitPrice": 0.996,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/frites-6004.html"
+    "url": "https://www.delhaize.be/fr/shop/Surgeles/Frites-et-produits-a-base-de-pomme-de-terre/Frites-surgelees/Pommes-frites/p/S2024080600784230000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.0984,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "pizza": {
+   "aldi": {
+    "price": 1.13,
+    "article": "CASA MORANDO Pizza quatre fromages, 2 pcs 2 x 340 g",
+    "pack": 2.19,
+    "unitPrice": 3.221,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/pizza-quatre-fromages-2-pcs-3213.html"
+   },
    "colruyt": {
     "price": 1.45,
     "article": "BONI Pizza Mozzarella 2x335g",
@@ -1109,17 +1330,17 @@
     "unitPrice": 2.759,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Surgeles/Pizzas/Style-italien/Pizza-Margherita/p/S2021022600520190000"
-   },
-   "aldi": {
-    "price": 1.13,
-    "article": "CASA MORANDO Pizza quatre fromages, 2 pcs 2 x 340 g",
-    "pack": 2.19,
-    "unitPrice": 3.221,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/pizza-quatre-fromages-2-pcs-3213.html"
    }
   },
   "glace": {
+   "aldi": {
+    "price": 1.19,
+    "article": "MUCCI Crème glacée vanille premium 1 l",
+    "pack": 1.19,
+    "unitPrice": 1.19,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/creme-glacee-vanille-premium-7612.html"
+   },
    "colruyt": {
     "price": 1.19,
     "article": "BONI Vanille glace 1,5L",
@@ -1134,17 +1355,17 @@
     "unitPrice": 2.09,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Surgeles/Glaces-et-desserts/Glaces/Raviers/Creme-glace-Vanille/p/S2022031100613600000"
-   },
-   "aldi": {
-    "price": 1.19,
-    "article": "MUCCI Crème glacée vanille premium 1 l",
-    "pack": 1.19,
-    "unitPrice": 1.19,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/creme-glacee-vanille-premium-7612.html"
    }
   },
   "eau": {
+   "aldi": {
+    "price": 2.69,
+    "article": "ROCHEVAL Eau minérale naturelle, 12 pcs 12 x 50 cl",
+    "pack": 1.79,
+    "unitPrice": 0.298,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/eau-minerale-naturelle-12-pcs-3001964.html"
+   },
    "colruyt": {
     "price": 1.71,
     "article": "EVERYDAY eau plate 2L",
@@ -1158,18 +1379,27 @@
     "pack": 8.55,
     "unitPrice": 0.855,
     "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Eaux/Eau-plate/Eau-minerale-naturelle-Plate-10-L/p/S2023121400736720000"
-   },
-   "aldi": {
-    "price": 2.69,
-    "article": "ROCHEVAL Eau minérale naturelle, 12 pcs 12 x 50 cl",
-    "pack": 1.79,
-    "unitPrice": 0.298,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/eau-minerale-naturelle-12-pcs-3001964.html"
+    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Eaux/Eau-plate/Eau-minerale-naturelle-Plate-10-L/p/S2023121400736720000",
+    "deal": {
+     "k": "g",
+     "q": 1,
+     "d": 0.1006,
+     "m": 1,
+     "r": 0,
+     "end": null,
+     "txt": "10 % carte Plus"
+    }
    }
   },
   "eau-gaz": {
+   "aldi": {
+    "price": 1.92,
+    "article": "ROCHEVAL Eau pétillante 1.5 l",
+    "pack": 0.32,
+    "unitPrice": 0.213,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/eau-petillante-0349.html"
+   },
    "colruyt": {
     "price": 1.92,
     "article": "EVERYDAY eau pétillante 1,5L",
@@ -1183,33 +1413,19 @@
     "pack": 6.29,
     "unitPrice": 0.699,
     "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Eaux/Eau-petillante/Eau-Minerale-Petillante-Intense/p/S1997042300194200000"
-   },
-   "aldi": {
-    "price": 1.92,
-    "article": "ROCHEVAL Eau pétillante 1.5 l",
-    "pack": 0.32,
-    "unitPrice": 0.213,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/eau-petillante-0349.html"
+    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Eaux/Eau-petillante/Eau-Minerale-Petillante-Intense/p/S1997042300194200000",
+    "deal": {
+     "k": "g",
+     "q": 2,
+     "d": 0.2,
+     "m": 1,
+     "r": 0,
+     "end": "2026-10-21",
+     "txt": "2ème à -40%"
+    }
    }
   },
   "jus": {
-   "colruyt": {
-    "price": 1.23,
-    "article": "EVERYDAY jus d'orange brique 1L",
-    "pack": 1.23,
-    "unitPrice": 1.23,
-    "unit": "l"
-   },
-   "delhaize": {
-    "price": 1.3,
-    "article": "DELHAIZE Jus d'orange 10 x 20 cl",
-    "pack": 2.59,
-    "unitPrice": 1.295,
-    "unit": "l",
-    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Jus-de-fruits/Oranges/Jus-d-orange/p/S2025121800914300000"
-   },
    "aldi": {
     "price": 1.23,
     "article": "RIO D'ORO Jus d'orange 1.5 l",
@@ -1228,34 +1444,24 @@
     "promo": "promo",
     "until": "2026-10-13",
     "promoOnly": true
-   }
-  },
-  "coca": {
+   },
    "colruyt": {
-    "price": 2.96,
-    "article": "COCA-COLA Regular Original Taste 2L",
-    "pack": 2.99,
-    "unitPrice": 1.495,
+    "price": 1.23,
+    "article": "EVERYDAY jus d'orange brique 1L",
+    "pack": 1.23,
+    "unitPrice": 1.23,
     "unit": "l"
    },
    "delhaize": {
-    "price": 4.32,
-    "article": "Coca-Cola Original taste | en boîte 15 x 33 cl",
-    "pack": 10.79,
-    "unitPrice": 2.18,
+    "price": 1.3,
+    "article": "DELHAIZE Jus d'orange 10 x 20 cl",
+    "pack": 2.59,
+    "unitPrice": 1.295,
     "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Koude-en-warme-dranken/Frisdrank/Cola/Klassieke-cola/Original-taste-Blik/p/S2021020300504360000",
-    "promo": "one_plus_one",
-    "until": "2026-10-21",
-    "regular": {
-     "price": 5.08,
-     "article": "COCA-COLA Original taste, canette 15 x 33 cl",
-     "pack": 12.69,
-     "unitPrice": 2.564,
-     "unit": "l",
-     "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Sodas/Colas/Cola-classique/Original-taste-Canette/p/S2021020300504360000"
-    }
-   },
+    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Jus-de-fruits/Oranges/Jus-d-orange/p/S2025121800914300000"
+   }
+  },
+  "coca": {
    "aldi": {
     "price": 2.96,
     "article": "COCA-COLA Coca-Cola regular 2 l",
@@ -1274,46 +1480,33 @@
     "promo": "promo",
     "until": "2026-10-18",
     "promoOnly": true
+   },
+   "colruyt": {
+    "price": 2.96,
+    "article": "COCA-COLA Regular Original Taste 2L",
+    "pack": 2.99,
+    "unitPrice": 1.495,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 5.08,
+    "article": "COCA-COLA Original taste, canette 15 x 33 cl",
+    "pack": 12.69,
+    "unitPrice": 2.564,
+    "unit": "l",
+    "url": "https://www.delhaize.be/fr/shop/Boissons-froides-et-chaudes/Sodas/Colas/Cola-classique/Original-taste-Canette/p/S2021020300504360000",
+    "deal": {
+     "k": "g",
+     "q": 2,
+     "d": 0.15,
+     "m": 1,
+     "r": 1,
+     "end": "2026-10-21",
+     "txt": "2ème à -30%"
+    }
    }
   },
   "biere": {
-   "colruyt": {
-    "price": 10.79,
-    "article": "Jupiler pils 5,2% casier 24x33cl",
-    "pack": 14.24,
-    "unitPrice": 1.798,
-    "unit": "l",
-    "url": "https://www.colruyt.be/nl/producten/5037",
-    "promo": "percentage",
-    "until": "2026-10-20",
-    "regular": {
-     "price": 14.39,
-     "article": "JUPILER pils 5,2% casier 24x33cl",
-     "pack": 18.99,
-     "unitPrice": 2.398,
-     "unit": "l",
-     "promo": true,
-     "until": null
-    }
-   },
-   "delhaize": {
-    "price": 11.75,
-    "article": "Jupiler Blond bière | pils | 5,2% alc. | Jumbo | casier 24 x 33 cl",
-    "pack": 15.51,
-    "unitPrice": 1.958,
-    "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Bieren-Alcohol-and-Alcoholvrij/Bieren/Pils-and-Tafelbieren/Blond-Bier-Pils-5-2-alc-Jumbo-Bak/p/S2002070900195850000",
-    "promo": "one_plus_one",
-    "until": "2026-10-21",
-    "regular": {
-     "price": 14.69,
-     "article": "JUPILER Bière Blonde, pils, 5,2% alc., jumbo, caisse 24 x 33 cl",
-     "pack": 19.39,
-     "unitPrice": 2.448,
-     "unit": "l",
-     "url": "https://www.delhaize.be/fr/shop/Bieres-Alcools-and-Non-Alcoolises/Bieres/Pils-and-Bieres-de-Table/Biere-Blonde-Pils-5-2-alc-Jumbo-Caisse/p/S2002070900195850000"
-    }
-   },
    "aldi": {
     "price": 16.18,
     "article": "JUPILER Pils, 8 pcs 8 x 50 cl",
@@ -1321,24 +1514,57 @@
     "unitPrice": 2.698,
     "unit": "l",
     "url": "https://www.aldi.be/fr/produits/pils-8-pcs-3000642.html"
+   },
+   "colruyt": {
+    "price": 14.39,
+    "article": "JUPILER pils 5,2% casier 24x33cl",
+    "pack": 18.99,
+    "unitPrice": 2.398,
+    "unit": "l",
+    "promo": true,
+    "until": null
+   },
+   "delhaize": {
+    "price": 14.69,
+    "article": "JUPILER Bière Blonde, pils, 5,2% alc., jumbo, caisse 24 x 33 cl",
+    "pack": 19.39,
+    "unitPrice": 2.448,
+    "unit": "l",
+    "url": "https://www.delhaize.be/fr/shop/Bieres-Alcools-and-Non-Alcoolises/Bieres/Pils-and-Bieres-de-Table/Biere-Blonde-Pils-5-2-alc-Jumbo-Caisse/p/S2002070900195850000",
+    "deal": {
+     "k": "g",
+     "q": 2,
+     "d": 0.2,
+     "m": 1,
+     "r": 1,
+     "end": "2026-10-21",
+     "txt": "2ème à -40%"
+    }
    }
   },
   "pq": {
-   "colruyt": {
-    "price": 3.7,
-    "article": "Scottex papier toilette decor 2l 140v 24r",
-    "pack": 7.4,
-    "unitPrice": 0.308,
+   "aldi": {
+    "price": 4.29,
+    "article": "SUBLIMO Papier toilette confort, 12 pcs le paquet",
+    "pack": 4.29,
+    "unitPrice": 0.358,
     "unit": "pc",
-    "url": "https://www.colruyt.be/nl/producten/15641",
-    "promo": "percentage",
-    "until": "2026-10-20",
-    "regular": {
-     "price": 3.84,
-     "article": "EVERYDAY papier toilette sterk 3l 180v 12r",
-     "pack": 3.84,
-     "unitPrice": 0.32,
-     "unit": "pc"
+    "url": "https://www.aldi.be/fr/produits/papier-toilette-confort-12-pcs-2778.html"
+   },
+   "colruyt": {
+    "price": 3.84,
+    "article": "EVERYDAY papier toilette sterk 3l 180v 12r",
+    "pack": 3.84,
+    "unitPrice": 0.32,
+    "unit": "pc",
+    "deal": {
+     "k": "f",
+     "q": 2,
+     "d": 0.0651,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "3,59 € pièce dès 2"
     }
    },
    "delhaize": {
@@ -1348,32 +1574,9 @@
     "unitPrice": 0.399,
     "unit": "pc",
     "url": "https://www.delhaize.be/fr/shop/Bio-Eco-et-Fairtrade/Eco/Entretien-et-menage/Toilettes/Papier-toilette-Soft-Eco-Family-Pack/p/S2016042003646030000"
-   },
-   "aldi": {
-    "price": 4.29,
-    "article": "SUBLIMO Papier toilette confort, 12 pcs le paquet",
-    "pack": 4.29,
-    "unitPrice": 0.358,
-    "unit": "pc",
-    "url": "https://www.aldi.be/fr/produits/papier-toilette-confort-12-pcs-2778.html"
    }
   },
   "essuie-tout": {
-   "colruyt": {
-    "price": 2.72,
-    "article": "BONI essuie-tout classic 3l 64v 6r",
-    "pack": 4.08,
-    "unitPrice": 0.68,
-    "unit": "pc"
-   },
-   "delhaize": {
-    "price": 2.85,
-    "article": "DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc",
-    "pack": 2.85,
-    "unitPrice": 0.713,
-    "unit": "pc",
-    "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Essuie-tout/Essuie-tout-4x64-Feuillles-3plis-Eco/p/S2023021000680470000"
-   },
    "lidl": {
     "price": 2.25,
     "article": "FLORALYS essuie-tout 3-lagig XXL 8 pièces",
@@ -1384,9 +1587,41 @@
     "promo": "promo",
     "until": "2026-10-18",
     "promoOnly": true
+   },
+   "colruyt": {
+    "price": 2.72,
+    "article": "BONI essuie-tout classic 3l 64v 6r",
+    "pack": 4.08,
+    "unitPrice": 0.68,
+    "unit": "pc",
+    "deal": {
+     "k": "f",
+     "q": 2,
+     "d": 0.1765,
+     "m": 0,
+     "r": 0,
+     "end": null,
+     "txt": "3,36 € pièce dès 2"
+    }
+   },
+   "delhaize": {
+    "price": 2.85,
+    "article": "DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc",
+    "pack": 2.85,
+    "unitPrice": 0.713,
+    "unit": "pc",
+    "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Essuie-tout/Essuie-tout-4x64-Feuillles-3plis-Eco/p/S2023021000680470000"
    }
   },
   "dentifrice": {
+   "aldi": {
+    "price": 0.35,
+    "article": "DENTITEX Dentifrice 125 ml",
+    "pack": 0.59,
+    "unitPrice": 4.72,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/dentifrice-2301.html"
+   },
    "colruyt": {
     "price": 0.35,
     "article": "BONI dentifrice coolmint 125ml",
@@ -1401,17 +1636,17 @@
     "unitPrice": 29.9,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Hygiene-dentaire-et-buccale/Dentifrices/Adultes/Dentifrice-Original-Triple-protection/p/S2012051600811730000"
-   },
-   "aldi": {
-    "price": 0.35,
-    "article": "DENTITEX Dentifrice 125 ml",
-    "pack": 0.59,
-    "unitPrice": 4.72,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/dentifrice-2301.html"
    }
   },
   "gel-douche": {
+   "aldi": {
+    "price": 0.6,
+    "article": "LACURA Gel douche familial 500 ml",
+    "pack": 1.19,
+    "unitPrice": 2.38,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/gel-douche-familial-4878.html"
+   },
    "colruyt": {
     "price": 0.6,
     "article": "EVERYDAY gel douche Marine 300ml",
@@ -1426,17 +1661,17 @@
     "unitPrice": 6.825,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-du-corps/Douche/Gel-douche-femmes/Gel-douche-Coco/p/S2025052800867230000"
-   },
-   "aldi": {
-    "price": 0.6,
-    "article": "LACURA Gel douche familial 500 ml",
-    "pack": 1.19,
-    "unitPrice": 2.38,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/gel-douche-familial-4878.html"
    }
   },
   "shampoing": {
+   "aldi": {
+    "price": 0.3,
+    "article": "LACURA Shampoing, 750 ml",
+    "pack": 0.74,
+    "unitPrice": 0.987,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/shampoing-750-ml-3012657.html"
+   },
    "colruyt": {
     "price": 0.29,
     "article": "EVERYDAY shampoo oranjebloesem 500ml",
@@ -1445,68 +1680,15 @@
     "unit": "l"
    },
    "delhaize": {
-    "price": 1.61,
-    "article": "Schauma Shampoo | Arganolie 40 cl",
-    "pack": 2.15,
-    "unitPrice": 5.375,
+    "price": 4.34,
+    "article": "NIVEA Shampoing, care Express, 2en1, 400ML 40 cl",
+    "pack": 5.79,
+    "unitPrice": 14.475,
     "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Haarverzorging/Shampoos/Vloeibare-shampoo/Shampoo-Arganolie/p/S2025121200912730000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "regular": {
-     "price": 4.34,
-     "article": "NIVEA Shampoing, care Express, 2en1, 400ML 40 cl",
-     "pack": 5.79,
-     "unitPrice": 14.475,
-     "unit": "l",
-     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-des-cheveux/Shampoings/Shampooing-liquide/Shampoing-Care-Express-2en1-400ML/p/S2021120700592730000"
-    }
-   },
-   "aldi": {
-    "price": 0.3,
-    "article": "LACURA Shampoing, 750 ml",
-    "pack": 0.74,
-    "unitPrice": 0.987,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/shampoing-750-ml-3012657.html"
+    "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-des-cheveux/Shampoings/Shampooing-liquide/Shampoing-Care-Express-2en1-400ML/p/S2021120700592730000"
    }
   },
   "deodorant": {
-   "colruyt": {
-    "price": 0.9,
-    "article": "Fa deo Pink Passion 150ml",
-    "pack": 0.9,
-    "unitPrice": 6,
-    "unit": "l",
-    "url": "https://www.colruyt.be/nl/producten/23303",
-    "promo": "percentage",
-    "until": "2026-10-20",
-    "regular": {
-     "price": 1.19,
-     "article": "BONI deo Woman fris gevoel 200ml",
-     "pack": 1.59,
-     "unitPrice": 7.95,
-     "unit": "l"
-    }
-   },
-   "delhaize": {
-    "price": 1.29,
-    "article": "Fa Deospray | Pink Passion 15 cl",
-    "pack": 1.29,
-    "unitPrice": 8.6,
-    "unit": "l",
-    "url": "https://www.delhaize.be/nl/shop/Hygiene-en-verzorging/Lichaamsverzorging/Deodorant/Deospray-vrouwen/Deospray-Pink-Passion/p/S2016020203624280000",
-    "promo": "one_plus_one",
-    "until": "2026-10-14",
-    "regular": {
-     "price": 2.59,
-     "article": "FA Deo, divine Moments 15 cl",
-     "pack": 2.59,
-     "unitPrice": 17.267,
-     "unit": "l",
-     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-du-corps/Deodorants/Deospray-femmes/Deo-Divine-Moments/p/S2017030903695240000"
-    }
-   },
    "aldi": {
     "price": 1.19,
     "article": "LACURA Déodorant 200 ml",
@@ -1514,9 +1696,41 @@
     "unitPrice": 7.95,
     "unit": "l",
     "url": "https://www.aldi.be/fr/produits/deodorant-2308.html"
+   },
+   "colruyt": {
+    "price": 1.19,
+    "article": "BONI deo Woman fris gevoel 200ml",
+    "pack": 1.59,
+    "unitPrice": 7.95,
+    "unit": "l"
+   },
+   "delhaize": {
+    "price": 2.59,
+    "article": "FA Deo, divine Moments 15 cl",
+    "pack": 2.59,
+    "unitPrice": 17.267,
+    "unit": "l",
+    "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Soins-du-corps/Deodorants/Deospray-femmes/Deo-Divine-Moments/p/S2017030903695240000",
+    "deal": {
+     "k": "g",
+     "q": 6,
+     "d": 0.5,
+     "m": 1,
+     "r": 1,
+     "end": "2026-10-14",
+     "txt": "3+3 gratis"
+    }
    }
   },
   "mouchoirs": {
+   "aldi": {
+    "price": 0.83,
+    "article": "SUBLIMO Mouchoirs, 120 pcs par boîte",
+    "pack": 0.99,
+    "unitPrice": 0.008,
+    "unit": "pc",
+    "url": "https://www.aldi.be/fr/produits/mouchoirs-120-pcs-3008248.html"
+   },
    "colruyt": {
     "price": 0.39,
     "article": "EVERYDAY mouchoirs box 2l 150st",
@@ -1531,33 +1745,33 @@
     "unitPrice": 0.004,
     "unit": "pc",
     "url": "https://www.delhaize.be/fr/shop/Hygiene-et-soins/Mouchoirs/Boites/Mouchoirs-Boite-2-plis/p/S2025121100912540000"
-   },
-   "aldi": {
-    "price": 0.83,
-    "article": "SUBLIMO Mouchoirs, 120 pcs par boîte",
-    "pack": 0.99,
-    "unitPrice": 0.008,
-    "unit": "pc",
-    "url": "https://www.aldi.be/fr/produits/mouchoirs-120-pcs-3008248.html"
    }
   },
   "lessive": {
-   "colruyt": {
-    "price": 3.19,
-    "article": "EVERYDAY lessive white 45d 2,475L",
-    "pack": 3.59,
-    "unitPrice": 0.08,
-    "unit": "dose"
-   },
    "aldi": {
     "price": 2.63,
     "article": "Lessive liquide 50 wasbeurten",
     "pack": 3.29,
     "unitPrice": 0.066,
     "unit": "dose"
+   },
+   "colruyt": {
+    "price": 3.19,
+    "article": "EVERYDAY lessive white 45d 2,475L",
+    "pack": 3.59,
+    "unitPrice": 0.08,
+    "unit": "dose"
    }
   },
   "vaisselle": {
+   "aldi": {
+    "price": 0.43,
+    "article": "POWER FORCE Liquide vaisselle, 1L 1 l",
+    "pack": 0.85,
+    "unitPrice": 0.85,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/liquide-vaisselle-1l-2527.html"
+   },
    "colruyt": {
     "price": 0.43,
     "article": "ACTAE liquide vaisselle citron 1L",
@@ -1572,35 +1786,25 @@
     "unitPrice": 1.78,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Cuisine/Liquides-vaisselle/Liquide-vaisselle-Original/p/S2026022400938830000"
-   },
-   "aldi": {
-    "price": 0.43,
-    "article": "POWER FORCE Liquide vaisselle, 1L 1 l",
-    "pack": 0.85,
-    "unitPrice": 0.85,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/liquide-vaisselle-1l-2527.html"
    }
   },
   "tablettes-lv": {
-   "colruyt": {
-    "price": 8.06,
-    "article": "Finish Quantum vaatwas tabs regular 31st",
-    "pack": 6.25,
-    "unitPrice": 0.202,
+   "aldi": {
+    "price": 2,
+    "article": "POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet",
+    "pack": 4.99,
+    "unitPrice": 0.05,
     "unit": "pc",
-    "url": "https://www.colruyt.be/nl/producten/3922",
-    "promo": "one_plus_one",
-    "until": "2026-10-20",
-    "regular": {
-     "price": 16.12,
-     "article": "FINISH QUANTUM vaatwas tabs regular 31st",
-     "pack": 12.49,
-     "unitPrice": 0.403,
-     "unit": "pc",
-     "promo": true,
-     "until": null
-    }
+    "url": "https://www.aldi.be/fr/produits/tablettes-pour-lave-vaisselle-classic-100-pcs-3856.html"
+   },
+   "colruyt": {
+    "price": 16.12,
+    "article": "FINISH QUANTUM vaatwas tabs regular 31st",
+    "pack": 12.49,
+    "unitPrice": 0.403,
+    "unit": "pc",
+    "promo": true,
+    "until": null
    },
    "delhaize": {
     "price": 2.39,
@@ -1609,17 +1813,17 @@
     "unitPrice": 0.06,
     "unit": "pc",
     "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Cuisine/Lave-vaisselle/Tablettes-Lave-Vaisselle-All-in-One/p/S2025121600913520000"
-   },
-   "aldi": {
-    "price": 2,
-    "article": "POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet",
-    "pack": 4.99,
-    "unitPrice": 0.05,
-    "unit": "pc",
-    "url": "https://www.aldi.be/fr/produits/tablettes-pour-lave-vaisselle-classic-100-pcs-3856.html"
    }
   },
   "eponges": {
+   "aldi": {
+    "price": 0.24,
+    "article": "TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot",
+    "pack": 0.79,
+    "unitPrice": 0.079,
+    "unit": "pc",
+    "url": "https://www.aldi.be/fr/produits/eponges-a-recurer-10-pcs-4644.html"
+   },
    "colruyt": {
     "price": 0.15,
     "article": "EVERYDAY éponges à récurer 10st",
@@ -1633,18 +1837,27 @@
     "pack": 4.59,
     "unitPrice": 1.148,
     "unit": "pc",
-    "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Accessoires-de-nettoyage/Lavettes-chiffons-et-eponges/Eponges/Eponges-a-recurer-Slalom-Universal-3-1/p/S2006032700173750099"
-   },
-   "aldi": {
-    "price": 0.24,
-    "article": "TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot",
-    "pack": 0.79,
-    "unitPrice": 0.079,
-    "unit": "pc",
-    "url": "https://www.aldi.be/fr/produits/eponges-a-recurer-10-pcs-4644.html"
+    "url": "https://www.delhaize.be/fr/shop/Entretien-et-menage/Accessoires-de-nettoyage/Lavettes-chiffons-et-eponges/Eponges/Eponges-a-recurer-Slalom-Universal-3-1/p/S2006032700173750099",
+    "deal": {
+     "k": "g",
+     "q": 3,
+     "d": 0.25,
+     "m": 0,
+     "r": 1,
+     "end": "2026-10-14",
+     "txt": "-25% pour 3"
+    }
    }
   },
   "croquettes": {
+   "aldi": {
+    "price": 2.59,
+    "article": "CACHET Croquettes pour chat, 2 kg",
+    "pack": 2.59,
+    "unitPrice": 1.295,
+    "unit": "kg",
+    "url": "https://www.aldi.be/fr/produits/croquettes-pour-chat-2-kg-3002847.html"
+   },
    "colruyt": {
     "price": 7.12,
     "article": "WHISKAS Dry thon +1jaar 1,9kg",
@@ -1659,17 +1872,17 @@
     "unitPrice": 3.679,
     "unit": "kg",
     "url": "https://www.delhaize.be/fr/shop/Animaux/Chats/Aliments-secs/Aliment-chat-Croquettes-Poulet/p/S2017070604159680000"
-   },
-   "aldi": {
-    "price": 2.59,
-    "article": "CACHET Croquettes pour chat, 2 kg",
-    "pack": 2.59,
-    "unitPrice": 1.295,
-    "unit": "kg",
-    "url": "https://www.aldi.be/fr/produits/croquettes-pour-chat-2-kg-3002847.html"
    }
   },
   "litiere": {
+   "aldi": {
+    "price": 4.49,
+    "article": "CACHET Litière pour chats hygiène, 10 l",
+    "pack": 4.49,
+    "unitPrice": 0.449,
+    "unit": "l",
+    "url": "https://www.aldi.be/fr/produits/litiere-pour-chats-hygiene-10-l-3008456.html"
+   },
    "colruyt": {
     "price": 1.99,
     "article": "EVERYDAY litière pour chat ±7L",
@@ -1684,14 +1897,6 @@
     "unitPrice": 0.265,
     "unit": "l",
     "url": "https://www.delhaize.be/fr/shop/Animaux/Chats/Litiere/Non-agglomerant/Litiere-Non-Agglomerante/p/S2024092000790960000"
-   },
-   "aldi": {
-    "price": 4.49,
-    "article": "CACHET Litière pour chats hygiène, 10 l",
-    "pack": 4.49,
-    "unitPrice": 0.449,
-    "unit": "l",
-    "url": "https://www.aldi.be/fr/produits/litiere-pour-chats-hygiene-10-l-3008456.html"
    }
   }
  }
