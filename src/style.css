@@ -310,3 +310,9 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .nutri { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; font-weight: 800; color: #fff; flex: none; }
 .nutri.nA { background: #038141; } .nutri.nB { background: #85bb2f; } .nutri.nC { background: #fecb02; color: #222; } .nutri.nD { background: #ee8100; } .nutri.nE { background: #e63e11; }
 .nutri.sm { width: 22px; height: 22px; border-radius: 6px; font-size: .72rem; }
+
+/* Budget */
+.bars { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; height: 150px; }
+.bars .bar { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
+.bars .bar i { width: 70%; min-height: 3px; background: var(--accent); border-radius: 8px 8px 3px 3px; }
+.bars .bar i.over { background: var(--danger); }

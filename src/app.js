@@ -252,6 +252,7 @@ const ICONS = {
   undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
   scan: '<path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/>',
+  wallet: '<path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v11a2 2 0 0 0 2 2h14V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2"/>',
   chef: '<path d="M6 13h12v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M6 13a4 4 0 0 1 1-7.9A5 5 0 0 1 17 5.1 4 4 0 0 1 18 13"/>',
   spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
 };
@@ -353,7 +354,7 @@ const TABS = [
   ['list', 'list', 'Liste'],
   ['plats', 'chef', 'Plats'],
   ['plan', 'route', 'Plan'],
-  ['recurring', 'repeat', 'Habitudes'],
+  ['recurring', 'wallet', 'Budget'],
   ['prices', 'tag', 'Prix'],
   ['settings', 'gear', 'Réglages'],
 ];
@@ -1082,13 +1083,34 @@ function planText(plan) {
   return lines.join('\n');
 }
 
-function finishShopping(plan) {
+// Lignes du plan achetées : celles cochées, ou toutes si rien n'est coché.
+function boughtLines(plan) {
+  const lines = plan.stops.flatMap((s) => s.lines.map((l) => ({ ...l, chain: s.store.chain })));
+  const checked = lines.filter((l) => state.list.find((x) => x.id === l.product.id)?.checked);
+  return checked.length ? checked : lines;
+}
+
+// Économie : les mêmes articles au magasin le plus proche, moins le prix du plan.
+function savingOf(lines) {
+  const near = [...state.stores].filter((st) => st.lat != null).sort((a, b) => haversineKm(state.home, a) - haversineKm(state.home, b))[0];
+  if (!near) return 0;
+  const total = lines.reduce((t, l) => {
+    const pr = priceInfo(l.product, near.chain, chains(), state.overrides, realPrices())?.price;
+    return pr == null ? t : t + pr * l.qty - l.total;
+  }, 0);
+  return Math.max(0, Math.round(total * 100) / 100);
+}
+
+function finishShopping(plan, paid = null) {
   const today = new Date().toISOString().slice(0, 10);
+  const lines = boughtLines(plan);
+  const estimate = Math.round((lines.reduce((t, l) => t + l.total, 0) + (plan.fees ?? 0)) * 100) / 100;
+  const saving = state.home ? savingOf(lines) : 0;
   const inPlan = plan.stops.flatMap((s) => s.lines.map((l) => l.product.id));
   const checked = inPlan.filter((id) => state.list.find((l) => l.id === id)?.checked);
   const bought = new Set(checked.length ? checked : inPlan);
   state.recurring = state.recurring.map((r) => (bought.has(r.id) ? learnFrequency(r, today) : r));
-  state.history.unshift({ date: today, label: plan.label, total: plan.goods, items: bought.size });
+  state.history.unshift({ date: today, label: plan.label, total: estimate, ...(paid != null ? { paid } : {}), saving, items: bought.size });
   state.history = state.history.slice(0, 50);
   state.list = state.list.filter((l) => !bought.has(l.id)).map((l) => ({ ...l, checked: false }));
   for (const id of bought) delete state.dishNeed?.[id];
@@ -1099,6 +1121,36 @@ function finishShopping(plan) {
 }
 
 // ---------- Habitudes ----------
+// ---------- Budget ----------
+const spent = (h) => h.paid ?? h.total;
+function budgetCard() {
+  const s = state.settings;
+  const now = new Date();
+  const months = [...Array(6)].map((_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+    const key = d.toISOString().slice(0, 7);
+    const list = state.history.filter((h) => h.date.slice(0, 7) === key);
+    return { key, label: d.toLocaleDateString('fr-BE', { month: 'short' }), total: list.reduce((t, h) => t + spent(h), 0), saving: list.reduce((t, h) => t + (h.saving ?? 0), 0) };
+  });
+  const cur = months.at(-1);
+  const budget = s.monthBudget ?? 0;
+  const max = Math.max(...months.map((m) => m.total), 1);
+  const savedAll = state.history.reduce((t, h) => t + (h.saving ?? 0), 0);
+  const pct = budget ? Math.min(100, (cur.total / budget) * 100) : 0;
+  return `<section class="hero">
+      <span class="eyebrow">Budget de ${esc(now.toLocaleDateString('fr-BE', { month: 'long' }))}</span>
+      <div class="row" style="align-items:baseline;gap:8px"><span class="total num">${eur(cur.total)}</span>${budget ? `<span>/ ${eur(budget)}</span>` : ''}</div>
+      ${budget ? `<div class="progress"><span style="width:${pct}%${cur.total > budget ? ';background:var(--danger)' : ''}"></span></div>
+        <span class="small">${cur.total > budget ? `Dépassé de ${eur(cur.total - budget)}` : `Il reste ${eur(budget - cur.total)} ce mois-ci`}</span>` : ''}
+      <span class="saving">Économisé grâce à l'app : ${eur(cur.saving)} ce mois · ${eur(savedAll)} en tout</span>
+    </section>
+    <div class="card">
+      <label class="field"><span>Mon budget courses par mois</span><div class="row"><input type="number" min="0" step="10" inputmode="decimal" data-setting="monthBudget" data-num value="${budget || ''}" placeholder="ex. 300" style="max-width:140px"> <b>€</b></div></label>
+      <div class="bars" role="img" aria-label="Dépenses des 6 derniers mois">${months.map((m) => `<div class="bar"><span class="num tiny">${m.total ? `${Math.round(m.total)} €` : ''}</span><i style="height:${(m.total / max) * 75}%" class="${budget && m.total > budget ? 'over' : ''}"></i><span class="tiny muted">${esc(m.label)}</span></div>`).join('')}</div>
+      <p class="tiny muted">Chaque « Courses faites » compte le montant payé (ou l'estimation). Économie = les mêmes articles au magasin le plus proche, moins le prix du plan.</p>
+    </div>`;
+}
+
 function viewRecurring() {
   const now = Date.now();
   const rows = state.recurring
@@ -1107,7 +1159,8 @@ function viewRecurring() {
   const s = state.settings;
   const suggestions = PRODUCTS.filter((p) => p.every && !state.recurring.some((r) => r.id === p.id));
   return `
-    <h1>Habitudes</h1>
+    <h1>Budget et habitudes</h1>
+    ${budgetCard()}
     <p class="muted">Les produits que tu rachètes souvent reviennent tout seuls dans ta liste. Le rythme s'ajuste quand tu valides « Courses faites ».</p>
     <div class="card">
       <label class="row"><input type="checkbox" class="switch" data-setting="autoAdd" data-bool-check ${s.autoAdd ? 'checked' : ''}><span class="grow">Ajouter automatiquement à l'ouverture</span></label>
@@ -1135,7 +1188,9 @@ function viewRecurring() {
       <button class="btn" data-action="ics">${icon('repeat')} Ajouter le rappel hebdomadaire</button>
     </div>
     ${state.history.length ? `<div class="card"><h2>Historique</h2><ul class="items">
-      ${state.history.slice(0, 10).map((h) => `<li><span class="name small">${esc(dateFr(h.date))} · ${esc(h.label)}</span><span class="num">${eur(h.total)}</span></li>`).join('')}
+      ${state.history.slice(0, 15).map((h, i) => `<li><span class="name small">${esc(dateFr(h.date))} · ${esc(h.label)}<span class="sub">${h.paid != null ? `payé ${eur(h.paid)} (estimé ${eur(h.total)})` : 'estimation'}${h.saving ? ` · −${eur(h.saving)} économisés` : ''}</span></span>
+        <button class="btn ghost small num" data-action="hist-edit" data-i="${i}">${eur(spent(h))}</button>
+        <button class="icon-btn" data-action="hist-del" data-i="${i}" aria-label="Supprimer">${icon('x')}</button></li>`).join('')}
     </ul></div>` : ''}`;
 }
 
@@ -1370,6 +1425,13 @@ document.addEventListener('click', async (e) => {
     state.menu = [];
     save();
     render();
+  } else if (a === 'hist-edit') {
+    const h = state.history[Number(b.dataset.i)];
+    const v = await ask('Montant payé (€)', { input: spent(h).toFixed(2).replace('.', ','), ok: 'Enregistrer' });
+    const n = v == null ? null : Number(String(v).replace(',', '.'));
+    if (Number.isFinite(n) && n >= 0) { h.paid = n; save(); render(); }
+  } else if (a === 'hist-del') {
+    if (await ask('Supprimer ces courses de l\'historique ?', { ok: 'Supprimer' })) { state.history.splice(Number(b.dataset.i), 1); save(); render(); }
   } else if (a === 'voice') {
     dictate();
   } else if (a === 'scan') {
@@ -1476,7 +1538,11 @@ document.addEventListener('click', async (e) => {
     const msg = anyChecked
       ? 'Marquer les articles cochés comme achetés ? Les autres restent dans ta liste.'
       : 'Aucun article coché : marquer tout le plan comme acheté ?';
-    if (await ask(msg, { ok: 'Oui, c\'est fait' })) finishShopping(p);
+    if (!(await ask(msg, { ok: 'Oui, c\'est fait' }))) return;
+    const est = boughtLines(p).reduce((t, l) => t + l.total, 0) + (p.fees ?? 0);
+    const paid = await ask('Combien as-tu payé ? (pour le suivi du budget)', { input: est.toFixed(2).replace('.', ','), ok: 'Enregistrer', cancel: 'Passer' });
+    const n = paid == null ? null : Number(String(paid).replace(',', '.'));
+    finishShopping(p, Number.isFinite(n) && n > 0 ? n : null);
   } else if (a === 'rec') {
     const p = productById(id);
     state.recurring.push({ id, every: p.every ?? 7 });
