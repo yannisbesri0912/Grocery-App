@@ -62,3 +62,17 @@ test('staplesFor : quantités selon personnes × jours, régime respecté', () =
   assert.ok(!veg.jambon && !veg.beurre);
   assert.equal(servingsFor({ people: 2, lunch: 'maison' }), 4);
 });
+
+test('recettes Wikibooks : toutes chargées, ingrédients connus, source indiquée', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { addRecipes, RECIPES: all } = await import('../src/recipes.js');
+  const rows = JSON.parse(readFileSync(new URL('../data/recipes-wikibooks.json', import.meta.url)));
+  assert.ok(rows.length >= 500);
+  addRecipes(rows);
+  const imported = all.filter((r) => r.id.startsWith('wb-'));
+  assert.equal(imported.length, rows.length);
+  for (const r of imported) {
+    assert.ok(/^https:\/\/en\.wikibooks\.org\//.test(r.src), r.name);
+    assert.ok(r.steps.length > 20 && !/°F/.test(r.steps), r.name);
+  }
+});

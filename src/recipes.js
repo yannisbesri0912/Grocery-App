@@ -320,9 +320,13 @@ function mainKind(r) {
  * selon la place voulue pour la viande et le poisson.
  * prefs.meat / prefs.fish : 'souvent' | 'parfois' | 'rarement' | 'jamais'
  */
+// Un vrai repas : un féculent, une protéine (viande, poisson, œufs) ou des légumineuses.
+const MEAL = new Set(['pates', 'riz', 'pdt', 'semoule', 'quinoa', 'nouilles', 'gnocchi', 'lasagne', 'pain', 'baguette', 'tortillas', 'pate-pizza', 'pate-brisee', 'pate-feuil', 'pizza', 'frites', 'patate-douce', 'pain-burger', 'pain-mie', 'pain-pita', 'poulet', 'hache', 'boeuf', 'steak', 'boeuf-ragout', 'steak-burger', 'dinde', 'porc', 'merguez', 'jambon', 'lardons', 'chorizo', 'saumon', 'thon', 'cabillaud', 'crevettes', 'moules', 'oeufs', 'lentilles', 'pois-chiches', 'haricots-rouges', 'tofu', 'falafel']);
+export const isMeal = (r) => r.ingredients.filter((i) => !i.pantry && MEAL.has(i.key)).length >= 1 && r.ingredients.filter((i) => !i.pantry).length >= 3;
+
 export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [] } = {}) {
   if (n <= 0) return [];
-  const pool = RECIPES.filter((r) => r.type === 'plat' && !exclude.includes(r.id) && compatible(r, filters))
+  const pool = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && !exclude.includes(r.id) && compatible(r, filters))
     .map((r) => ({ r, cost: costOf(r) }))
     .sort((a, b) => a.cost - b.cost);
   const share = { souvent: 0.5, parfois: 0.3, rarement: 0.15, jamais: 0 };
