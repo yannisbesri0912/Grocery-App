@@ -5,6 +5,8 @@ name: Prix réels
 on:
   schedule:
     - cron: '17 4 * * *'
+    # Copie Colruyt du jour publiée vers midi : second passage léger, Colruyt seul.
+    - cron: '41 15 * * *'
   workflow_dispatch:
     inputs:
       sources:
@@ -54,7 +56,7 @@ jobs:
           echo "Pays de sortie : $(curl -s https://ipinfo.io/country)"
 
       - name: Récupération des prix
-        run: node prices/run.mjs ${{ github.event.inputs.sources }}
+        run: node prices/run.mjs ${{ github.event.schedule == '41 15 * * *' && 'colruyt' || github.event.inputs.sources }}
         env:
           PRIJSPROFEET_KEY: ${{ secrets.PRIJSPROFEET_KEY }}
 

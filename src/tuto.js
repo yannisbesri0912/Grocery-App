@@ -57,13 +57,13 @@ function steps({ icon, logo, nutri }) {
     },
     {
       title: '7. Commander ou y aller',
-      text: 'Pour un retrait, touche « Ouvrir » à côté de chaque produit : il s\'ouvre sur le site du magasin, tu l\'ajoutes au panier et tu paies sur le site. En magasin, coche au fur et à mesure.',
+      text: 'Pour un retrait, touche « Ouvrir » à côté de chaque produit et ajoute-le au panier du site (tu paies sur le site). Collect&Go : colle une fois l\'adresse d\'un produit, l\'app fait ensuite les liens directs. En magasin, la liste suit l\'ordre des rayons.',
       art: `<div class="tp-card">${row(`${logo('delhaize', 'sm')} Lait demi-écrémé`, `<span class="tp-mini">Ouvrir${tap}</span>`)}${row(`${logo('delhaize', 'sm')} Spaghetti 500 g`, '<span class="tp-mini">Ouvrir</span>')}
         ${row(`<span class="tp-check">${icon('check')}</span> Bananes`, '', 'tp-done')}</div>`,
     },
     {
       title: '8. Ton budget',
-      text: 'Dans « Budget » : ce que tu dépenses chaque mois, comparé à ton budget, et ce que l\'app t\'a fait économiser. Photographie ton ticket : l\'app lit les prix payés et corrige les siens.',
+      text: 'Dans « Budget » : tes dépenses du mois, ce que l\'app t\'a fait économiser et où part ton argent, rayon par rayon. Photographie ton ticket : l\'app lit les prix payés et ajuste ses estimations. Ta liste se partage avec un lien ou un code QR.',
       art: `<div class="tp-card"><div class="tp-head">Octobre</div><div class="tp-meter"><span style="width:62%"></span></div>${row('186 € sur 300 €', '<b class="tp-good">−24 € économisés</b>')}</div>
         <div class="tp-btn soft">${icon('scan')} Scanner un ticket de caisse${tap}</div>`,
     },

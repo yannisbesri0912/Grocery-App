@@ -9,6 +9,7 @@ import { dealTotal, dealAdvice } from './deals.js';
 import { priceSignal, KEEPS } from './history.js';
 import { aisleKey, aisleOrder } from './aisles.js';
 import { addRatio, calibFactor } from './calib.js';
+import { shareLink, readShared } from './share.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
@@ -691,7 +692,13 @@ function applyReceipt() {
   }
   state.list = state.list.filter((l) => l.qty > 0);
   const sum = Math.round(used.reduce((t, i) => t + i.total, 0) * 100) / 100;
-  state.history.unshift({ date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum, saving: 0, items: used.length });
+  const cats = {};
+  for (const it of used) {
+    const cat = it.match?.id ? productById(it.match.id)?.cat : it.match?.row ? rowById(it.match.chain, it.match.row)?.[ROW.cat] : null;
+    const key = cat ?? 'x';
+    cats[key] = Math.round(((cats[key] ?? 0) + it.total) * 100) / 100;
+  }
+  state.history.unshift({ date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum, saving: 0, items: used.length, cats });
   receipt = null;
   save();
   render();
@@ -1025,7 +1032,7 @@ function viewList() {
           <button data-action="qty" data-id="${l.id}" data-d="1" aria-label="Plus">${icon('plus')}</button>
         </span></li>`).join('')}</ul></div>`).join('');
   return `
-    <div class="section-head"><h1>Ma liste</h1>${state.list.length ? '<button class="btn ghost danger small" data-action="clear">Vider</button>' : ''}</div>
+    <div class="section-head"><h1>Ma liste</h1>${state.list.length ? `<span class="row" style="gap:4px"><button class="btn ghost small" data-action="share-list">${icon('share')} Partager</button><button class="btn ghost danger small" data-action="clear">Vider</button></span>` : ''}</div>
     ${state.list.length ? `<button class="banner smart-entry" data-action="smart-open">${icon('spark')}<span class="grow"><b>Panier malin</b><br><span class="small muted">Donne un budget : je compose le meilleur panier</span></span>${icon('arrow')}</button>` : ''}
     ${due.length ? `<div class="banner">${icon('repeat')}<span class="grow">${due.length} produit${due.length > 1 ? 's' : ''} habituel${due.length > 1 ? 's' : ''} à racheter</span><button class="btn primary" data-action="add-due">Ajouter</button></div>` : ''}
     <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit…" value="${esc(search)}" autocomplete="off" enterkeyhint="done">
@@ -1676,7 +1683,7 @@ function freshnessCard() {
     <div class="store-list">${chainsShown.map((c) => {
       const st = chainStatus(c);
       const line = st.kind === 'real'
-        ? `${st.stale ? '⚠️ ' : ''}Vrais prix relevés le ${dateFr(st.date)} (${ago(st.age)})${st.stale ? ' — pas mis à jour, le robot a peut-être été bloqué' : ''}`
+        ? `${st.stale ? '⚠️ ' : ''}Vrais prix relevés le ${dateFr(st.date)} (${ago(st.age)})${st.stale ? ' — pas mis à jour, le robot a peut-être été bloqué' : ''}${c === 'colruyt' ? ' · copie publique du catalogue, relue deux fois par jour' : c === 'delhaize' ? ' · catalogue complet relu chaque nuit' : ''}`
         : `Prix approximatifs, estimés d'après Colruyt${st.promos ? ` · promos du ${dateFr(st.promos)}` : ''}`;
       return `<div class="store">${logo(c)}<div class="grow"><b>${esc(CHAINS[c].name)}</b><div class="small ${st.kind === 'real' && !st.stale ? 'muted' : 'warn-text'}">${esc(line)}</div></div>
         <span class="pill ${st.kind === 'real' && !st.stale ? 'good' : 'warn'}">${st.kind === 'real' ? (st.stale ? 'ancien' : 'réel') : 'approx.'}</span></div>`;
@@ -1733,7 +1740,12 @@ function finishShopping(plan, paid = null) {
   const checked = inPlan.filter((id) => state.list.find((l) => l.id === id)?.checked);
   const bought = new Set(checked.length ? checked : inPlan);
   state.recurring = state.recurring.map((r) => (bought.has(r.id) ? learnFrequency(r, today) : r));
-  state.history.unshift({ date: today, label: plan.label, total: estimate, ...(paid != null ? { paid } : {}), saving, items: bought.size });
+  // Dépenses par rayon (ramenées au montant payé s'il est connu).
+  const goods = lines.reduce((t, l) => t + l.total, 0);
+  const k = paid != null && goods > 0 ? Math.max(0, paid - (plan.fees ?? 0)) / goods : 1;
+  const cats = {};
+  for (const l of lines) cats[l.product.cat ?? 4] = Math.round(((cats[l.product.cat ?? 4] ?? 0) + l.total * k) * 100) / 100;
+  state.history.unshift({ date: today, label: plan.label, total: estimate, ...(paid != null ? { paid } : {}), saving, items: bought.size, cats });
   state.history = state.history.slice(0, 50);
   state.list = state.list.filter((l) => !bought.has(l.id)).map((l) => ({ ...l, checked: false }));
   for (const id of bought) delete state.dishNeed?.[id];
@@ -1772,7 +1784,26 @@ function budgetCard() {
       <label class="field"><span>Mon budget courses par mois</span><div class="row"><input type="number" min="0" step="10" inputmode="decimal" data-setting="monthBudget" data-num value="${budget || ''}" placeholder="ex. 300" style="max-width:140px"> <b>€</b></div></label>
       <div class="bars" role="img" aria-label="Dépenses des 6 derniers mois">${months.map((m) => `<div class="bar"><span class="num tiny">${m.total ? `${Math.round(m.total)} €` : ''}</span><i style="height:${(m.total / max) * 75}%" class="${budget && m.total > budget ? 'over' : ''}"></i><span class="tiny muted">${esc(m.label)}</span></div>`).join('')}</div>
       <p class="tiny muted">Chaque « Courses faites » compte le montant payé (ou l'estimation). Économie = les mêmes articles au magasin le plus proche, moins le prix du plan.</p>
-    </div>`;
+    </div>
+    ${spendingByAisle(cur.key)}`;
+}
+
+// Dépenses du mois par rayon (courses faites et tickets).
+function spendingByAisle(month) {
+  const sums = {};
+  let other = 0;
+  for (const h of state.history.filter((x) => x.date.slice(0, 7) === month)) {
+    if (!h.cats) { other += spent(h); continue; }
+    for (const [c, v] of Object.entries(h.cats)) sums[c] = (sums[c] ?? 0) + v;
+  }
+  const rows = Object.entries(sums).map(([c, v]) => ({ label: c === 'x' ? 'Non reconnu (ticket)' : CATEGORIES[c] ?? 'Divers', v }));
+  if (other > 0) rows.push({ label: 'Non détaillé', v: other });
+  const total = rows.reduce((t, r) => t + r.v, 0);
+  if (!total) return '';
+  rows.sort((a, b) => b.v - a.v);
+  return `<div class="card"><h2>Où part ton argent ce mois-ci</h2>
+    <ul class="aisle-spend">${rows.map((r) => `<li><span class="grow">${esc(r.label)}</span><b class="num">${eur(r.v)}</b><span class="num muted small" style="min-width:42px;text-align:right">${Math.round((r.v / total) * 100)} %</span>
+      <i style="width:${Math.max(2, (r.v / rows[0].v) * 100)}%"></i></li>`).join('')}</ul></div>`;
 }
 
 function viewRecurring() {
@@ -2075,6 +2106,8 @@ document.addEventListener('click', async (e) => {
     smartSettings().budget = Number(b.dataset.val);
     save();
     render();
+  } else if (a === 'share-list') {
+    shareList();
   } else if (a === 'teach-link') {
     const url = document.getElementById('teach-url')?.value ?? '';
     const t = learnTemplate(url, JSON.parse(b.dataset.ref), b.dataset.name);
@@ -2328,11 +2361,64 @@ view.addEventListener('change', (e) => {
   }
 });
 
+// ---------- Liste partagée (src/share.js) ----------
+const QR_LIB = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+async function shareList() {
+  const url = shareLink(location.href, state.list, state.custom);
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="modal-box share-box" role="dialog" aria-modal="true" aria-label="Partager ma liste">
+    <div class="row"><b class="grow">Partager ma liste</b><button class="btn ghost small" data-s="close" aria-label="Fermer">${icon('x')}</button></div>
+    <p class="small muted">${state.list.length} produit${state.list.length > 1 ? 's' : ''}. La personne ouvre le lien (ou scanne le code) : l'app lui propose d'ajouter ta liste à la sienne. Ton adresse n'est pas dedans.</p>
+    <div class="qr" aria-label="Code QR de la liste"><span class="spinner"></span></div>
+    <div class="row" style="gap:8px">${navigator.share ? `<button class="btn primary grow" data-s="native">${icon('share')} Envoyer…</button>` : ''}<button class="btn soft grow" data-s="copy">${icon('copy')} Copier le lien</button></div>
+  </div>`;
+  document.body.append(wrap);
+  wrap.addEventListener('click', async (e) => {
+    if (e.target === wrap) return wrap.remove();
+    const s = e.target.closest('[data-s]')?.dataset.s;
+    if (s === 'close') wrap.remove();
+    else if (s === 'copy') { try { await navigator.clipboard.writeText(url); toast('Lien copié'); } catch { await ask('Copie ce lien :', { text: url, ok: 'Fermer', cancel: null }); } }
+    else if (s === 'native') navigator.share({ title: 'Ma liste de courses', text: 'Ma liste de courses', url }).catch(() => {});
+  });
+  try {
+    await loadScript(QR_LIB);
+    const qr = window.qrcode(0, 'L');
+    qr.addData(url);
+    qr.make();
+    wrap.querySelector('.qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+  } catch {
+    wrap.querySelector('.qr').innerHTML = '<span class="small muted">Code QR indisponible (liste trop longue ou hors ligne) : envoie le lien.</span>';
+  }
+}
+
+async function importShared(shared) {
+  history.replaceState(null, '', location.pathname + location.search);
+  for (const p of shared.custom) if (!state.custom.some((c) => c.id === p.id) && !PRODUCTS.some((x) => x.id === p.id)) state.custom.push(p);
+  const known = shared.items.filter((i) => productById(i.id));
+  if (!known.length) { toast('Lien de liste illisible'); return; }
+  const names = known.slice(0, 6).map((i) => `${i.qty > 1 ? `${i.qty} × ` : ''}${productById(i.id).name.replace(/\s*\(.*\)$/, '')}`).join(', ');
+  const replace = state.list.length && await ask(`Liste partagée : ${known.length} produit${known.length > 1 ? 's' : ''} (${names}${known.length > 6 ? '…' : ''}). Remplacer ta liste ? (Annuler = les ajouter à ta liste)`, { ok: 'Remplacer', cancel: 'Ajouter' });
+  if (replace) state.list = [];
+  for (const i of known) {
+    const ex = state.list.find((l) => l.id === i.id);
+    if (ex) ex.qty = Math.max(ex.qty, i.qty); else state.list.push({ id: i.id, qty: i.qty, checked: false });
+  }
+  save();
+  setTab('list');
+  toast(`${known.length} produit${known.length > 1 ? 's' : ''} ${replace ? 'dans ta liste' : 'ajoutés à ta liste'}`);
+}
+
 // ---------- Démarrage ----------
 if (state.settings.autoAdd) autoAddDue({ silent: false });
 render();
 loadPrices();
 if (state.custom.some(isArticle)) loadCatalog();
+{
+  const shared = readShared(location.hash);
+  if (shared) importShared(shared);
+}
+window.addEventListener('hashchange', () => { const sh = readShared(location.hash); if (sh) importShared(sh); });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
