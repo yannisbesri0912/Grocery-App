@@ -1,0 +1,112 @@
+{
+ "delhaize": {
+  "categoryLinks": [
+   "/fr/c/v2WIN"
+  ],
+  "search": [
+   {
+    "v": {
+     "pageSize": 100
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   },
+   {
+    "v": {
+     "pageSize": 500
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   },
+   {
+    "v": {
+     "searchQuery": "",
+     "pageSize": 100
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   },
+   {
+    "v": {
+     "searchQuery": "*",
+     "pageSize": 100
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   },
+   {
+    "v": {
+     "pageSize": 100,
+     "pageNumber": 3
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   }
+  ],
+  "categoryUrl": "https://www.delhaize.be/api/v1/?operationName=GetCategoryProductSearch&variables=%7B%22lang%22%3A%22fr%22%2C%22searchQuery%22%3A%22%22%2C%22category%22%3A%22v2WIN%22%2C%22pageNumber%22%3A0%2C%22pageSize%22%3A20%2C%22filterFlag%22%3Atrue%2C%22fields%22%3A%22PRODUCT_TILE%22%2C%22plainChildCategories%22%3Atrue%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22d8bff3916275ffeb6f51604d36d7a3aa2f9cd92847487a7f2e3bdf6bb2115cdd%22%7D%7D",
+  "category": [
+   {
+    "v": {
+     "pageSize": 100
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   },
+   {
+    "v": {
+     "pageSize": 500
+    },
+    "status": 500,
+    "len": 174,
+    "n": null,
+    "total": null,
+    "head": "{\"errors\":[{\"message\":\"UserInputError: Variable got invalid value\",\"reasonCode\":\"BAD_USER_INPUT\",\"extensions\":{\"code\":\"BAD_USER_INPUT\",\"response\":{\"body\":{\"message\":\"\"}}}}]}\n"
+   }
+  ],
+  "searchUrl": "https://www.delhaize.be/api/v1/?operationName=GetProductSearch&variables=%7B%22lang%22%3A%22fr%22%2C%22searchQuery%22%3A%22lait%22%2C%22pageNumber%22%3A0%2C%22pageSize%22%3A20%2C%22filterFlag%22%3Atrue%2C%22fields%22%3A%22PRODUCT_TILE%22%2C%22plainChildCategories%22%3Atrue%2C%22useSpellingSuggestion%22%3Atrue%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%221aed18b70ca933de3c1352038f798f0b8375ac515e9d0f93a23556402015418a%22%7D%7D"
+ },
+ "aldi": {
+  "requests": [
+   {
+    "url": "https://w297xvtvrz-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(5.56.0)%3B%20Lite%20(5.56.0)%3B%20Browser&x-algolia-api-key=74cb164b016846f7a05c4915041d82b2&x-algolia-application-id=W297XVTVRZ",
+    "method": "POST",
+    "headers": {
+     "sec-ch-ua-platform": "\"Windows\"",
+     "referer": "https://www.aldi.be/",
+     "accept-language": "fr-BE,fr;q=0.9,nl;q=0.7,en;q=0.5",
+     "sec-ch-ua": "\"HeadlessChrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+     "sec-ch-ua-mobile": "?0",
+     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+     "accept": "application/json",
+     "content-type": "text/plain"
+    },
+    "body": "{\"requests\":[{\"indexName\":\"an_prd_be_nl_products2\",\"facets\":[\"marketingTypes.name\",\"category\"],\"hitsPerPage\":1000,\"query\":\"melk\"},{\"indexName\":\"an_prd_be_nl_pages\",\"facets\":[\"marketingTypes.name\",\"category\"],\"hitsPerPage\":1000,\"query\":\"melk\"},{\"indexName\":\"an_prd_be_nl_faqs\",\"facets\":[\"marketingTypes.name\",\"category\"],\"hitsPerPage\":1000,\"query\":\"melk\"}]}"
+   }
+  ],
+  "replay": {
+   "status": 200,
+   "len": 2388258,
+   "hits": 1000,
+   "nb": 2829,
+   "sample": "{\"results\":[{\"hits\":[{\"brandName\":\"SUNSNACKS®\",\"categoryIDs\":[\"chips-aperitiefsnacks\",\"chips-noten-gedroogd-fruit\",\"sun-snacks\"],\"assets\":[{\"type\":\"primary\",\"url\":\"https://s7g10.scene7.com/is/image/aldinord/9880_chips_bolognese_of_barbecue_25-0-grp\",\"title\":\"9880_chips_bolognese_of_barbecue_25-0-grp.png\",\"isAiGenerated\":false},{\"type\":\"gallery\",\"url\":\"https://s7g10.scene7.com/is/image/aldinord/9880_chips_bolognese_of_barbecue_25-1\",\"title\":\"9880_chips_bolognese_of_barbecue_25-1.png\",\"isAiGenerated\":false},{\"type\":\"gallery\",\"url\":\"https://s7g10.scene7.com/is/image/aldinord/9880_chips_bolognese_of_barbecue_25-2\",\"title\":\"9880_chips_bolognese_of_barbecue_25-2.png\",\"isAiGenerated\":false},{\"type\":\"certificate\",\"url\":\"https://s7g10.scene7.com/is/image/aldinord/97945-3\",\"title\":\"nutriscore D\",\"isAiGenerated\":false}],\"salesUnit\":\"250 g\",\"name\":\"Bolognese- of barbecuechips\",\"currentPrice\":{\"priceValue\":1.19,\"basePrice\":[{\"basePriceValue\":4.76,\"basePriceScale\":\"per kg\"}],\"validFrom\":1770850800,\"validUntil\":0},\"shortDescription\":\"flatchips, keuze uit bolognese en barbecue\",\"productSlug\":\"bolognese-of-barbecuechips-9880\",\"mainCategoryID\":\"chips-aperitiefsnacks\",\"hierarchicalCategories\":{\"lvl0\":[\"Chips, noten en gedroogd fruit\",\"ALDI-merken\"],\"lvl1\":[\"Chips, noten en gedroogd fruit > Chips en aperitiefsnacks\",\"ALDI-merken > Sun Snacks\"]},\"objectID\":\"9880\",\"_highlightResult\":{\"brandName\":{\"value\":\"SUNSNACKS®\",\"matchLevel\":\"none\",\"matchedWords\":[]},\"categoryIDs\":[{\"value\":\"chips-aperitiefsn"
+  }
+ }
+}
