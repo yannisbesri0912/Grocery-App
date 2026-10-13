@@ -18,6 +18,9 @@ import { parseVoice } from './voice.js';
 import { startScanner, lookupBarcode, decodePhoto, validEan } from './scan.js';
 import { parseReceipt, detectChain } from './receipt.js';
 import { openTuto } from './tuto.js';
+import { captureErrors, buildReport } from './report.js';
+
+captureErrors();
 import { RULES, PET_BABY } from './match-rules.js';
 import { nameMatches } from './matcher.js';
 
@@ -592,6 +595,7 @@ function receiptMatch(name, chain) {
   return r ? { row: r[ROW.id], chain: c, label: rowName(r) } : null;
 }
 
+let lastReceiptText = ''; // pour le rapport de problème (si l'utilisateur le joint)
 let receipt = null; // { chain, items: [{ name, qty, price, total, match, use }], total }
 
 async function readReceipt(file) {
@@ -605,6 +609,7 @@ async function readReceipt(file) {
     const { data } = await window.Tesseract.recognize(file, 'fra+nld', {
       logger: (m) => { if (m.status === 'recognizing text') bar.style.width = `${Math.round(m.progress * 100)}%`; },
     });
+    lastReceiptText = data.text;
     const parsed = parseReceipt(data.text);
     if (!parsed.items.length) { toast('Ticket illisible : reprends la photo bien à plat, avec de la lumière'); return; }
     const chain = detectChain(data.text) ?? state.stores[0]?.chain ?? 'colruyt';
@@ -1912,6 +1917,7 @@ function viewSettings() {
   const ch = chains();
   return `
     <h1>Réglages</h1>
+    <button class="banner tuto-entry" data-action="report">${icon('share')}<span class="grow"><b>Signaler un problème</b><br><span class="small muted">Envoie un rapport (sans ton adresse) pour qu'on corrige</span></span>${icon('arrow')}</button>
     <button class="banner tuto-entry" data-action="tuto">${icon('spark')}<span class="grow"><b>Guide en images</b><br><span class="small muted">Comment utiliser l'app, étape par étape</span></span>${icon('arrow')}</button>
     <div class="card"><h2>Mon adresse</h2>${addressForm()}</div>
     ${storesBlock()}
@@ -2117,6 +2123,8 @@ document.addEventListener('click', async (e) => {
     smartSettings().budget = Number(b.dataset.val);
     save();
     render();
+  } else if (a === 'report') {
+    reportProblem();
   } else if (a === 'share-list') {
     shareList();
   } else if (a === 'teach-link') {
@@ -2371,6 +2379,33 @@ view.addEventListener('change', (e) => {
     });
   }
 });
+
+// ---------- Signaler un problème (src/report.js) ----------
+async function reportProblem() {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Signaler un problème">
+    <div class="row"><b class="grow">Signaler un problème</b><button class="btn ghost small" data-s="close" aria-label="Fermer">${icon('x')}</button></div>
+    <textarea id="report-what" rows="3" placeholder="Ce qui ne marche pas : où, ce que tu as fait, ce qui s'est passé…" style="width:100%;font:inherit;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px"></textarea>
+    ${lastReceiptText ? '<label class="row small"><input type="checkbox" id="report-receipt"> Joindre le texte du dernier ticket lu (vérifie qu\'il n\'y a rien de personnel)</label>' : ''}
+    <p class="tiny muted">Le rapport contient le type de téléphone, la version de l'app, les réglages et les dernières erreurs. Jamais ton adresse, ta position ni tes dépenses.</p>
+    <div class="row" style="gap:8px">${navigator.share ? `<button class="btn primary grow" data-s="send">${icon('share')} Envoyer…</button>` : ''}<button class="btn soft grow" data-s="copy">${icon('copy')} Copier</button></div>
+  </div>`;
+  document.body.append(wrap);
+  const version = await fetch('sw.js', { cache: 'no-cache' }).then((r) => r.text()).then((t) => t.match(/grocery-opti-(v\d+)/)?.[1]).catch(() => null);
+  const text = () => buildReport({
+    what: wrap.querySelector('#report-what').value, version, state, prices: PRICES,
+    catalogs: Object.keys(CATALOGS), receiptText: wrap.querySelector('#report-receipt')?.checked ? lastReceiptText : '',
+  });
+  wrap.addEventListener('click', async (e) => {
+    if (e.target === wrap) return wrap.remove();
+    const s = e.target.closest('[data-s]')?.dataset.s;
+    if (s === 'close') wrap.remove();
+    else if (s === 'send') navigator.share({ title: 'Problème Grocery Opti', text: text() }).catch(() => {});
+    else if (s === 'copy') { try { await navigator.clipboard.writeText(text()); toast('Rapport copié : colle-le dans un message'); } catch { await ask('Copie ce rapport :', { text: text(), ok: 'Fermer', cancel: null }); } }
+  });
+  wrap.querySelector('#report-what').focus();
+}
 
 // ---------- Liste partagée (src/share.js) ----------
 const QR_LIB = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
