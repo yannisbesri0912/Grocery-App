@@ -1,7 +1,7 @@
-# Prix réels — 2026-10-13 13:57 UTC
+# Prix réels — 2026-10-13 20:49 UTC
 
-- **colruyt** : 68 produits au 2026-10-12
-- **colruyt** : catalogue complet de 9556 articles
+- **colruyt** : 68 produits au 2026-10-13
+- **colruyt** : catalogue complet de 9565 articles
 - **même produit** : 833 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
@@ -71,7 +71,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Papier toilette (12 rouleaux) | 3.84 € — EVERYDAY papier toilette sterk 3l 180v 12r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
 | Essuie-tout (4 rouleaux) | 2.72 € — BONI essuie-tout classic 3l 64v 6r | 2.85 € — DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc | — | 2.25 € 🏷️ — FLORALYS essuie-tout 3-lagig XXL 8 pièces |
 | Dentifrice | 0.35 € — BONI dentifrice coolmint 125ml | 2.24 € — THERAMED Dentifrice, original, triple protection 10 cl | 0.35 € — DENTITEX Dentifrice 125 ml | — |
-| Gel douche (250 ml) | 0.60 € — EVERYDAY gel douche Marine 300ml | 1.71 € — TAHITI Gel douche, coco 31,5 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
+| Gel douche (250 ml) | 0.60 € — BONI gel douche noir 500ml | 1.71 € — TAHITI Gel douche, coco 31,5 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
 | Shampoing (300 ml) | 0.29 € — EVERYDAY shampoo oranjebloesem 500ml | 4.34 € — NIVEA Shampoing, care Express, 2en1, 400ML 40 cl | 0.30 € — LACURA Shampoing, 750 ml | — |
 | Déodorant | 1.19 € — BONI deo Woman fris gevoel 200ml | 2.59 € — FA Deo, divine Moments 15 cl | 1.19 € — LACURA Déodorant 200 ml | — |
 | Mouchoirs (boîte de 100) | 0.39 € — EVERYDAY mouchoirs box 2l 150st | 0.40 € — DELHAIZE Mouchoirs, boite, 2-plis 200 pc | 0.83 € — SUBLIMO Mouchoirs, 120 pcs par boîte | — |
