@@ -46,9 +46,17 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
     const page = await context.newPage();
     let catUrl = null;
     page.on('request', (r) => { if (/operationName=GetCategoryProductSearch/.test(r.url())) catUrl ??= r.url(); });
-    await page.goto('https://www.delhaize.be/fr/c/v2FRU', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // Accueil d'abord (cookies), puis un rayon : sa page appelle la recherche par rayon.
+    await page.goto('https://www.delhaize.be/fr/shop', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await acceptCookies(page);
-    await page.waitForResponse((r) => /GetCategoryProductSearch/.test(r.url()), { timeout: 20000 }).catch(() => {});
+    await sleep(3000);
+    for (const path of ['/fr/c/v2FRU', '/c/v2FRU', '/c/v2WIN', '/nl/c/v2DAI']) {
+      if (catUrl) break;
+      await page.goto(`https://www.delhaize.be${path}`, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+      await page.waitForResponse((r) => /GetCategoryProductSearch/.test(r.url()), { timeout: 15000 }).catch(() => {});
+      if (!catUrl) { await page.mouse.wheel(0, 3000); await sleep(3000); }
+      log(`  Delhaize ${path} : ${catUrl ? 'requête trouvée' : 'rien'}`);
+    }
     if (!catUrl) throw new Error('Delhaize : requête de rayon introuvable');
     const call = (vars) => page.evaluate(async ([url, v]) => {
       const x = new URL(url, location.origin);
@@ -68,6 +76,7 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
         if (r.error) { log(`  Delhaize ${cat} page ${n} : HTTP ${r.error}`); break; }
         total = r.totalPages;
         pages++;
+        if (pages === 1) log(`  exemple : ${r.products.slice(0, 3).map((p) => p.name).join(' | ')}`);
         for (const p of r.products) { const row = delhaizeRow(p); if (row) rows.set(row.id, row); }
         await sleep(250 + Math.random() * 250);
       }
