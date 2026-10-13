@@ -1,6 +1,7 @@
 // Moteur d'optimisation : pour une liste de courses, trouve la combinaison de
 // magasins (et l'ordre de passage) qui minimise prix + coût du déplacement.
 // Aucune dépendance au DOM : testé avec `node --test`.
+import { dealTotal } from './deals.js';
 
 export const MODES = {
   walk: { label: 'À pied', speed: 4.8, perKm: 0, gmaps: 'walking' },
@@ -41,7 +42,7 @@ export function priceInfo(product, chainId, chains, overrides = {}, real = {}) {
   const own = overrides[product.id]?.[chainId];
   if (typeof own === 'number') return { price: own, kind: 'user' };
   const r = real[product.id]?.[chainId];
-  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until };
+  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal };
   if (product.notIn?.includes(chainId)) return null;
   const chain = chains[chainId];
   if (!chain) return null;
@@ -111,8 +112,20 @@ function combinations(arr, k) {
   return out;
 }
 
-// Affecte chaque article au magasin le moins cher de l'ensemble.
-function assign(lines, sellers, chains, overrides, real) {
+/**
+ * Promo utilisable pour cette enseigne : pas expirée, et carte du magasin
+ * cochée dans les réglages si la promo la demande (settings.cards).
+ */
+export function usableDeal(deal, chainId, settings = {}, now = new Date()) {
+  if (!deal || !(deal.d > 0)) return null;
+  if (deal.m && !settings.cards?.[chainId]) return null;
+  if (deal.end && deal.end < now.toISOString().slice(0, 10)) return null;
+  return deal;
+}
+
+// Affecte chaque article au magasin le moins cher de l'ensemble (prix de la
+// quantité voulue, promos comprises : « 2e à -50 % » compte si on en prend 2).
+function assign(lines, sellers, chains, overrides, real, settings = {}, now = new Date()) {
   const byStore = Object.fromEntries(sellers.map((s) => [s.id, []]));
   const missing = [];
   let goods = 0;
@@ -120,15 +133,19 @@ function assign(lines, sellers, chains, overrides, real) {
     let best = null;
     for (const s of sellers) {
       const info = priceInfo(product, s.chain, chains, overrides, real);
-      if (info && (!best || info.price < best.price)) best = { store: s, price: info.price, info };
+      if (!info) continue;
+      const deal = info.kind === 'user' ? null : usableDeal(info.deal, s.chain, settings, now);
+      const total = dealTotal(info.price, qty, deal);
+      if (!best || total < best.total) best = { store: s, total, info, deal };
     }
     if (!best) {
       missing.push(product);
       continue;
     }
-    const total = round2(best.price * qty);
+    const { total, info } = best;
     goods += total;
-    byStore[best.store.id].push({ product, qty, unit: best.price, total, info: best.info });
+    const saving = round2(info.price * qty - total);
+    byStore[best.store.id].push({ product, qty, unit: round2(total / qty), total, info, ...(saving > 0 ? { saving, deal: best.deal } : {}) });
   }
   return { byStore, missing, goods: round2(goods) };
 }
@@ -179,7 +196,7 @@ export function optimize({
   const maxK = Math.min(settings.maxStores, usable.length, 4);
   for (let k = 1; k <= maxK; k++) {
     for (const subset of combinations(usable, k)) {
-      const a = assign(lines, subset, chains, overrides, real);
+      const a = assign(lines, subset, chains, overrides, real, settings, now);
       if (a.missing.length) continue;
       // Un magasin sans article n'a rien à faire dans la tournée.
       const visited = subset.filter((s) => a.byStore[s.id].length);
@@ -215,7 +232,7 @@ export function optimize({
   for (const d of delivery) {
     if (excluded.has(d.id)) continue;
     const seller = { id: d.id, chain: d.chain };
-    const a = assign(lines, [seller], chains, overrides, real);
+    const a = assign(lines, [seller], chains, overrides, real, settings, now);
     if (a.missing.length || a.goods < (d.minOrder ?? 0)) continue;
     let travel = travelCost(0, 0, settings);
     let pickup = null;

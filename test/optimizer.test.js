@@ -185,3 +185,22 @@ test('retrait Collect sous le minimum : proposé avec le montant manquant, aprè
   assert.equal(d.short[0].missing, 21);
   assert.equal(plans[0].id, 'c#c'); // le plan faisable passe d'abord
 });
+
+test('optimize : promo « 2e à -50 % » comptée si la quantité et la carte y sont', async () => {
+  const { optimize } = await import('../src/optimizer.js');
+  const products = [{ id: 'x', name: 'X', ref: 2 }];
+  const stores = [
+    { id: 'c', chain: 'colruyt', name: 'Colruyt', lat: 50.8, lng: 4.4 },
+    { id: 'd', chain: 'delhaize', name: 'Delhaize', lat: 50.8, lng: 4.4 },
+  ];
+  const chains = { colruyt: { index: 100 }, delhaize: { index: 110 } };
+  const real = { x: { colruyt: { price: 1.8 }, delhaize: { price: 2, deal: { k: 'g', q: 2, d: 0.25, m: 1 } } } };
+  const home = { lat: 50.8, lng: 4.4 };
+  const run = (qty, cards) => optimize({ items: [{ id: 'x', qty }], products, stores, chains, real, home, settings: { maxStores: 2, valueOfTime: 0, cards } })[0];
+  assert.equal(run(2, {}).stops[0].store.id, 'c'); // sans carte : 3,60 € chez Colruyt
+  const withCard = run(2, { delhaize: true }); // avec carte : 2 × 2 € − 25 % = 3 €
+  assert.equal(withCard.stops[0].store.id, 'd');
+  assert.equal(withCard.goods, 3);
+  assert.equal(withCard.stops[0].lines[0].saving, 1);
+  assert.equal(run(1, { delhaize: true }).stops[0].store.id, 'c'); // 1 seul : pas de promo
+});

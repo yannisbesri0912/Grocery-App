@@ -78,6 +78,7 @@ function match(candidates, source, lang) {
         unitPrice: Math.round(best.unitPrice * 1000) / 1000,
         unit: rule.size[1],
         ...(best.url ? { url: best.url } : {}),
+        ...(best.deal ? { deal: best.deal } : {}),
         ...(best.promo ? { promo: best.promoText ?? true, until: best.until ?? null } : {}),
       };
     }

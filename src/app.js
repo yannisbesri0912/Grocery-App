@@ -5,6 +5,7 @@ import {
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
 import { SHOPS, orderLink } from './order.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
+import { dealTotal, dealAdvice } from './deals.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
@@ -189,11 +190,12 @@ function realPrices() {
   const real = { ...(PRICES.items ?? {}) };
   for (const p of state.custom) {
     const entry = {};
-    if (p.colruyt && !p.colruyt.gone) entry.colruyt = { price: p.colruyt.price, ...(p.colruyt.promo ? { promo: true } : {}) };
-    if (p.shop && !p.shop.gone) entry[p.shop.chain] = { price: p.shop.price, article: p.name, url: p.shop.url, ...(p.shop.promo ? { promo: true } : {}) };
+    const dealOf = (chain, id) => rowById(chain, id)?.[ROW.deal] || undefined;
+    if (p.colruyt && !p.colruyt.gone) entry.colruyt = { price: p.colruyt.price, deal: dealOf('colruyt', p.colruyt.id), ...(p.colruyt.promo ? { promo: true } : {}) };
+    if (p.shop && !p.shop.gone) entry[p.shop.chain] = { price: p.shop.price, article: p.name, url: p.shop.url, deal: dealOf(p.shop.chain, p.shop.id), ...(p.shop.promo ? { promo: true } : {}) };
     // Comparaison automatique : le même article dans l'autre enseigne, à son vrai prix.
     const tw = p.colruyt ? twinOf('colruyt', p.colruyt.id) : p.shop ? twinOf(p.shop.chain, p.shop.id) : null;
-    if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), url: rowUrl(tw.chain, tw.r), ...(tw.r[ROW.promo] ? { promo: true } : {}) };
+    if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), url: rowUrl(tw.chain, tw.r), deal: tw.r[ROW.deal] || undefined, ...(tw.r[ROW.promo] ? { promo: true } : {}) };
     if (Object.keys(entry).length) real[p.id] = entry;
   }
   return real;
@@ -836,6 +838,36 @@ const NUTRI_RANK = { A: 0, B: 1, C: 2, D: 4, E: 5 };
 const nutriRank = (n) => NUTRI_RANK[n] ?? 3;
 const nutriBadge = (n, size = '') => (/^[A-E]$/.test(n ?? '') ? ` <span class="nutri ${size} n${n}" title="Nutri-Score ${n}">${n}</span>` : '');
 
+// ---------- Promos selon la quantité ----------
+const hasCard = (chain) => Boolean(state.settings.cards?.[chain]);
+const dealOn = (deal, chain) => deal && (!deal.m || hasCard(chain)) && (!deal.end || deal.end >= new Date().toISOString().slice(0, 10));
+// Étiquette d'une promo (« 2ème à -50% · carte Plus »).
+function dealPill(deal, chain) {
+  if (!deal) return '';
+  const card = deal.m ? (hasCard(chain) ? ' · carte' : ' · avec carte Plus') : '';
+  return ` <span class="pill promo${dealOn(deal, chain) ? '' : ' off'}" title="${deal.end ? `jusqu'au ${dateFr(deal.end)}` : ''}">${esc(deal.txt)}${card}</span>`;
+}
+// Promos du produit dans chaque enseigne (article précis, son jumeau, ou article retenu la nuit).
+function dealsFor(p) {
+  const out = [];
+  const real = realPrices()[p.id] ?? {};
+  for (const [chain, r] of Object.entries(real)) if (r?.deal && r.price) out.push({ chain, price: r.price, deal: r.deal });
+  return out;
+}
+// Conseil sous un produit de la liste : « Delhaize : 2ème à -50% → prends-en 2 (1,57 € pièce) ».
+function dealLine(p, qty) {
+  const best = dealsFor(p).map((x) => ({ ...x, adv: dealAdvice(x.price, qty, x.deal) })).filter((x) => x.adv)
+    .sort((a, b) => a.adv.each - b.adv.each)[0];
+  if (!best) return '';
+  const { chain, deal, adv } = best;
+  const where = esc(CHAINS[chain].name);
+  const card = deal.m && !hasCard(chain) ? ' (carte Plus)' : '';
+  const text = adv.add > 0
+    ? `${where} : ${esc(deal.txt)}${card} → prends-en ${adv.target} : ${eur(adv.each)} pièce`
+    : `${where} : ${esc(deal.txt)}${card} · ${adv.saving > 0 ? `−${eur(adv.saving)}` : 'comptée'}`;
+  return `<span class="sub deal">${text}${adv.add > 0 ? ` <button class="link" data-action="qty" data-id="${esc(p.id)}" data-d="${adv.add}">+${adv.add}</button>` : ''}</span>`;
+}
+
 // Article de la liste vendu dans les deux enseignes : les deux vrais prix, le moins cher en vert.
 function compareLine(p) {
   const own = p.colruyt ? { chain: 'colruyt', price: p.colruyt.price, id: p.colruyt.id } : p.shop ? { chain: p.shop.chain, price: p.shop.price, id: p.shop.id } : null;
@@ -873,7 +905,7 @@ function searchResults() {
     hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (cat.length ? `<div class="results-head"><span class="grow">Article précis · vrais prix ${esc(shops)}</span>
       <button class="chip ${healthy ? 'on' : ''}" data-action="healthy" aria-pressed="${Boolean(healthy)}">Santé d'abord</button></div>` : '') +
-    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}
+    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.deal] ? dealPill(r[ROW.deal], chain) : r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}
         <span class="sub">${unit(r)}${twinLine(chain, r)}</span></span>
         <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tous les catalogues…</div>' : '') +
@@ -903,7 +935,7 @@ function viewList() {
   const listHtml = [...groups.entries()]
     .sort((a, b) => CATEGORIES.indexOf(a[0]) - CATEGORIES.indexOf(b[0]))
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
@@ -1419,7 +1451,7 @@ function viewPlan() {
         const item = state.list.find((x) => x.id === l.product.id);
         return `<li class="${item?.checked ? 'done' : ''}">
           <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
-          <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${esc(l.info.article)}</span>` : ''}</span>
+          <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
           <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
       }).join('')}</ul>
     </div>`;
@@ -1501,7 +1533,7 @@ function viewOrder(plan, stop) {
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
         <span class="name">${l.qty > 1 ? `<b>${l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
-          ? `${esc(l.info.article)} · ${eur(l.total)}`
+          ? `${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
           : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
         <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
@@ -1769,6 +1801,7 @@ function viewSettings() {
         <label class="field">Minutes par magasin<input type="number" min="0" data-setting="minutesPerStore" data-num value="${s.minutesPerStore}"></label>
       </div>
       <label class="row"><input type="checkbox" class="switch" data-setting="openNow" data-bool-check ${s.openNow ? 'checked' : ''}><span class="grow">Seulement les magasins ouverts maintenant</span></label>
+      <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
           <label class="field"><span class="row">${logo(k, 'sm')}${esc(c.name)}</span><input type="number" min="50" max="200" data-action="index" data-chain="${k}" value="${c.index}"></label>`).join('')}</div>
@@ -2105,6 +2138,12 @@ view.addEventListener('change', (e) => {
     if ('num' in t.dataset) v = Number(v);
     if ('boolCheck' in t.dataset) v = t.checked;
     state.settings[t.dataset.setting] = v;
+    save();
+    render();
+    return;
+  }
+  if (t.dataset.card) {
+    state.settings.cards = { ...(state.settings.cards ?? {}), [t.dataset.card]: t.checked };
     save();
     render();
     return;

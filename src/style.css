@@ -440,3 +440,9 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .shop-compare { display: grid; gap: 6px; }
 .shop-compare.row { display: flex; flex-wrap: wrap; }
 .shop-compare .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+/* Promos selon la quantité */
+.pill.promo.off { opacity: .7; }
+.sub.deal, span.deal { color: var(--promo); font-weight: 600; }
+.items .name .sub.deal { display: block; font-size: .78rem; }
+button.link { border: 0; background: var(--promo-soft); color: var(--promo); font: inherit; font-weight: 700; border-radius: 99px; padding: 0 8px; margin-left: 4px; cursor: pointer; }

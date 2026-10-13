@@ -6,6 +6,7 @@
 import { openBrowser, acceptCookies, sleep } from './browser.mjs';
 import { parseSizes } from '../src/matcher.js';
 import { RULES } from '../src/match-rules.js';
+import { dealFromDelhaize } from '../src/deals.js';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 const num = (s) => { const m = String(s ?? '').replace(/\s/g, '').match(/(\d+(?:[.,]\d+)?)/); return m ? Number(m[1].replace(',', '.')) : null; };
@@ -57,6 +58,7 @@ function delhaizeRow(p) {
     price: r2(price),
     regular: null,
     promo: promo && promo < price ? r2(promo) : null,
+    deal: dealFromDelhaize(p),
     unitPrice,
     unit,
     cat: DELHAIZE_CATS[p.firstLevelCategory?.code] ?? 4,
@@ -243,12 +245,13 @@ export const toCandidate = (r) => ({
   frozen: r.frozen,
   kind: r.kind,
   url: r.url,
+  deal: r.deal ?? undefined,
   perUnit: r.unit && r.unitPrice ? { unit: r.unit, price: r.unitPrice } : undefined,
 });
 
 /** Article → ligne compacte du catalogue de l'app (même forme que Colruyt + lien et Nutri-Score). */
 // Lien sans le domaine (l'app le rajoute) : fichier plus léger.
-export const toRow = (r) => [r.id, r.name, r.content, r.price, r.unitPrice, r.unit, r.cat, r.promo ? 1 : 0, 0, '', r.url.replace(/^https:\/\/www\.[a-z]+\.be/, ''), r.nutri];
+export const toRow = (r) => [r.id, r.name, r.content, r.price, r.unitPrice, r.unit, r.cat, r.promo || r.deal ? 1 : 0, 0, '', r.url.replace(/^https:\/\/www\.[a-z]+\.be/, ''), r.nutri, r.deal ?? 0];
 
 // Lancement direct : node prices/catalogs.mjs [delhaize|aldi] → résumé.
 if (process.argv[1]?.endsWith('catalogs.mjs')) {
