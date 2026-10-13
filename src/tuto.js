@@ -29,7 +29,7 @@ function steps({ icon, logo, nutri }) {
     },
     {
       title: '3. Dicter ou scanner',
-      text: 'Le micro : dis « ajoute 2 litres de lait, des œufs et du pain ». Le code-barres : vise un produit chez toi, l\'app le retrouve en magasin.',
+      text: 'Le micro : dis « ajoute 2 litres de lait, des œufs et du pain », vérifie puis « Ajouter ». Le code-barres : mets les barres dans le cadre (zoom avec le curseur ou deux doigts) ; le cadre devient vert quand c\'est lu. Sinon : photo, ou taper le code.',
       art: `<div class="tp-search">${icon('search')}<span class="grow muted">Ajouter un produit…</span><span class="tp-hl">${icon('mic')}${tap}</span><span class="tp-hl">${icon('scan')}</span></div>
         <div class="tp-bubble">« Ajoute 2 litres de lait, des œufs et du pain »</div>
         <div class="tp-barcode"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>`,

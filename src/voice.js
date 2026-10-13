@@ -13,7 +13,10 @@ export function parseVoice(text) {
   const t = text.toLowerCase()
     .replace(/^\s*(ok\s+)?(rajoute[rz]?|ajoute[rz]?|mets|mettre|achète[rz]?|acheter|il (me )?faut|j'ai besoin d[e'])\s*/i, '')
     .replace(/\s+(s'il te plaît|stp|merci)\s*$/i, '');
-  return t.split(/\s*(?:,|;|\bet puis\b|\bpuis\b|\bet\b)\s*/).map((part) => {
+  // La dictée met rarement des virgules : « du lait des œufs 3 yaourts » se coupe
+  // aussi devant un article (des, du, de la, un…) ou un nombre.
+  const NEXT = /\s+(?=(?:des|du|de la|de l'|un|une|\d+|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|douze|quinze|vingt)(?:\s|$))|\s+(?=de l')/;
+  return t.split(/\s*(?:,|;|\bet puis\b|\bpuis\b|\bet\b)\s*/).flatMap((part) => part.split(NEXT)).map((part) => {
     let p = part.trim();
     let qty = 1;
     const n = p.match(NUM);

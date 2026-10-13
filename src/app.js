@@ -10,7 +10,7 @@ import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
-import { startScanner, lookupBarcode } from './scan.js';
+import { startScanner, lookupBarcode, decodePhoto, validEan } from './scan.js';
 import { parseReceipt, detectChain } from './receipt.js';
 import { openTuto } from './tuto.js';
 import { RULES, PET_BABY } from './match-rules.js';
@@ -195,84 +195,291 @@ function addItem(match, qty = 1) {
   return p;
 }
 
-async function dictate() {
+// Dictée : reconnaissance vocale du navigateur quand elle marche ; sinon la
+// phrase se tape, ou se dicte avec le micro du clavier. On montre toujours ce
+// qui va être ajouté avant d'ajouter.
+function dictate() {
+  if (!CATALOG) loadCatalog();
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { toast('Dictée indisponible ici : utilise le micro de ton clavier dans la recherche'); return; }
-  if (!CATALOG) loadCatalog();
-  const rec = new SR();
-  rec.lang = 'fr-BE';
-  rec.interimResults = false;
-  rec.maxAlternatives = 1;
-  toast('Je t\'écoute… (« ajoute 2 litres de lait et du pain »)');
-  rec.onresult = async (e) => {
-    const text = e.results[0][0].transcript;
-    await loadCatalog();
-    const added = [];
-    const missed = [];
-    for (const { qty, name } of parseVoice(text)) {
-      const m = bestMatch(name);
-      if (m) added.push(`${qty > 1 ? `${qty} × ` : ''}${addItem(m, qty).name.replace(/\s*\(.*\)$/, '')}`); else missed.push(name);
-    }
-    save();
-    render();
-    toast(`${added.length ? `Ajouté : ${added.join(', ')}` : 'Rien compris'}${missed.length ? ` · pas trouvé : ${missed.join(', ')}` : ''}`);
-  };
-  rec.onerror = (e) => toast(e.error === 'not-allowed' ? 'Autorise le micro pour dicter' : 'Je n\'ai pas entendu, réessaie');
-  rec.start();
-}
-
-async function scan() {
-  if (!navigator.mediaDevices?.getUserMedia) { toast('Caméra indisponible sur ce navigateur'); return; }
-  if (!CATALOG) loadCatalog();
+  const KEYBOARD = 'Touche la zone de texte, puis le micro 🎤 de ton clavier pour dicter.';
   const wrap = document.createElement('div');
   wrap.className = 'modal';
-  wrap.innerHTML = `<div class="modal-box scan-box" role="dialog" aria-modal="true">
-    <p><b>Vise le code-barres</b></p><video playsinline muted></video><div class="scan-result small muted">Lecture…</div>
-    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-r="0">Fermer</button></div></div>`;
+  wrap.innerHTML = `<div class="modal-box voice-box" role="dialog" aria-modal="true" aria-label="Dicter des produits">
+    <div class="row"><b class="grow">Dicter des produits</b><button class="btn ghost small" data-v="close" aria-label="Fermer">${icon('x')}</button></div>
+    <button class="voice-orb" data-v="listen" aria-label="Parler">${icon('mic')}</button>
+    <p class="voice-state" aria-live="polite"></p>
+    <textarea id="voice-text" rows="2" placeholder="Ex. : 2 litres de lait, des œufs et du pain" aria-label="Ce que tu veux ajouter"></textarea>
+    <ul class="items voice-preview"></ul>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-v="close">Annuler</button><button class="btn primary" data-v="add" disabled>Ajouter</button></div>
+  </div>`;
   document.body.append(wrap);
-  let stop = () => {};
-  const close = () => { stop(); wrap.remove(); };
-  wrap.addEventListener('click', async (e) => {
-    if (e.target === wrap || e.target.closest('[data-r]')) return close();
-    const b = e.target.closest('[data-pick]');
-    if (!b) return;
-    const pick = JSON.parse(b.dataset.pick);
-    const m = pick.id ? { product: productById(pick.id) } : { row: rowById(pick.chain, pick.row), chain: pick.chain };
-    const p = addItem(m, 1);
-    if (pick.nutri && !p.nutri) p.nutri = pick.nutri;
-    save();
-    render();
-    toast(`${p.name} ajouté`);
-    close();
+  const $ = (s) => wrap.querySelector(s);
+  const ta = $('#voice-text');
+  const orb = $('.voice-orb');
+  const setState = (t, warn = false) => { $('.voice-state').textContent = t; $('.voice-state').classList.toggle('warn', warn); };
+  let items = [];
+  const preview = () => {
+    items = parseVoice(ta.value).map((x) => ({ ...x, m: bestMatch(x.name) }));
+    $('.voice-preview').innerHTML = items.map((x) => `<li><span class="name">${x.m
+      ? `${x.qty > 1 ? `${x.qty} × ` : ''}${esc((x.m.product?.name ?? rowName(x.m.row)).replace(/\s*\(.*\)$/, ''))}`
+      : `<span class="muted">« ${esc(x.name)} » : pas trouvé</span>`}</span>${x.m ? icon('check') : ''}</li>`).join('');
+    $('[data-v=add]').disabled = !items.some((x) => x.m);
+  };
+  loadCatalog().then(() => { if (ta.value.trim()) preview(); });
+  ta.addEventListener('input', preview);
+
+  let rec = null;
+  let listening = false;
+  const ERRORS = {
+    'not-allowed': 'Micro refusé. Autorise-le dans les réglages du téléphone (Safari › Micro), ou dicte avec le clavier :',
+    'no-speech': 'Je n\'ai rien entendu. Touche le micro pour réessayer, ou dicte avec le micro 🎤 du clavier dans la zone de texte.',
+    'audio-capture': 'Aucun micro trouvé.',
+  };
+  const listen = () => {
+    if (listening) { rec.stop(); return; }
+    if (!SR) { setState(KEYBOARD); ta.focus(); return; }
+    let error = null;
+    const before = ta.value.trim();
+    rec = new SR();
+    rec.lang = 'fr-BE';
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+    rec.onstart = () => { rec.started = true; listening = true; orb.classList.add('on'); setState('Je t\'écoute… parle maintenant'); };
+    rec.onresult = (e) => {
+      const said = [...e.results].map((r) => r[0].transcript).join(' ').trim();
+      ta.value = [before, said].filter(Boolean).join(', ');
+      preview();
+    };
+    rec.onerror = (e) => { error = e.error; };
+    rec.onend = () => {
+      rec.ended = true;
+      listening = false;
+      orb.classList.remove('on');
+      if (error === 'aborted') return;
+      if (error && error !== 'no-speech') {
+        setState(`${ERRORS[error] ?? 'La dictée de l\'app ne marche pas sur ce téléphone.'} ${error === 'not-allowed' ? '' : KEYBOARD}`, true);
+        ta.focus();
+      } else if (ta.value.trim() !== before) setState('Vérifie la liste puis touche « Ajouter ». Touche le micro pour en dire plus.');
+      else setState(ERRORS['no-speech'], true);
+    };
+    try { rec.start(); setState('Démarrage du micro…'); } catch { setState(KEYBOARD, true); ta.focus(); return; }
+    // Certains téléphones acceptent la dictée mais le micro ne démarre jamais.
+    setTimeout(() => {
+      if (listening || error || rec.started || rec.ended) return;
+      try { rec.abort(); } catch { /* déjà arrêté */ }
+      setState(`Le micro de l'app ne répond pas. ${KEYBOARD}`, true);
+      ta.focus();
+    }, 4000);
+  };
+  const close = () => { try { rec?.abort(); } catch { /* déjà arrêté */ } wrap.remove(); };
+  wrap.addEventListener('click', (e) => {
+    if (e.target === wrap) return close();
+    const v = e.target.closest('[data-v]')?.dataset.v;
+    if (v === 'close') close();
+    else if (v === 'listen') listen();
+    else if (v === 'add') {
+      const added = items.filter((x) => x.m).map((x) => `${x.qty > 1 ? `${x.qty} × ` : ''}${addItem(x.m, x.qty).name.replace(/\s*\(.*\)$/, '')}`);
+      save();
+      render();
+      toast(`Ajouté : ${added.join(', ')}`);
+      close();
+    }
   });
-  const out = wrap.querySelector('.scan-result');
+  if (SR) listen(); else { setState(KEYBOARD); orb.classList.add('off'); }
+}
+
+// Petit bip et vibration quand un code est lu.
+function beep() {
+  navigator.vibrate?.(80);
   try {
-    stop = await startScanner(wrap.querySelector('video'), async (code) => {
-      out.textContent = `Code ${code} : je cherche le produit…`;
-      const info = await lookupBarcode(code).catch(() => null);
-      await loadCatalog();
-      if (!info) { out.innerHTML = `Code ${esc(code)} inconnu d'Open Food Facts. Cherche-le par son nom.`; return; }
-      const brand = norm(info.brand);
-      await loadOtherCatalogs();
-      const rows = searchAll(info.name, 4);
-      const hasBrand = (x) => Boolean(brand) && norm(rowName(x.r)).includes(brand);
-      rows.sort((a, b) => hasBrand(b) - hasBrand(a));
-      const generic = bestMatch(info.name)?.product;
-      const choices = [
-        ...(generic ? [`<button class="btn soft block" data-pick='${esc(JSON.stringify({ id: generic.id }))}'>${esc(generic.name)} · produit général</button>`] : []),
-        ...rows.slice(0, 4).map(({ chain, r }) => `<button class="btn block row" style="gap:8px" data-pick='${esc(JSON.stringify({ row: r[ROW.id], chain, nutri: info.nutriscore ?? undefined }))}'>${logo(chain, 'sm')}<span class="grow" style="text-align:left">${esc(rowName(r))}</span><b class="num">${eur(r[ROW.price])}</b></button>`),
-      ];
-      wrap.querySelector('video').remove();
-      wrap.querySelector('p b').textContent = 'Produit trouvé';
-      out.innerHTML = `<div class="row" style="gap:10px">${info.image ? `<img src="${esc(info.image)}" alt="" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff">` : ''}
-        <div class="grow"><b>${esc(info.name)}</b><br><span class="muted">${esc([info.brand, info.quantity].filter(Boolean).join(' · '))}</span></div>
-        ${info.nutriscore ? `<span class="nutri n${info.nutriscore}" title="Nutri-Score">${info.nutriscore}</span>` : ''}</div>
-        <p class="small">${choices.length ? 'Ajouter à ma liste :' : 'Pas trouvé dans les catalogues : cherche-le par son nom.'}</p><div class="stack" style="gap:6px">${choices.join('')}</div>
-        <p class="tiny muted">Données <a href="https://world.openfoodfacts.org/product/${esc(code)}" target="_blank" rel="noopener">Open Food Facts</a> (ODbL).</p>`;
-    });
-  } catch (e) {
-    out.textContent = e?.name === 'NotAllowedError' ? 'Autorise la caméra pour scanner.' : 'Caméra indisponible.';
+    const a = new (window.AudioContext || window.webkitAudioContext)();
+    const o = a.createOscillator();
+    const g = a.createGain();
+    o.frequency.value = 1300;
+    g.gain.value = 0.06;
+    o.connect(g).connect(a.destination);
+    o.start();
+    o.stop(a.currentTime + 0.12);
+    o.onended = () => a.close();
+  } catch { /* pas de son */ }
+}
+
+function scan() {
+  if (!CATALOG) loadCatalog();
+  loadOtherCatalogs();
+  const HELP = 'Mets les barres dans le cadre, à 10–20 cm. Le cadre devient vert quand le code est lu.';
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="modal-box scan-box" role="dialog" aria-modal="true" aria-label="Scanner un code-barres">
+    <div class="row"><b class="grow scan-title">Scanner un code-barres</b><button class="btn ghost small" data-s="close" aria-label="Fermer">${icon('x')}</button></div>
+    <div class="scan-view"><video playsinline muted></video><div class="scan-frame"><i class="scan-line"></i></div><span class="scan-chip">Démarrage de la caméra…</span></div>
+    <div class="scan-tools"><span class="small muted">Zoom</span><input type="range" class="scan-zoom" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><b class="scan-zval num">1×</b>
+      <button class="btn soft small scan-torch" data-s="torch" hidden aria-pressed="false">Lampe</button></div>
+    <p class="scan-help small muted">${HELP}</p>
+    <div class="scan-result" aria-live="polite"></div>
+    <div class="row scan-alt"><label class="btn soft small">${icon('scan')} Prendre une photo<input type="file" accept="image/*" capture="environment" hidden class="scan-photo"></label>
+      <button class="btn ghost small" data-s="type">Taper le code</button></div>
+    <form class="scan-type row" hidden><input inputmode="numeric" autocomplete="off" maxlength="13" placeholder="Les 13 chiffres sous les barres" aria-label="Code-barres"><button class="btn primary small">OK</button></form>
+  </div>`;
+  document.body.append(wrap);
+  const $ = (s) => wrap.querySelector(s);
+  const box = $('.scan-box');
+  const video = $('video');
+  const chip = (t) => { $('.scan-chip').textContent = t; };
+  let scanner = null;
+  let done = false;
+  let info = null;
+  const close = () => { done = true; scanner?.stop(); wrap.remove(); };
+  const setMode = (m) => { box.dataset.mode = m; };
+
+  async function startCam() {
+    scanner?.stop();
+    done = false;
+    $('.scan-type').hidden = true;
+    info = null;
+    setMode('scan');
+    $('.scan-result').innerHTML = '';
+    $('.scan-help').textContent = HELP;
+    $('.scan-help').classList.remove('warn');
+    chip('Démarrage de la caméra…');
+    if (!navigator.mediaDevices?.getUserMedia) { noCamera('Caméra indisponible sur ce navigateur.'); return; }
+    try {
+      scanner = await startScanner(video, {
+        onCode: (code) => found(code),
+        onSlow: () => {
+          $('.scan-help').textContent = 'Toujours rien ? Éloigne un peu le téléphone pour que l\'image soit nette, monte le zoom, allume la lampe… ou prends une photo.';
+          $('.scan-help').classList.add('warn');
+        },
+      });
+      if (done) { scanner.stop(); return; }
+      chip('Recherche d\'un code…');
+      const z = $('.scan-zoom');
+      z.min = scanner.minZoom;
+      z.max = scanner.maxZoom;
+      z.value = scanner.minZoom;
+      $('.scan-zval').textContent = `${Number(z.value).toFixed(1).replace('.0', '')}×`;
+      $('.scan-torch').hidden = !scanner.torch;
+    } catch (e) {
+      noCamera(e?.name === 'NotAllowedError'
+        ? 'Accès à la caméra refusé. Autorise-le dans les réglages du téléphone, ou prends une photo du code.'
+        : e?.name === 'NotFoundError' ? 'Aucune caméra trouvée.' : 'Le lecteur de codes n\'a pas pu démarrer (connexion ?). Prends une photo ou tape le code.');
+    }
   }
+  function noCamera(msg) {
+    setMode('nocam');
+    $('.scan-help').textContent = msg;
+    $('.scan-help').classList.add('warn');
+  }
+  const setZoom = (z) => {
+    const r = $('.scan-zoom');
+    const v = Math.min(Number(r.max), Math.max(Number(r.min), z));
+    r.value = v;
+    $('.scan-zval').textContent = `${v.toFixed(1).replace('.0', '')}×`;
+    scanner?.setZoom(v);
+  };
+
+  async function found(code) {
+    beep();
+    setMode('found');
+    chip(`✓ Code lu : ${code}`);
+    $('.scan-help').classList.remove('warn');
+    $('.scan-help').textContent = '';
+    $('.scan-result').innerHTML = '<p class="small"><span class="spinner"></span> Je cherche ce produit…</p>';
+    try {
+      info = await lookupBarcode(code);
+    } catch {
+      $('.scan-result').innerHTML = `<p class="small warn">Code ${esc(code)} bien lu, mais pas de connexion à la base produits.</p>
+        <div class="row"><button class="btn primary small" data-s="retry" data-code="${esc(code)}">Réessayer</button><button class="btn ghost small" data-s="again">Scanner un autre</button></div>`;
+      return;
+    }
+    await loadCatalog();
+    if (!info) {
+      $('.scan-result').innerHTML = `<p class="small">Code <b>${esc(code)}</b> bien lu ✓, mais ce produit n'est pas encore dans la base libre Open Food Facts.</p>
+        <div class="row"><button class="btn primary small" data-s="byname">Chercher par son nom</button><button class="btn ghost small" data-s="again">Scanner un autre</button></div>`;
+      return;
+    }
+    await loadOtherCatalogs();
+    const brand = norm(info.brand);
+    const rows = searchAll(info.name, 4);
+    const hasBrand = (x) => Boolean(brand) && norm(rowName(x.r)).includes(brand);
+    rows.sort((a, b) => hasBrand(b) - hasBrand(a));
+    const generic = bestMatch(info.name)?.product;
+    const choices = [
+      ...(generic ? [`<button class="btn soft block" data-pick='${esc(JSON.stringify({ id: generic.id }))}'>${esc(generic.name)} · produit général</button>`] : []),
+      ...rows.slice(0, 4).map(({ chain, r }) => `<button class="btn block row" style="gap:8px" data-pick='${esc(JSON.stringify({ row: r[ROW.id], chain, nutri: info.nutriscore ?? undefined }))}'>${logo(chain, 'sm')}<span class="grow" style="text-align:left">${esc(rowName(r))}</span><b class="num">${eur(r[ROW.price])}</b></button>`),
+    ];
+    scanner?.stop();
+    setMode('result');
+    $('.scan-title').textContent = 'Produit trouvé';
+    $('.scan-result').innerHTML = `<div class="row" style="gap:10px">${info.image ? `<img src="${esc(info.image)}" alt="" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff">` : ''}
+        <div class="grow"><b>${esc(info.name)}</b><br><span class="muted small">${esc([info.brand, info.quantity].filter(Boolean).join(' · '))}</span></div>
+        ${info.nutriscore ? `<span class="nutri n${info.nutriscore}" title="Nutri-Score">${info.nutriscore}</span>` : ''}</div>
+      <p class="small">${choices.length ? 'Choisis ce que tu ajoutes à ta liste :' : 'Pas trouvé dans les catalogues des magasins.'}</p><div class="stack" style="gap:6px">${choices.join('')}</div>
+      <div class="row">${choices.length ? '' : '<button class="btn primary small" data-s="byname">Chercher par son nom</button>'}<button class="btn ghost small" data-s="again">Scanner un autre</button></div>
+      <p class="tiny muted">Données <a href="https://world.openfoodfacts.org/product/${esc(code)}" target="_blank" rel="noopener">Open Food Facts</a> (ODbL).</p>`;
+  }
+
+  wrap.addEventListener('click', (e) => {
+    if (e.target === wrap) return close();
+    const pickBtn = e.target.closest('[data-pick]');
+    if (pickBtn) {
+      const pick = JSON.parse(pickBtn.dataset.pick);
+      const m = pick.id ? { product: productById(pick.id) } : { row: rowById(pick.chain, pick.row), chain: pick.chain };
+      const p = addItem(m, 1);
+      if (pick.nutri && !p.nutri) p.nutri = pick.nutri;
+      save();
+      render();
+      toast(`${p.name} ajouté`);
+      close();
+      return;
+    }
+    const b = e.target.closest('[data-s]');
+    if (!b) return;
+    const s = b.dataset.s;
+    if (s === 'close') close();
+    else if (s === 'again') { $('.scan-title').textContent = 'Scanner un code-barres'; startCam(); }
+    else if (s === 'retry') found(b.dataset.code);
+    else if (s === 'type') { $('.scan-type').hidden = false; $('.scan-type input').focus(); }
+    else if (s === 'torch') { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); scanner?.torch?.(on); }
+    else if (s === 'byname') {
+      const name = info?.name ?? '';
+      close();
+      search = name;
+      setTab('list');
+      const input = document.getElementById('search');
+      if (input) { input.focus(); if (name) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); } }
+    }
+  });
+  $('.scan-zoom').addEventListener('input', (e) => setZoom(Number(e.target.value)));
+  // Pincer avec deux doigts sur l'image pour zoomer.
+  let pinch = null;
+  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  $('.scan-view').addEventListener('touchstart', (e) => { if (e.touches.length === 2) pinch = { d: dist(e.touches), z: Number($('.scan-zoom').value) }; }, { passive: true });
+  $('.scan-view').addEventListener('touchmove', (e) => { if (pinch && e.touches.length === 2) { e.preventDefault(); setZoom(pinch.z * (dist(e.touches) / pinch.d)); } }, { passive: false });
+  $('.scan-view').addEventListener('touchend', () => { pinch = null; });
+  $('.scan-photo').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    scanner?.stop();
+    setMode('nocam');
+    $('.scan-help').classList.remove('warn');
+    $('.scan-help').innerHTML = '<span class="spinner"></span> Lecture de la photo…';
+    const code = await decodePhoto(file).catch(() => null);
+    if (code) found(code);
+    else {
+      $('.scan-help').textContent = 'Pas de code-barres trouvé sur la photo. Reprends-la de plus près, bien nette, le code droit et en entier.';
+      $('.scan-help').classList.add('warn');
+    }
+  });
+  $('.scan-type').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = $('.scan-type input').value.replace(/\D/g, '');
+    if (validEan(code)) { $('.scan-type').hidden = true; found(code); }
+    else { $('.scan-help').textContent = 'Code incomplet ou erroné : tape les 13 chiffres écrits sous les barres.'; $('.scan-help').classList.add('warn'); }
+  });
+  startCam();
 }
 
 // ---------- Ticket de caisse ----------

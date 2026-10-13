@@ -8,4 +8,8 @@ test('parseVoice : produits, quantités, formats', () => {
   assert.deepEqual(parseVoice('rajoute deux paquets de pâtes puis de la farine'), [{ qty: 2, name: 'pâtes' }, { qty: 1, name: 'farine' }]);
   assert.deepEqual(parseVoice("de l'huile et la lessive"), [{ qty: 1, name: 'huile' }, { qty: 1, name: 'lessive' }]);
   assert.deepEqual(parseVoice('une laitue'), [{ qty: 1, name: 'laitue' }]);
+  // Sans virgules (dictée) : coupure devant les articles et les nombres.
+  assert.deepEqual(parseVoice('ajoute 2 litres de lait des œufs et du pain'), [{ qty: 1, name: 'lait' }, { qty: 1, name: 'œufs' }, { qty: 1, name: 'pain' }]);
+  assert.deepEqual(parseVoice('du beurre 3 yaourts une baguette de la farine'), [{ qty: 1, name: 'beurre' }, { qty: 3, name: 'yaourts' }, { qty: 1, name: 'baguette' }, { qty: 1, name: 'farine' }]);
+  assert.deepEqual(parseVoice('pommes de terre et jus d\'orange'), [{ qty: 1, name: 'pommes de terre' }, { qty: 1, name: 'jus d\'orange' }]);
 });
