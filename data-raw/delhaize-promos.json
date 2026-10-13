@@ -1,0 +1,4236 @@
+[
+ [
+  "(sans promo, prix réduit  )",
+  {
+   "n": 15583,
+   "ex": [
+    {
+     "name": "DELHAIZE Citron",
+     "price": 0.69,
+     "discounted": "€0,62",
+     "was": null,
+     "strike": false,
+     "promos": []
+    },
+    {
+     "name": "DELHAIZE Courgette",
+     "price": 0.85,
+     "discounted": "€0,76",
+     "was": null,
+     "strike": false,
+     "promos": []
+    },
+    {
+     "name": "DELHAIZE Poivron, rouge",
+     "price": 0.99,
+     "discounted": "€0,89",
+     "was": null,
+     "strike": false,
+     "promos": []
+    },
+    {
+     "name": "DELHAIZE Bananes",
+     "price": 1.29,
+     "discounted": "€1,16",
+     "was": null,
+     "strike": false,
+     "promos": []
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|2|||true|false",
+  {
+   "n": 558,
+   "ex": [
+    {
+     "name": "DELHAIZE Pommes drôles, emballé",
+     "price": 2.09,
+     "discounted": "€2,09",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Boîte de repas, curry madras",
+     "price": 5.89,
+     "discounted": "€5,89",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Boîte de repas, moussaka",
+     "price": 5.89,
+     "discounted": "€5,89",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Boîte de repas, lasagne",
+     "price": 5.89,
+     "discounted": "€5,89",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|3|||true|false",
+  {
+   "n": 363,
+   "ex": [
+    {
+     "name": "ALPRO Amande, grillée, sans Sucres",
+     "price": 2.45,
+     "discounted": "€2,45",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20%_pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LEERDAMMER Original, 8 Tranches",
+     "price": 2.55,
+     "discounted": "€2,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+1 Gratis",
+       "msg": "2+1 Gratis",
+       "desc": "2+1 Gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LEERDAMMER Le moelleux, tranches",
+     "price": 4.25,
+     "discounted": "€4,25",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+1 Gratis",
+       "msg": "2+1 Gratis",
+       "desc": "2+1 Gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ALPRO Boisson végétale, this is Not M*lk, demi 1.8%",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20%_pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|4|||true|false",
+  {
+   "n": 153,
+   "ex": [
+    {
+     "name": "DELACRE Gaufrettes, fourré, gouda",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2_gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELACRE Bâtons, gouda",
+     "price": 2.85,
+     "discounted": "€2,85",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2_gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LOTUS Suzy, gaufres de Liège",
+     "price": 2.55,
+     "discounted": "€2,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+1_gratis",
+       "msg": "3+1_gratis",
+       "desc": "3+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LOTUS Suzy, gaufres de Liège, mini",
+     "price": 1.99,
+     "discounted": "€1,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+1_gratis",
+       "msg": "3+1_gratis",
+       "desc": "3+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|2|||true|true",
+  {
+   "n": 122,
+   "ex": [
+    {
+     "name": "DELHAIZE Langes, taille 5, eco",
+     "price": 7.35,
+     "discounted": "€7,35",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Langes, taille 6, eco",
+     "price": 8.59,
+     "discounted": "€8,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Langes, taille 4, eco",
+     "price": 6.19,
+     "discounted": "€6,19",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NESTLÉ Laitage, fraise, 6 mois",
+     "price": 2.65,
+     "discounted": "€2,65",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|1|||true|false",
+  {
+   "n": 82,
+   "ex": [
+    {
+     "name": "DELHAIZE Soupe, tomates, boulettes",
+     "price": 3.49,
+     "discounted": "€2,44",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Soupe, carottes",
+     "price": 3.49,
+     "discounted": "€2,44",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Soupe, potiron",
+     "price": 3.69,
+     "discounted": "€2,58",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Soupe, légumes",
+     "price": 3.69,
+     "discounted": "€2,58",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|1|||false|false",
+  {
+   "n": 72,
+   "ex": [
+    {
+     "name": "DELHAIZE Apéro, lomo espagnol",
+     "price": 2.99,
+     "discounted": "€2,69",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-10%",
+       "msg": "-10%",
+       "desc": "-10%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "CROKY Chips, ribble, boulette Apéro",
+     "price": 1.99,
+     "discounted": "€0,99",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "KETTLE Chips, paprika, roast onion",
+     "price": 2.49,
+     "discounted": "€1,24",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "VAHINÉ Mix, préparation crème glacé, vanille",
+     "price": 3.89,
+     "discounted": "€2,92",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|2||50|true|false",
+  {
+   "n": 56,
+   "ex": [
+    {
+     "name": "DELHAIZE Soy, cream",
+     "price": 0.67,
+     "discounted": "€0,67",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Crème, avoine, bio",
+     "price": 1.19,
+     "discounted": "€1,19",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BODY & FUTURE Lait frais, noix de coco",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BODY & FUTURE Lait frais, a la noisette",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "GroceryProductMultiBuyPromotion|MEMBER|3|||true|false",
+  {
+   "n": 52,
+   "ex": [
+    {
+     "name": "DELHAIZE Tomates cerises, rouge",
+     "price": 2.19,
+     "discounted": "€2,19",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3 pour €5",
+       "msg": "3 produits pour €5",
+       "desc": "3 pour €5",
+       "type": "Grocery Multi-buy",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "31/12/2026 22:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Concombre, snack",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3 pour €5",
+       "msg": "3 produits pour €5",
+       "desc": "3 pour €5",
+       "type": "Grocery Multi-buy",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "31/12/2026 22:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Poivron, snack",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3 pour €5",
+       "msg": "3 produits pour €5",
+       "desc": "3 pour €5",
+       "type": "Grocery Multi-buy",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "31/12/2026 22:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Tomates cerises, mix",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3 pour €5",
+       "msg": "3 produits pour €5",
+       "desc": "3 pour €5",
+       "type": "Grocery Multi-buy",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "31/12/2026 22:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|6|||true|false",
+  {
+   "n": 50,
+   "ex": [
+    {
+     "name": "NESCAFÉ Latte Macchiato, 16 capsules",
+     "price": 4.99,
+     "discounted": "€4,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NESCAFÉ Café Lungo Intenso, 16 capsules",
+     "price": 5.99,
+     "discounted": "€5,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NESCAFÉ Café au Lait Intenso, 16 capsules",
+     "price": 5.99,
+     "discounted": "€5,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NESCAFÉ Café Lungo, 16 capsules",
+     "price": 4.69,
+     "discounted": "€4,69",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|2||25|true|false",
+  {
+   "n": 43,
+   "ex": [
+    {
+     "name": "KIRI Fromage Snacking, dippi Nature, 5 Portions",
+     "price": 3.09,
+     "discounted": "€3,09",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LA VACHE QUI RIT Fromage à tartiner, nature, 16 Portions",
+     "price": 2.79,
+     "discounted": "€2,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LA VACHE QUI RIT Fromage Snacking, gressins Nature, 5 portions",
+     "price": 4.09,
+     "discounted": "€4,09",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LA VACHE QUI RIT Fromage à tartiner, jambon, 8 Portions",
+     "price": 4.65,
+     "discounted": "€4,65",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|4|||true|true",
+  {
+   "n": 33,
+   "ex": [
+    {
+     "name": "SPA Active, citron-pamplemousse",
+     "price": 1.99,
+     "discounted": "€1,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-10%_pour 4",
+       "msg": "-10%_pour 4",
+       "desc": "-10% pour 4",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SPA Active, myrtille-cassis",
+     "price": 1.99,
+     "discounted": "€1,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-10%_pour 4",
+       "msg": "-10%_pour 4",
+       "desc": "-10% pour 4",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SPA Active, mango Coco",
+     "price": 1.99,
+     "discounted": "€1,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-10%_pour 4",
+       "msg": "-10%_pour 4",
+       "desc": "-10% pour 4",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ORGANIX Gourde, mangue Poire Granola, 6M, bio",
+     "price": 1.85,
+     "discounted": "€1,85",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+1_gratis",
+       "msg": "3+1_gratis",
+       "desc": "3+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|6|||true|false",
+  {
+   "n": 23,
+   "ex": [
+    {
+     "name": "OLVARIT Gourde, pomme Banane, 6M",
+     "price": 4.55,
+     "discounted": "€4,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OLVARIT Gourde, smoothie Coco Mangue, 12M",
+     "price": 4.69,
+     "discounted": "€4,69",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OLVARIT Gourde, banane Kiwi Fraise, 12M",
+     "price": 4.55,
+     "discounted": "€4,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OLVARIT Gourde, myrtille Cassis, 12M",
+     "price": 4.69,
+     "discounted": "€4,69",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3_gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|4||50|true|true",
+  {
+   "n": 22,
+   "ex": [
+    {
+     "name": "PAMPERS Langes, taille 3",
+     "price": 12.55,
+     "discounted": "€12,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PAMPERS Langes, taille 7",
+     "price": 14.99,
+     "discounted": "€14,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PAMPERS Lingettes, aqua Soft Touch",
+     "price": 3.59,
+     "discounted": "€3,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PAMPERS Langes, taille 3",
+     "price": 11.19,
+     "discounted": "€11,19",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|3||20|true|false",
+  {
+   "n": 21,
+   "ex": [
+    {
+     "name": "OIKOS Yaourt, nature, entier, à la grecque",
+     "price": 2.59,
+     "discounted": "€2,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20% pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OIKOS Yaourt, nature, entier, à la grecque",
+     "price": 3.49,
+     "discounted": "€3,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20% pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OIKOS Yaourt, nature, 0%, à la grecque",
+     "price": 3.65,
+     "discounted": "€3,65",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20% pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OIKOS Yaourt, myrtille, entier, à la grecque",
+     "price": 3.99,
+     "discounted": "€3,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20% pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "GroceryProductMultiBuyPromotion|MEMBER|2|||true|false",
+  {
+   "n": 18,
+   "ex": [
+    {
+     "name": "PINSA CHEF PINSAMI Pinsa classica",
+     "price": 3.79,
+     "discounted": "€3,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2 pour €6",
+       "msg": "2 produits pour €6",
+       "desc": "2 pour €6",
+       "type": "Grocery Multi-buy",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PINSA CHEF PINSAMI Pinsa, mini",
+     "price": 3.79,
+     "discounted": "€3,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2 pour €6",
+       "msg": "2 produits pour €6",
+       "desc": "2 pour €6",
+       "type": "Grocery Multi-buy",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PINSA CHEF PINSAMI Pinsa classica",
+     "price": 3.79,
+     "discounted": "€3,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2 pour €6",
+       "msg": "2 produits pour €6",
+       "desc": "2 pour €6",
+       "type": "Grocery Multi-buy",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Pizza, mozzarella, pesto",
+     "price": 6.49,
+     "discounted": "€6,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2 pour €11",
+       "msg": "2 produits pour €11",
+       "desc": "2 pour €11",
+       "type": "Grocery Multi-buy",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "31/12/2026 22:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|3|||true|true",
+  {
+   "n": 16,
+   "ex": [
+    {
+     "name": "OATLY Boisson D'Avoine, barista, noix de coco",
+     "price": 3.29,
+     "discounted": "€3,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20%_pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OATLY Boisson D'Avoine, barista",
+     "price": 3.29,
+     "discounted": "€3,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20%_pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OATLY Boisson D'Avoine, barista",
+     "price": 3.29,
+     "discounted": "€3,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20%_pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "OATLY Boisson D'Avoine, barista, noix de coco",
+     "price": 3.29,
+     "discounted": "€3,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%_pour 3",
+       "msg": "-20%_pour 3",
+       "desc": "-20% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXChangeDeliveryModePromotion|MASS|2|||true|true",
+  {
+   "n": 16,
+   "ex": [
+    {
+     "name": "TOUR/TOER Plateau Belge",
+     "price": 4.39,
+     "discounted": "€4,39",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2=livraison_gratuite",
+       "msg": "2produits = livraison gratuite",
+       "desc": "2=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "TOUR/TOER Jambon du ferme",
+     "price": 4.95,
+     "discounted": "€4,95",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2=livraison_gratuite",
+       "msg": "2produits = livraison gratuite",
+       "desc": "2=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "TOUR/TOER Topfilet",
+     "price": 4.19,
+     "discounted": "€4,19",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2=livraison_gratuite",
+       "msg": "2produits = livraison gratuite",
+       "desc": "2=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LENOR Perles, fraîcheur de coton",
+     "price": 9.99,
+     "discounted": "€9,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2=livraison_gratuite",
+       "msg": "2produits = livraison gratuite",
+       "desc": "2=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|4||50|true|false",
+  {
+   "n": 16,
+   "ex": [
+    {
+     "name": "ARIEL Pods, original",
+     "price": 29.99,
+     "discounted": "€29,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BREF WC Bloc WC, activ', océan",
+     "price": 6.99,
+     "discounted": "€6,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BREF WC Bloc WC, activ', chlore",
+     "price": 6.99,
+     "discounted": "€6,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BREF WC Bloc WC, activ', eucalyptus",
+     "price": 6.99,
+     "discounted": "€6,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXChangeDeliveryModePromotion|MASS|5|||true|true",
+  {
+   "n": 15,
+   "ex": [
+    {
+     "name": "ALPRO Alpro, soja, cuisine",
+     "price": 4.89,
+     "discounted": "€4,89",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "5=livraison_gratuite",
+       "msg": "5produits = livraison gratuite",
+       "desc": "5=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 5,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ALPRO Margarine, cuire et rôtir",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "5=livraison_gratuite",
+       "msg": "5produits = livraison gratuite",
+       "desc": "5=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 5,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ALPRO Boisson végétale, avoine, sans sucres",
+     "price": 2.95,
+     "discounted": "€2,95",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "5=livraison_gratuite",
+       "msg": "5produits = livraison gratuite",
+       "desc": "5=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 5,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ALPRO Nature, alternative végétale au yaourt",
+     "price": 1.99,
+     "discounted": "€1,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "5=livraison_gratuite",
+       "msg": "5produits = livraison gratuite",
+       "desc": "5=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 5,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "DiscountXEurosForYArticlesPromotion|MEMBER|1|||true|false",
+  {
+   "n": 13,
+   "ex": [
+    {
+     "name": "JOHNNIE WALKER Whisky, black Label, blended, 40% ALC.",
+     "price": 36.35,
+     "discounted": "€31,35",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €5",
+       "msg": "- €5 à l' achat de 1 produit",
+       "desc": "- €5",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "GORDON'S 70cl, non alcool",
+     "price": 16.49,
+     "discounted": "€14,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €2",
+       "msg": "- €2 à l' achat de 1 produit",
+       "desc": "- €2",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SAMBUCA Liqueur 40% alc",
+     "price": 25.49,
+     "discounted": "€23,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €1.5",
+       "msg": "- €1.5 à l' achat de 1 produit",
+       "desc": "- €1.5",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "JIM BEAM Bourbon du Kentucky, blanc, 40% vol.alc",
+     "price": 22.95,
+     "discounted": "€21,45",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €1.5",
+       "msg": "- €1.5 à l' achat de 1 produit",
+       "desc": "- €1.5",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|2|||false|false",
+  {
+   "n": 12,
+   "ex": [
+    {
+     "name": "VANDEMOORTELE Beurre, cuire et rôtir",
+     "price": 3.79,
+     "discounted": "€3,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "VAL-DIEU Raclette",
+     "price": 8.95,
+     "discounted": "€8,95",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BOURSIN Alternative Végétale, ail & Fines Herbes",
+     "price": 3.75,
+     "discounted": "€3,75",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Filet de saumon, sans peau, bio",
+     "price": 8.36,
+     "discounted": "€8,36",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -40%",
+       "msg": "2ème à -40%",
+       "desc": "2ème à -40%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|3||25|true|false",
+  {
+   "n": 12,
+   "ex": [
+    {
+     "name": "MILKA Tablette, chocolat Au Lait, oreo",
+     "price": 1.75,
+     "discounted": "€1,75",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%_pour 3",
+       "msg": "-25% pour 3",
+       "desc": "-25% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MILKA Tablette, chocolat au lait, biscuit LU",
+     "price": 1.86,
+     "discounted": "€1,86",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%_pour 3",
+       "msg": "-25% pour 3",
+       "desc": "-25% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MILKA Chocolat, chocolat Au Lait, caramel",
+     "price": 1.86,
+     "discounted": "€1,86",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%_pour 3",
+       "msg": "-25% pour 3",
+       "desc": "-25% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MILKA Chocolat, tablette, cookies",
+     "price": 1.86,
+     "discounted": "€1,86",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%_pour 3",
+       "msg": "-25% pour 3",
+       "desc": "-25% pour 3",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|6||50|true|false",
+  {
+   "n": 12,
+   "ex": [
+    {
+     "name": "SCHAUMA Shampooing, enfants, framboise, pH neutr",
+     "price": 4.19,
+     "discounted": "€4,19",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3 gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SCHAUMA Shampooing, 7 Herbes",
+     "price": 4.29,
+     "discounted": "€4,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3 gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SCHAUMA Shampooing, anti-Pelliculaire",
+     "price": 4.29,
+     "discounted": "€4,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3 gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SCHAUMA Shampooing, huile d'argan",
+     "price": 4.29,
+     "discounted": "€4,29",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+3_gratis",
+       "msg": "3+3 gratis",
+       "desc": "3+3 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 6,
+       "free": null,
+       "pct": 50,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|3||33.33|true|false",
+  {
+   "n": 11,
+   "ex": [
+    {
+     "name": "ORO DE UVA Cava, chardonnay, brut",
+     "price": 12.99,
+     "discounted": "€12,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+1 Gratis",
+       "msg": "2+1 Gratis",
+       "desc": "2+1 Gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 33.33,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NUVOLA BY AVIGNONESI Nuvola Rosé, bio",
+     "price": 8.99,
+     "discounted": "€8,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+1 Gratis",
+       "msg": "2+1 Gratis",
+       "desc": "2+1 Gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 33.33,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NUVOLA BY AVIGNONESI Nuvola Blanc, bio",
+     "price": 8.99,
+     "discounted": "€8,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+1 Gratis",
+       "msg": "2+1 Gratis",
+       "desc": "2+1 Gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 33.33,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "NUVOLA BY AVIGNONESI Nuvola Rouge, bio",
+     "price": 8.99,
+     "discounted": "€8,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+1 Gratis",
+       "msg": "2+1 Gratis",
+       "desc": "2+1 Gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 3,
+       "free": null,
+       "pct": 33.33,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXChangeDeliveryModePromotion|MASS|4|||true|true",
+  {
+   "n": 10,
+   "ex": [
+    {
+     "name": "ARLA Skyr, yaourt, nature",
+     "price": 2.49,
+     "discounted": "€2,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "4=livraison_gratuite",
+       "msg": "4produits = livraison gratuite",
+       "desc": "4=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ARLA Vanille",
+     "price": 2.55,
+     "discounted": "€2,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "4=livraison_gratuite",
+       "msg": "4produits = livraison gratuite",
+       "desc": "4=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ARLA Skyr, yaourt, fraise",
+     "price": 2.55,
+     "discounted": "€2,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "4=livraison_gratuite",
+       "msg": "4produits = livraison gratuite",
+       "desc": "4=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ARLA Skyr, yaourt, goût noix de coco",
+     "price": 2.55,
+     "discounted": "€2,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "4=livraison_gratuite",
+       "msg": "4produits = livraison gratuite",
+       "desc": "4=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 4,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXChangeDeliveryModePromotion|MASS|3|||true|true",
+  {
+   "n": 9,
+   "ex": [
+    {
+     "name": "LUTTI Bonbons, dents vampires",
+     "price": 2.89,
+     "discounted": "€2,89",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3=livraison_gratuite",
+       "msg": "3produits = livraison gratuite",
+       "desc": "3=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LUTTI Bonbons, long Fizz",
+     "price": 2.89,
+     "discounted": "€2,89",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3=livraison_gratuite",
+       "msg": "3produits = livraison gratuite",
+       "desc": "3=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LUTTI Bonbons, fraises",
+     "price": 2.99,
+     "discounted": "€2,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3=livraison_gratuite",
+       "msg": "3produits = livraison gratuite",
+       "desc": "3=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "LUTTI Bonbons, fili tubs, fraise",
+     "price": 2.79,
+     "discounted": "€2,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3=livraison_gratuite",
+       "msg": "3produits = livraison gratuite",
+       "desc": "3=livraison gratuite",
+       "type": "Buy X Number of Product(s) get a Change of Delivery Mode",
+       "q": 3,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:59",
+       "burn": 0,
+       "offerType": "FREE_HD",
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|1||10|false|false",
+  {
+   "n": 8,
+   "ex": [
+    {
+     "name": "DELHAIZE Décoration, petales de fleur choco, lait",
+     "price": 4.59,
+     "discounted": "€4,13",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-10%",
+       "msg": "-10%",
+       "desc": "-10%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 10,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BEN & JERRY'S Sundae, banoffee",
+     "price": 7.99,
+     "discounted": "€7,19",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-10%",
+       "msg": "-10%",
+       "desc": "-10%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 10,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BEN & JERRY'S Glace, sundae, dulce delish",
+     "price": 7.99,
+     "discounted": "€7,19",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-10%",
+       "msg": "-10%",
+       "desc": "-10%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 10,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "BEN & JERRY'S Non dairy, bohemian, framboise",
+     "price": 7.55,
+     "discounted": "€6,79",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-10%",
+       "msg": "-10%",
+       "desc": "-10%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 10,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "DiscountXEurosForYArticlesPromotion|MEMBER|1|||false|false",
+  {
+   "n": 8,
+   "ex": [
+    {
+     "name": "JOHNNIE WALKER Red Label, whisky, blended, 40% Alc",
+     "price": 19.99,
+     "discounted": "€17,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €2",
+       "msg": "- €2 à l' achat de 1 produit",
+       "desc": "- €2",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "COINTREAU Liqueur, triple Sec, 40% ALC.",
+     "price": 22.09,
+     "discounted": "€17,09",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €5",
+       "msg": "- €5 à l' achat de 1 produit",
+       "desc": "- €5",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "THE BOTANIST Gin, premium, islay, 46% Alc",
+     "price": 45.49,
+     "discounted": "€37,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €8",
+       "msg": "- €8 à l' achat de 1 produit",
+       "desc": "- €8",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DISARONNO Disaronno, amaretto, velvet Cream, 70cl",
+     "price": 18.95,
+     "discounted": "€15,95",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €3",
+       "msg": "- €3 à l' achat de 1 produit",
+       "desc": "- €3",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|1||20|true|false",
+  {
+   "n": 7,
+   "ex": [
+    {
+     "name": "DELHAIZE Coucou de Malines",
+     "price": 13.33,
+     "discounted": "€10,66",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%",
+       "msg": "-20%",
+       "desc": "-20%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Entier, lapin, parc",
+     "price": 20.99,
+     "discounted": "€16,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%",
+       "msg": "-20%",
+       "desc": "-20%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Filet de poitrine, coucou de Malines",
+     "price": 6.3,
+     "discounted": "€5,04",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%",
+       "msg": "-20%",
+       "desc": "-20%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Filets, lapin, parc",
+     "price": 7.5,
+     "discounted": "€6,00",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%",
+       "msg": "-20%",
+       "desc": "-20%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|2||35|true|false",
+  {
+   "n": 7,
+   "ex": [
+    {
+     "name": "MAGGI Bouillon Kub Or 32 Cubes",
+     "price": 2.15,
+     "discounted": "€2,15",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -70%",
+       "msg": "2ème à -70%",
+       "desc": "2ème à -70%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 35,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MAGGI Bouillon Legumes",
+     "price": 1.59,
+     "discounted": "€1,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -70%",
+       "msg": "2ème à -70%",
+       "desc": "2ème à -70%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 35,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MAGGI Noodles, sweet Chili",
+     "price": 2.39,
+     "discounted": "€2,39",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -70%",
+       "msg": "2ème à -70%",
+       "desc": "2ème à -70%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 35,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MAGGI Noodles, peanut, saté",
+     "price": 2.39,
+     "discounted": "€2,39",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -70%",
+       "msg": "2ème à -70%",
+       "desc": "2ème à -70%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 35,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|1||50|false|false",
+  {
+   "n": 7,
+   "ex": [
+    {
+     "name": "BEN & JERRY'S Sundae, cookie",
+     "price": 7.99,
+     "discounted": "€3,99",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MAGNUM Glace, la Pistache, pint",
+     "price": 6.89,
+     "discounted": "€3,44",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "L'ORÉAL PARIS Clinical Anti-UV Fluide",
+     "price": 18.99,
+     "discounted": "€9,49",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "TENA Culottes, noir, plus, large, 8st",
+     "price": 11.15,
+     "discounted": "€5,57",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|1|||false|false",
+  {
+   "n": 6,
+   "ex": [
+    {
+     "name": "INNOCENT Jus, berry Set Go, vitamines ajoutées, frais",
+     "price": 2.79,
+     "discounted": "€2,09",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Figues",
+     "price": 3.89,
+     "discounted": "€2,92",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "WILD VERMEERSCH Chevreuil, steak",
+     "price": 19.2,
+     "discounted": "€15,36",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-20%",
+       "msg": "-20%",
+       "desc": "-20%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "INNOCENT Jus, berry Set Go, vitamines ajoutées, frais",
+     "price": 2.79,
+     "discounted": "€2,09",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "DiscountXEurosForYArticlesPromotion|MEMBER|2|||true|false",
+  {
+   "n": 6,
+   "ex": [
+    {
+     "name": "DELHAIZE Pâte feuilletée, frais",
+     "price": 0.59,
+     "discounted": "€0,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €0.59_pour 2",
+       "msg": "- €0.59 à l' achat de 2 produits",
+       "desc": "- €0.59 pour 2",
+       "type": "Discount X Euros For Y Articles",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "CARLSBOURG Crème, finesse, 20%",
+     "price": 2.79,
+     "discounted": "€2,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €0.59_pour 2",
+       "msg": "- €0.59 à l' achat de 2 produits",
+       "desc": "- €0.59 pour 2",
+       "type": "Discount X Euros For Y Articles",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "FILLIERS Genièvre pomme 18%",
+     "price": 15.35,
+     "discounted": "€15,35",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €3_pour 2",
+       "msg": "- €3 à l' achat de 2 produits",
+       "desc": "- €3 pour 2",
+       "type": "Discount X Euros For Y Articles",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "FILLIERS Genievre, pommes Vertes, 18%",
+     "price": 16.99,
+     "discounted": "€16,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "- €3_pour 2",
+       "msg": "- €3 à l' achat de 2 produits",
+       "desc": "- €3 pour 2",
+       "type": "Discount X Euros For Y Articles",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|1||25|true|false",
+  {
+   "n": 6,
+   "ex": [
+    {
+     "name": "MARTINI Vermouth, riserva Special Rubino",
+     "price": 16.99,
+     "discounted": "€12,74",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MARTINI Vermouth, rosso, 14,5%",
+     "price": 8.99,
+     "discounted": "€6,74",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MARTINI Rosato, vermouth, 14,5%",
+     "price": 8.69,
+     "discounted": "€6,52",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "MARTINI Vermouth, extra dry",
+     "price": 8.69,
+     "discounted": "€6,52",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|2||50|true|true",
+  {
+   "n": 5,
+   "ex": [
+    {
+     "name": "HUGGIES Couche-Culottes, extra Care, taille 4",
+     "price": 13.49,
+     "discounted": "€13,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "HUGGIES Langes, extra Care, taille 1",
+     "price": 7.99,
+     "discounted": "€7,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "HUGGIES Langes, extra Care, taille 4",
+     "price": 14.99,
+     "discounted": "€14,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "HUGGIES Couche-Culottes, extra Care, taille 5",
+     "price": 13.59,
+     "discounted": "€13,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1 gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|1|||true|false",
+  {
+   "n": 5,
+   "ex": [
+    {
+     "name": "DELHAIZE Couche-culottes, tripack, taille 6",
+     "price": 15.99,
+     "discounted": "€7,99",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PAMPERS Lingettes, aqua Soft Touch",
+     "price": 30.79,
+     "discounted": "€15,39",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Couche-culottes, tripack, taille 4",
+     "price": 16.89,
+     "discounted": "€8,44",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "PAMPERS Lingettes, sensible",
+     "price": 37.49,
+     "discounted": "€18,74",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|1||30|true|false",
+  {
+   "n": 4,
+   "ex": [
+    {
+     "name": "DELHAIZE Soupe, crème tomates",
+     "price": 3.29,
+     "discounted": "€2,30",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 30,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Soupe, crème tomates",
+     "price": 3.29,
+     "discounted": "€2,30",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 30,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Soupe, crème tomates",
+     "price": 3.29,
+     "discounted": "€2,30",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 30,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Soupe, crème tomates",
+     "price": 3.29,
+     "discounted": "€2,30",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "-30%",
+       "msg": "-30%",
+       "desc": "-30%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 30,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|1||50|true|false",
+  {
+   "n": 4,
+   "ex": [
+    {
+     "name": "HUGGIES Culottes, taille 4, maxi Pack",
+     "price": 40.49,
+     "discounted": "€20,24",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "HUGGIES Langes, taille 4, maxi Pack",
+     "price": 33.99,
+     "discounted": "€16,99",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "HUGGIES Culottes, taille 5, maxi Pack",
+     "price": 37.49,
+     "discounted": "€18,74",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "HUGGIES Culottes, taille 6, maxi Pack",
+     "price": 35.99,
+     "discounted": "€17,99",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-50%",
+       "msg": "-50%",
+       "desc": "-50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|4||25|true|false",
+  {
+   "n": 3,
+   "ex": [
+    {
+     "name": "ELLA'S KITCHEN Soufflé de mais, banane Fraise, 6M, bio",
+     "price": 1.59,
+     "discounted": "€1,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+1_gratis",
+       "msg": "3+1 gratis",
+       "desc": "3+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ELLA'S KITCHEN Gourde, fraise Pomme, 4M, bio",
+     "price": 1.95,
+     "discounted": "€1,95",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+1_gratis",
+       "msg": "3+1 gratis",
+       "desc": "3+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "ELLA'S KITCHEN Soufflé de mais, banane Fraise, 6M, bio",
+     "price": 1.59,
+     "discounted": "€1,59",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "3+1_gratis",
+       "msg": "3+1 gratis",
+       "desc": "3+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 25,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "GroceryProductMultiBuyPromotion|MEMBER|2|||false|false",
+  {
+   "n": 2,
+   "ex": [
+    {
+     "name": "DELHAIZE Broccoli",
+     "price": 1.35,
+     "discounted": "€1,35",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2 pour €2",
+       "msg": "2 produits pour €2",
+       "desc": "2 pour €2",
+       "type": "Grocery Multi-buy",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "DELHAIZE Broccoli",
+     "price": 1.35,
+     "discounted": "€1,35",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2 pour €2",
+       "msg": "2 produits pour €2",
+       "desc": "2 pour €2",
+       "type": "Grocery Multi-buy",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MEMBER|2||20|true|false",
+  {
+   "n": 2,
+   "ex": [
+    {
+     "name": "PLANTA Margarine, classic, a tartiner",
+     "price": 5.55,
+     "discounted": "€5,55",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -40%",
+       "msg": "2ème à -40%",
+       "desc": "2ème à -40%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "SOLO Margarine, cuire et rôtir",
+     "price": 5.79,
+     "discounted": "€5,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -40%",
+       "msg": "2ème à -40%",
+       "desc": "2ème à -40%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 20,
+       "lvl": "MEMBER",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|4||50|false|true",
+  {
+   "n": 2,
+   "ex": [
+    {
+     "name": "EVIAN Eau minérale, non pétillante, PET",
+     "price": 5.49,
+     "discounted": "€5,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    },
+    {
+     "name": "EVIAN Eau minérale, non pétillante, PET",
+     "price": 5.49,
+     "discounted": "€5,49",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2+2_gratis",
+       "msg": "2+2 gratis",
+       "desc": "2+2 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 4,
+       "free": null,
+       "pct": 50,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "GroceryProductMultiBuyPromotion|MEMBER|1|||true|false",
+  {
+   "n": 1,
+   "ex": [
+    {
+     "name": "LILALOU BISCUITS Biscuits, avoine & Chocolat, bio",
+     "price": 3.59,
+     "discounted": "€2,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "€2.99",
+       "msg": "1 produit pour €2.99",
+       "desc": "€2.99",
+       "type": "Grocery Multi-buy",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MEMBER",
+       "end": "21/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|1||25|false|false",
+  {
+   "n": 1,
+   "ex": [
+    {
+     "name": "NIVEA Q10, power soin jour, 50ml",
+     "price": 15.89,
+     "discounted": "€11,92",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "-25%",
+       "msg": "-25%",
+       "desc": "-25%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 1,
+       "free": null,
+       "pct": 25,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|2|||false|true",
+  {
+   "n": 1,
+   "ex": [
+    {
+     "name": "FROSCH Lessive, bébé, 1,5L, 22DS, eco",
+     "price": 14.99,
+     "discounted": "€14,99",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "1+1_gratis",
+       "msg": "1+1_gratis",
+       "desc": "1+1 gratis",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "BuyXGetPercentageOffAllProductsPromotion|MASS|2||25|true|true",
+  {
+   "n": 1,
+   "ex": [
+    {
+     "name": "NESTLÉ Laitage, vanille, bébé, 6 mois",
+     "price": 2.79,
+     "discounted": "€2,79",
+     "was": null,
+     "strike": false,
+     "promos": [
+      {
+       "title": "2ème à -50%",
+       "msg": "2ème à -50%",
+       "desc": "2ème à -50%",
+       "type": "Buy X Get Percentage Off All Products",
+       "q": 2,
+       "free": null,
+       "pct": 25,
+       "lvl": "MASS",
+       "end": "14/10/2026 21:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ [
+  "DiscountXEurosForYArticlesPromotion|MASS|1|||false|false",
+  {
+   "n": 1,
+   "ex": [
+    {
+     "name": "SODASTREAM Terra Noir, eco",
+     "price": 65.99,
+     "discounted": "€55,99",
+     "was": null,
+     "strike": true,
+     "promos": [
+      {
+       "title": "- €10",
+       "msg": "- €10 à l' achat de 1 produit",
+       "desc": "- €10",
+       "type": "Discount X Euros For Y Articles",
+       "q": 1,
+       "free": null,
+       "pct": null,
+       "lvl": "MASS",
+       "end": "31/12/2026 22:59:00",
+       "burn": 0,
+       "offerType": null,
+       "badge": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+]
