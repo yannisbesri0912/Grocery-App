@@ -12,6 +12,7 @@ import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
 import { startScanner, lookupBarcode } from './scan.js';
 import { parseReceipt, detectChain } from './receipt.js';
+import { openTuto } from './tuto.js';
 import { RULES, PET_BABY } from './match-rules.js';
 import { nameMatches } from './matcher.js';
 
@@ -591,6 +592,7 @@ function viewSetup() {
     <h1>Tes courses au meilleur prix, près de chez toi</h1>
     <p>Dis-moi d'où tu pars : je trouve les supermarchés autour et je calcule où acheter chaque produit, avec les vrais prix.</p>
     <div class="card">${addressForm()}</div>
+    <button class="banner tuto-entry" data-action="tuto">${icon('spark')}<span class="grow"><b>Comment ça marche ?</b><br><span class="small muted">Le guide en images, en 1 minute</span></span>${icon('arrow')}</button>
     ${state.tab === 'list' ? '<button class="btn ghost" data-action="skip-setup">Plus tard, voir ma liste</button>' : ''}
   </section>`;
 }
@@ -1439,6 +1441,7 @@ function viewSettings() {
   const ch = chains();
   return `
     <h1>Réglages</h1>
+    <button class="banner tuto-entry" data-action="tuto">${icon('spark')}<span class="grow"><b>Guide en images</b><br><span class="small muted">Comment utiliser l'app, étape par étape</span></span>${icon('arrow')}</button>
     <div class="card"><h2>Mon adresse</h2>${addressForm()}</div>
     ${storesBlock()}
     ${state.home ? `<div class="card">
@@ -1648,6 +1651,8 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'smart-apply') {
     applySmart();
+  } else if (a === 'tuto') {
+    openTuto({ icon, logo, nutri: nutriBadge });
   } else if (a === 'healthy') {
     state.settings.healthy = !state.settings.healthy;
     save();
