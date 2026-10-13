@@ -24,7 +24,16 @@ const CATALOG = (chain) => join(root, `data/catalog-${chain}.json`);
 async function fromCatalog(chain, read) {
   try {
     const rows = await read();
-    return { date: new Date().toISOString().slice(0, 10), lang: 'fr', candidates: rows.map(toCandidate), catalog: rows.map(toRow), note: `catalogue complet (${rows.length} articles)` };
+    const candidates = rows.map(toCandidate).map(withUnitText);
+    // Produits que le catalogue ne couvre pas : recherche sur le site pour eux seuls.
+    const missing = PRODUCTS.filter((p) => RULES[p.id] && !pickBest(RULES[p.id], candidates, PET_BABY)).map((p) => p.id);
+    let extra = [];
+    if (missing.length) {
+      console.log(`  ${missing.length} produits absents du catalogue, recherche sur le site : ${missing.join(', ')}`);
+      const site = await fetchSite(chain, { only: missing }).catch((e) => { console.log(`  recherche impossible : ${e.message}`); return { candidates: [] }; });
+      extra = site.candidates.map((c) => ({ ...c, nl: chain === 'aldi' }));
+    }
+    return { date: new Date().toISOString().slice(0, 10), lang: 'fr', candidates: [...candidates, ...extra], catalog: rows.map(toRow), note: `catalogue complet (${rows.length} articles)` };
   } catch (e) {
     console.log(`  catalogue complet impossible (${e.message}) : recherche produit par produit`);
     return fetchSite(chain);
@@ -63,7 +72,7 @@ function match(candidates, source, lang) {
     if (best) {
       items[p.id] = {
         price: best.priceForSpec,
-        article: dutch ? toFrench(best.name) : best.name,
+        article: dutch || best.nl ? toFrench(best.name) : best.name,
         pack: Math.round(best.price * 100) / 100,
         unitPrice: Math.round(best.unitPrice * 1000) / 1000,
         unit: rule.size[1],

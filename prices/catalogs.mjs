@@ -135,20 +135,24 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
   return [...rows.values()];
 }
 
-// Rayons Aldi (identifiants Algolia) → rayons de l'app, par mots-clés.
+// Rayons Aldi (identifiants Algolia) → rayons de l'app. Un article a plusieurs
+// identifiants (rayon parent, sous-rayon, actions) : le premier groupe trouvé
+// dans l'ordre ci-dessous l'emporte, sinon épicerie.
+const ALDI_CATS = [
+  [5, ['diepvries', 'diepvries-pizza-maaltijden-snacks', 'diepvries-vis', 'diepvries-groenten-fruit', 'diepvries-vlees', 'diepvries-gebak-koeken', 'ijs', 'ijs-zomer', 'frietjes-aardappelproducten']],
+  [9, ['dierenvoeding', 'kat', 'hond', 'baby']],
+  [7, ['lichaamsverzorging', 'haarproducten', 'tandverzorging', 'gezichtsverzorging', 'intieme-hygiene', 'make-up', 'verzorging-winter']],
+  [8, ['huishouden', 'schoonmaakmiddelen-schoonmaakartikelen', 'wasmiddelen-wasverzachters', 'zakdoekjes-toiletpapier-keukenpapier', 'folie-huishoudzakken', 'afwassen-vaatwasmiddelen', 'batterijen-aanmaakblokjes', 'draagtassen-overige']],
+  [6, ['water-frisdrank-sappen-siroop', 'wijn', 'bier-sterke-dranken', 'frisdrank', 'koffie-thee', 'koffie', 'bier', 'sterke-dranken', 'rode-wijn', 'witte-wijn', 'rose-wijn', 'sappen-smoothies', 'energy-drinks-sportdrank', 'water', 'bubbels', 'dranken-zomer', 'dranken-eoy', 'thee-cacao', 'wijn-eoy', 'fou-d-o']],
+  [3, ['vlees', 'charcuterie', 'vis-zeevruchten', 'gevogelte', 'vis', 'varkensvlees', 'rundsvlees', 'zeevruchten', 'wild', 'mosselen', 'lamsvlees', 'barbecuevlees', 'vlees-eoy', 'vis-eoy']],
+  [2, ['zuivel-eieren-boter', 'kaas', 'yoghurt', 'melk', 'boter-margarine-room', 'eieren', 'desserts', 'kaas-eoy']],
+  [0, ['aardappelen-groenten-fruit', 'groenten', 'fruit', 'aardappelen', 'groente-fruit-eoy']],
+  [1, ['brood-bakkerij-zelf-bakken', 'brood', 'broodjes-sandwiches-afbakbrood', 'koffiekoeken-gebak', 'beschuiten-toast-crackers']],
+];
 function aldiCat(ids = []) {
-  const s = ids.join(' ');
-  if (/fruit|groente|legume|aardappel/.test(s)) return 0;
-  if (/brood|bakker|boulang|pain/.test(s)) return 1;
-  if (/zuivel|kaas|eieren|yoghurt|melk|cremerie|fromage/.test(s)) return 2;
-  if (/vlees|vis|charcut|viande|poisson|vegetari/.test(s)) return 3;
-  if (/diepvries|surgel|ijs/.test(s)) return 5;
-  if (/drank|wijn|bier|water|sap|boisson|vin|biere/.test(s)) return 6;
-  if (/verzorging|hygien|cosmet/.test(s)) return 7;
-  if (/huishoud|onderhoud|was|entretien|menage/.test(s)) return 8;
-  if (/baby|dier|animaux|kat|hond/.test(s)) return 9;
-  return 4;
+  return ALDI_CATS.find(([, list]) => ids.some((id) => list.includes(id)))?.[0] ?? 4;
 }
+const aldiKind = (ids = []) => (ids.some((id) => ['dierenvoeding', 'kat', 'hond'].includes(id)) ? 'pet' : ids.includes('baby') ? 'baby' : undefined);
 
 export async function fetchAldiCatalog({ log = console.log } = {}) {
   const { browser, context } = await openBrowser();
@@ -196,7 +200,8 @@ export async function fetchAldiCatalog({ log = console.log } = {}) {
           unitPrice: base?.basePriceValue > 0 ? r2(base.basePriceValue) : 0,
           unit,
           cat: aldiCat(h.categoryIDs),
-          frozen: /diepvries|surgel/.test((h.categoryIDs ?? []).join(' ')),
+          frozen: /diepvries/.test((h.categoryIDs ?? []).join(' ')),
+          kind: aldiKind(h.categoryIDs),
           url: h.productSlug ? `https://www.aldi.be/fr/produits/${h.productSlug}.html` : '',
           nutri: '',
           catIds: h.categoryIDs,
