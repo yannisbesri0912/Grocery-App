@@ -80,6 +80,7 @@ function match(candidates, source, lang) {
         unit: rule.size[1],
         ...(best.url ? { url: best.url } : {}),
         ...(best.deal ? { deal: best.deal } : {}),
+        ...(best.walk ? { walk: best.walk } : {}),
         ...(best.promo ? { promo: best.promoText ?? true, until: best.until ?? null } : {}),
       };
     }

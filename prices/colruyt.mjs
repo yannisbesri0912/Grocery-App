@@ -31,6 +31,7 @@ export function toCandidate(p) {
     price: pr.basicPrice,
     promo: Boolean(p.inPromo),
     deal: dealFromColruyt(p) ?? undefined,
+    walk: p.walkRouteSequenceNumber || undefined,
     id: p.productId,
     frozen: p.topCategoryName === 'Diepvries',
     kind: p.topCategoryName === 'Huisdieren' ? 'pet' : p.topCategoryName === 'Baby' ? 'baby' : undefined,

@@ -456,3 +456,7 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 .good-moment .items .name .sub { white-space: normal; }
 .items .name .sub.deal, .items .name .sub.low, .items .name .sub.compare { white-space: normal; }
 .items { grid-template-columns: minmax(0, 1fr); }
+
+/* Ordre des rayons */
+.items li.aisle-head { padding: 10px 0 0; border-top: 0; }
+.list-order button { font-size: .8rem; }

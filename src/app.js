@@ -7,6 +7,7 @@ import { SHOPS, orderLink } from './order.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
 import { dealTotal, dealAdvice } from './deals.js';
 import { priceSignal, KEEPS } from './history.js';
+import { aisleKey, aisleOrder } from './aisles.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
@@ -231,7 +232,7 @@ function catalogProduct(r, chain = 'colruyt') {
   const name = `${rowName(r)}${r[ROW.content] ? ` ${r[ROW.content]}` : ''}${weight ? ' (1 kg)' : ''}`;
   return {
     id: `col-${r[ROW.id]}`, name, cat: r[ROW.cat], ref: r[ROW.price], custom: true, nutri,
-    colruyt: { id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], date: CATALOG?.date },
+    colruyt: { id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], date: CATALOG?.date, walk: r[ROW.walk] || undefined },
   };
 }
 const isArticle = (p) => Boolean(p.colruyt || p.shop);
@@ -889,6 +890,16 @@ const NUTRI_RANK = { A: 0, B: 1, C: 2, D: 4, E: 5 };
 const nutriRank = (n) => NUTRI_RANK[n] ?? 3;
 const nutriBadge = (n, size = '') => (/^[A-E]$/.test(n ?? '') ? ` <span class="nutri ${size} n${n}" title="Nutri-Score ${n}">${n}</span>` : '');
 
+// ---------- Ordre des rayons en magasin ----------
+// Place d'un produit sur le parcours d'une enseigne (Colruyt : place exacte quand on la connaît).
+function walkOf(p, chain) {
+  if (chain !== 'colruyt') return 0;
+  if (p.colruyt) return p.colruyt.walk ?? rowById('colruyt', p.colruyt.id)?.[ROW.walk] ?? 0;
+  if (p.shop) { const tw = twinOf(p.shop.chain, p.shop.id); return tw?.chain === 'colruyt' ? tw.r[ROW.walk] ?? 0 : 0; }
+  return PRICES.items?.[p.id]?.colruyt?.walk ?? 0;
+}
+const aisleOf = (p, chain) => aisleKey(chain, p.cat, walkOf(p, chain));
+
 // ---------- Promos selon la quantité ----------
 const hasCard = (chain) => Boolean(state.settings.cards?.[chain]);
 const dealOn = (deal, chain) => deal && (!deal.m || hasCard(chain)) && (!deal.end || deal.end >= new Date().toISOString().slice(0, 10));
@@ -983,8 +994,12 @@ function viewList() {
     if (!groups.has(cat)) groups.set(cat, []);
     groups.get(cat).push({ ...l, p });
   }
+  // Ordre : rayons de l'app, ou parcours d'un magasin (Colruyt, Delhaize).
+  const order = ['colruyt', 'delhaize'].includes(state.settings.listOrder) ? state.settings.listOrder : null;
+  const catRank = (cat) => (order ? aisleOrder(order).indexOf(CATEGORIES.indexOf(cat)) : CATEGORIES.indexOf(cat));
   const listHtml = [...groups.entries()]
-    .sort((a, b) => CATEGORIES.indexOf(a[0]) - CATEGORIES.indexOf(b[0]))
+    .sort((a, b) => catRank(a[0]) - catRank(b[0]))
+    .map(([cat, ls]) => [cat, order ? [...ls].sort((a, b) => aisleOf(a.p, order) - aisleOf(b.p, order)) : ls])
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
       <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}</span>
         <span class="stepper">
@@ -1000,6 +1015,7 @@ function viewList() {
       <button class="sb-btn" data-action="voice" aria-label="Dicter">${icon('mic')}</button><button class="sb-btn" data-action="scan" aria-label="Scanner un code-barres">${icon('scan')}</button></div>
       <div class="results" id="results">${searchResults()}</div></div>
     ${quickChips()}
+    ${state.list.length > 1 ? `<div class="seg list-order" role="group" aria-label="Ordre de la liste">${[['', 'Rayons'], ['colruyt', 'Parcours Colruyt'], ['delhaize', 'Parcours Delhaize']].map(([v, t]) => `<button data-action="list-order" data-val="${v}" aria-pressed="${(order ?? '') === v}">${t}</button>`).join('')}</div>` : ''}
     ${state.list.length ? `<div class="card">${listHtml}</div>` : `<div class="empty">${icon('cart')}<b>Ta liste est vide</b><span>Cherche un produit ou touche un ajout rapide.</span></div>`}`;
 }
 
@@ -1498,9 +1514,11 @@ function viewPlan() {
       ${st.collect ? `<div class="row wrap"><span class="pill good">retrait${st.collect.fee ? ` · ${eur(st.collect.fee)} de frais` : ' gratuit'}${st.collect.minOrder ? ` · min. ${eur(st.collect.minOrder)}` : ''}</span></div>
         <button class="btn primary block" data-action="order" data-id="${esc(st.id)}">${icon('cart')} Préparer ma commande ${icon('arrow')}</button>` : ''}
       ${status ? `<div>${status}</div>` : ''}
-      <ul class="items">${s.lines.map((l) => {
+      <p class="tiny muted">Dans l'ordre des rayons${st.chain === 'colruyt' ? ' du parcours Colruyt' : ''}.</p>
+      <ul class="items">${[...s.lines].sort((a, b) => aisleOf(a.product, st.chain) - aisleOf(b.product, st.chain)).map((l, k, arr) => {
         const item = state.list.find((x) => x.id === l.product.id);
-        return `<li class="${item?.checked ? 'done' : ''}">
+        const head = k === 0 || arr[k - 1].product.cat !== l.product.cat ? `<li class="aisle-head"><span class="eyebrow cat">${esc(CATEGORIES[l.product.cat] ?? 'Divers')}</span></li>` : '';
+        return `${head}<li class="${item?.checked ? 'done' : ''}">
           <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
           <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
           <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
@@ -2023,6 +2041,10 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'smart-budget') {
     smartSettings().budget = Number(b.dataset.val);
+    save();
+    render();
+  } else if (a === 'list-order') {
+    state.settings.listOrder = b.dataset.val || null;
     save();
     render();
   } else if (a === 'smart-shop') {
