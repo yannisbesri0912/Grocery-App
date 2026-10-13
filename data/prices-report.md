@@ -1,8 +1,8 @@
-# Prix réels — 2026-10-13 04:48 UTC
+# Prix réels — 2026-10-13 05:06 UTC
 
-- **delhaize** : 61 produits au 2026-10-13
+- **delhaize** : 60 produits au 2026-10-13
 - **delhaize** : catalogue complet de 14380 articles
-- **aldi** : 54 produits au 2026-10-13
+- **aldi** : 53 produits au 2026-10-13
 - **aldi** : catalogue complet de 2246 articles
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
@@ -13,14 +13,14 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Pommes Jonagold (1 kg) | 1.70 € — BONI pomme jonagold 6st | 1.39 € — DELHAIZE Pommes drôles, emballé 1,5 kg | — | — |
 | Oranges à jus (2 kg) | 2.69 € — EVERYDAY orange / à presser 4kg | 3.59 € — DELHAIZE Oranges, de table 2 kg | 2.50 € — Oranges 2 kg | — |
 | Citrons (500 g) | 0.99 € — BONI citrons 1kg | 1.05 € — DELHAIZE Citrons 1 kg | — | — |
-| Tomates (1 kg) | 1.29 € — Tomates extra | 3.90 € — HEINZ Tomates, coulis 500 gr | — | — |
+| Tomates (1 kg) | 1.29 € — Tomates extra | 5.78 € — DELHAIZE Tomates, san Marzano 500 gr | — | — |
 | Concombre | 0.89 € — Concombre | 0.99 € — DELHAIZE Concombre 1 pc | — | — |
 | Salade (laitue) | 0.98 € — Salade uit serre 1st | 1.09 € — DELHAIZE Laitue pommée, racines 1 pc | — | — |
 | Carottes (1 kg) | 0.72 € — EVERYDAY carottes 2kg | 1.49 € — DELHAIZE Carottes 1 kg | 1.00 € — Carottes 1 kg | — |
 | Oignons (1 kg) | 0.90 € — EVERYDAY oignons 2kg | 1.00 € — DELHAIZE Oignons, jaunes, filet 2 kg | — | — |
-| Ail (250 g) | 1.34 € — EVERYDAY ail 250g | 0.51 € — DELHAIZE Chair de tomates, ail 400 gr | 6.24 € — Saucisse à l'ail 200 g | — |
+| Ail (250 g) | 1.34 € — EVERYDAY ail 250g | 1.49 € — DELHAIZE Ail, filet 250 gr | — | — |
 | Pommes de terre (2,5 kg) | 2.38 € — Pommes de terre matig vastkokend | 4.74 € — DELHAIZE Pommes de terre, farineuses, primeur 2 kg | — | — |
-| Courgettes (1 kg) | 3.49 € — Ronde Courgettes (los) | 9.13 € — Sachet vapeur / Courgette / Pois gourmand 2 x 200 gr | 1.99 € — Courgettes 1 kg | — |
+| Courgettes (1 kg) | 3.49 € — Ronde Courgettes (los) | — | 1.99 € — Courgettes 1 kg | — |
 | Poivrons (500 g) | 1.15 € — Poivron rouge | 2.79 € — DELHAIZE Poivrons, mix 500 gr | 1.43 € — Poivrons pointus 2 x 500 g | — |
 | Brocoli (500 g) | 1.00 € — Brocoli 1st 500g | — | 0.90 € — Brocoli 1 kg | — |
 | Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 1.89 € — DELHAIZE Champignons blancs, belges 500 gr | 3.82 € — DAYLICIOUS Champignons coupés 300 g | — |
@@ -31,7 +31,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Corn flakes (500 g) | 0.89 € — EVERYDAY Cornflakes 750g | 0.92 € — DELHAIZE Céréales, corn flakes 2 x 375 gr | — | — |
 | Lait demi-écrémé (1 L) | 0.52 € 🏷️ — BONI lait demi-écrémé PET 1L | 1.05 € — LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l | 0.85 € — MILSANI Lait demi-écrémé 1 l | — |
 | Œufs plein air (12) | 3.99 € — BONI œufs plein air 12st | 4.19 € — DELHAIZE oeufs au sol, mix calibre, 10pc 10 pc | 2.39 € — MAMIE POULE Œufs de poules élevées au sol 18 pcs | — |
-| Beurre (250 g) | 2.69 € — BONI beurre HV non salé 250g | 1.88 € — DELHAIZE Haricots beurre, très fins 220 gr | 1.89 € — MILSANI Beurre de laiterie 250 g | — |
+| Beurre (250 g) | 2.69 € — BONI beurre HV non salé 250g | 1.89 € — DELHAIZE Beurre de laiterie 250 gr | 1.89 € — MILSANI Beurre de laiterie 250 g | — |
 | Yaourts nature (8×125 g) | 1.19 € — EVERYDAY yaourt maigre 8x125g | 1.19 € — DELHAIZE Yaourt, maigre, nature 8 x 125 gr | 1.19 € — MILSANI Yaourt maigre 8 x 125 g | — |
 | Gouda tranché (300 g) | 2.65 € — EVERYDAY gouda jeune en tranches korst 500g | 1.91 € — DELHAIZE Fromage, gouda, jeune, tranches 500 gr | — | — |
 | Emmental râpé (200 g) | 1.59 € — EVERYDAY emmental râpé 500g | 1.64 € — DELHAIZE Emmental, râpé 200 gr | 1.67 € — MILSANI Emmental râpé 250 g | — |
@@ -80,6 +80,6 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Liquide vaisselle (500 ml) | 0.43 € — ACTAE liquide vaisselle citron 1L | 0.89 € — DELHAIZE Liquide vaisselle, original 50 cl | 0.43 € — POWER FORCE Liquide vaisselle, 1L 1 l | — |
 | Tablettes lave-vaisselle (40) | 8.06 € 🏷️ — Finish Quantum vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | — |
 | Sacs poubelle blancs (20) | — | — | — | — |
-| Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.19 € — DISHMATIC Eponges anti rayures pour perche, recharge 3 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
+| Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.44 € — VILEDA Eponges à récurer, slalom Universal, 3+1 4 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
 | Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, boeuf 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
 | Litière (10 L) | 1.99 € — EVERYDAY litière pour chat ±7L | 2.65 € — DELHAIZE Litière, non-Agglomérante 6 l | 4.49 € — CACHET Litière pour chats hygiène, 10 l | — |
