@@ -435,3 +435,8 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 /* Même article dans l'autre enseigne */
 .twin.cheaper, .compare .cheaper { color: var(--accent); font-weight: 700; }
 .items .name .sub.compare { display: block; font-size: .78rem; color: var(--muted); }
+
+/* Comparaison Colruyt / Delhaize (panier malin, plats) */
+.shop-compare { display: grid; gap: 6px; }
+.shop-compare.row { display: flex; flex-wrap: wrap; }
+.shop-compare .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }

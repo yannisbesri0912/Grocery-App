@@ -45,3 +45,12 @@ test('buildBasket : budget trop court et choix imposé', () => {
   assert.equal(r.total, 8);
   assert.equal(r.left, -2);
 });
+
+test('tierOf : gammes Delhaize', async () => {
+  const { tierOf, tierLabel } = await import('../src/smart.js');
+  assert.equal(tierOf('DELHAIZE Lait, demi-écrémé', 'delhaize'), 'house');
+  assert.equal(tierOf('TASTE OF INSPIRATIONS Pesto', 'delhaize'), 'house');
+  assert.equal(tierOf('NUTELLA Pâte à tartiner', 'delhaize'), 'brand');
+  assert.equal(tierLabel('house', 'delhaize'), 'Marque Delhaize');
+  assert.equal(tierLabel('house'), 'Marque Colruyt');
+});

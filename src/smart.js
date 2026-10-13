@@ -1,6 +1,6 @@
-// Panier malin : plusieurs choix par produit (premier prix, marque Colruyt,
-// grande marque) aux vrais prix du catalogue Colruyt, puis le meilleur panier
-// qui tient dans le budget.
+// Panier malin : plusieurs choix par produit (premier prix, marque du magasin,
+// grande marque) aux vrais prix du catalogue Colruyt ou Delhaize, puis le
+// meilleur panier qui tient dans le budget.
 import { rankMatches, norm } from './matcher.js';
 import { RULES, PET_BABY } from './match-rules.js';
 import { ROW, rowName } from './catalog.js';
@@ -12,9 +12,16 @@ export const TIERS = [
   { key: 'brand', label: 'Grande marque' },
 ];
 const RANK = Object.fromEntries(TIERS.map((t, i) => [t.key, i]));
+const HOUSE = { colruyt: 'Marque Colruyt', delhaize: 'Marque Delhaize' };
+export const tierLabel = (tier, chain = 'colruyt') => (tier === 'house' ? HOUSE[chain] ?? 'Marque du magasin' : TIERS[RANK[tier]].label);
 
-/** Gamme d'un article Colruyt d'après sa marque. */
-export function tierOf(name) {
+/** Gamme d'un article d'après sa marque (Colruyt : Everyday / Boni ; Delhaize : Delhaize). */
+export function tierOf(name, chain = 'colruyt') {
+  if (chain === 'delhaize') {
+    // Marque Delhaize (dont la gamme Taste of Inspirations) ou article sans marque.
+    if (/^(delhaize|taste of inspirations)\b/i.test(name) || !/^[A-ZÀ-Ý0-9&'.-]{2,}\b/.test(name)) return 'house';
+    return 'brand';
+  }
   if (/^everyday\b/i.test(name)) return 'eco';
   // Boni, Colruyt, et les articles sans marque (boucherie, fruits au poids).
   // (Un nom tout en majuscules, « GEHAKT VARKEN RUND », n'a pas de marque non plus.)
@@ -55,13 +62,13 @@ function prefilter(rule, candidates) {
  * chaque gamme qui existe, du premier prix à la grande marque.
  * → [{ tier, label, id, article, price, promo }]
  */
-export function productOptions(productId, candidates) {
+export function productOptions(productId, candidates, chain = 'colruyt') {
   const rule = RULES[productId];
   if (!rule) return [];
   const best = {};
   for (const c of rankMatches(rule, prefilter(rule, candidates), PET_BABY, 60)) {
-    const tier = tierOf(c.article ?? c.name);
-    if (!best[tier]) best[tier] = { tier, label: TIERS[RANK[tier]].label, id: c.id, article: c.article ?? c.name, price: c.priceForSpec, promo: c.promo };
+    const tier = tierOf(c.article ?? c.name, chain);
+    if (!best[tier]) best[tier] = { tier, label: tierLabel(tier, chain), id: c.id, article: c.article ?? c.name, price: c.priceForSpec, promo: c.promo };
   }
   // Du premier prix à la grande marque ; une gamme plus chère qu'une gamme
   // au-dessus n'a pas d'intérêt et disparaît (les choix montent en prix).

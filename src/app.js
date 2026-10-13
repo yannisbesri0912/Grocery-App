@@ -5,7 +5,7 @@ import {
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
 import { SHOPS, orderLink } from './order.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
-import { TIERS, tierOf, candidatesFromRows, productOptions, buildBasket } from './smart.js';
+import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
@@ -939,17 +939,19 @@ const UNIT_BASE = { g: ['kg', 1000], ml: ['l', 1000], pc: ['pc', 1] };
  * recette) et prix par unité. Produit de l'app : le moins cher chez Colruyt ;
  * sinon l'article trouvé dans le catalogue Colruyt.
  */
-function resolveIng(key) {
-  if (ingCache.has(key)) return ingCache.get(key);
+function resolveIng(key, chain = smartShop()) {
+  const ck = `${chain}|${key}`;
+  if (ingCache.has(ck)) return ingCache.get(ck);
+  const cat = CATALOGS[chain] ?? CATALOG;
   const def = ING[key];
   const [packAmount, unit] = def.pack;
   let out;
   if (def.p) {
     const product = productById(def.p);
-    const price = CATALOG ? optionsFor(product)[0]?.price : priceInfo(product, 'colruyt', chains(), state.overrides, realPrices())?.price;
+    const price = cat ? optionsFor(product, chain)[0]?.price : priceInfo(product, chain, chains(), state.overrides, realPrices())?.price;
     out = { product, pack: packAmount, perUnit: (price ?? product.ref) / packAmount };
   } else {
-    const row = CATALOG ? searchCatalog(CATALOG.rows, def.q, 1)[0] : null;
+    const row = cat ? searchCatalog(cat.rows, def.q, 1)[0] : null;
     out = { product: null, row, pack: packAmount, perUnit: def.ref / packAmount, name: def.name };
     if (row) {
       const [base, factor] = UNIT_BASE[unit];
@@ -958,12 +960,12 @@ function resolveIng(key) {
       else if (row[ROW.unitPrice] && row[ROW.unit] === base) out = { ...out, perUnit: row[ROW.unitPrice] / factor };
     }
   }
-  if (CATALOG) ingCache.set(key, out);
+  if (CATALOGS[chain]) ingCache.set(ck, out);
   return out;
 }
 
 const ingName = (key) => ING[key].name ?? productById(ING[key].p)?.name.replace(/\s*\(.*\)$/, '') ?? key;
-const dishCost = (r, servings = 1) => r.ingredients.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * servings * resolveIng(i.key).perUnit, 0);
+const dishCost = (r, servings = 1, chain = smartShop()) => r.ingredients.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * servings * resolveIng(i.key, chain).perUnit, 0);
 const recipeById = (id) => RECIPES.find((r) => r.id === id);
 
 function kitchen() {
@@ -1006,7 +1008,7 @@ function addDish(r, servings) {
 // ---------- Panier malin ----------
 let smartOpen = false;
 let quiz = null; // { mode, i, answers } : questions en cours
-let smartCands = null; // candidats du catalogue (calculés une fois)
+const smartCands = {}; // enseigne → candidats du catalogue (calculés une fois)
 const optionCache = new Map();
 
 function smartSettings() {
@@ -1014,18 +1016,35 @@ function smartSettings() {
   state.smart.dishes ??= [];
   return state.smart;
 }
+// Magasin du panier malin : Colruyt ou Delhaize.
+const SMART_SHOPS = ['colruyt', 'delhaize'];
+const smartShop = () => (SMART_SHOPS.includes(state.smart?.shop) ? state.smart.shop : 'colruyt');
 
-// Choix proposés pour un produit : gammes Colruyt, ou l'article choisi, ou un prix unique.
-function optionsFor(p) {
-  if (p.colruyt) return [{ tier: tierOf(p.name), label: TIERS.find((t) => t.key === tierOf(p.name)).label, id: p.colruyt.id, article: p.name, price: p.colruyt.price, fixed: true }];
-  if (p.shop) return [{ tier: tierOf(p.name), label: TIERS.find((t) => t.key === tierOf(p.name)).label, id: p.shop.id, article: p.name, price: p.shop.price, fixed: true }];
-  if (!optionCache.has(p.id)) {
-    smartCands ??= candidatesFromRows(CATALOG.rows);
-    optionCache.set(p.id, productOptions(p.id, smartCands));
+// Choix proposés pour un produit dans un magasin : ses gammes (premier prix,
+// marque du magasin, grande marque), ou l'article choisi (ou son équivalent
+// exact dans l'autre enseigne), ou un prix unique.
+function optionsFor(p, chain = smartShop()) {
+  const fixed = (id, article, price, name = article) => {
+    const tier = tierOf(name, chain);
+    return [{ tier, label: tierLabel(tier, chain), id, article, price, fixed: true }];
+  };
+  const own = p.colruyt ? { chain: 'colruyt', id: p.colruyt.id, price: p.colruyt.price } : p.shop ? { chain: p.shop.chain, id: p.shop.id, price: p.shop.price } : null;
+  if (own) {
+    if (own.chain === chain) return fixed(own.id, p.name, own.price);
+    const tw = twinOf(own.chain, own.id);
+    if (tw?.chain === chain) return fixed(tw.r[ROW.id], rowName(tw.r), tw.r[ROW.price], tw.r[ROW.name]);
+    const est = priceInfo(p, chain, chains(), state.overrides, realPrices());
+    return [{ tier: 'house', label: 'Prix estimé', article: p.name, price: est?.price ?? p.ref, fixed: true }];
   }
-  const opts = optionCache.get(p.id);
+  const key = `${chain}|${p.id}`;
+  const cat = CATALOGS[chain];
+  if (!optionCache.has(key) && cat) {
+    smartCands[chain] ??= candidatesFromRows(cat.rows);
+    optionCache.set(key, productOptions(p.id, smartCands[chain], chain));
+  }
+  const opts = optionCache.get(key) ?? [];
   if (opts.length) return opts;
-  const info = priceInfo(p, 'colruyt', chains(), state.overrides, realPrices());
+  const info = priceInfo(p, chain, chains(), state.overrides, realPrices());
   return [{ tier: 'house', label: info?.kind === 'user' ? 'Ton prix' : 'Prix estimé', price: info?.price ?? p.ref, fixed: true }];
 }
 
@@ -1037,7 +1056,7 @@ function smartSuggestions() {
   return [...new Set(ids)].filter((id) => !inList.has(id) && !sm.removed[id] && productById(id)).slice(0, 6);
 }
 
-function smartItems() {
+function smartItems(chain = smartShop()) {
   const sm = smartSettings();
   const fromList = state.list.map((l) => ({ id: l.id, qty: l.qty, must: !sm.optional[l.id], inList: true }));
   const inList = new Set(state.list.map((l) => l.id));
@@ -1047,7 +1066,7 @@ function smartItems() {
   return [...fromList.filter((i) => i.must), ...fromList.filter((i) => !i.must), ...extras]
     .map((i) => ({ ...i, p: productById(i.id) })).filter((i) => i.p)
     .map((i) => {
-      const options = optionsFor(i.p);
+      const options = optionsFor(i.p, chain);
       const pin = sm.pins[i.id];
       return { ...i, options, pin: pin != null && pin < options.length ? pin : undefined };
     });
@@ -1055,18 +1074,18 @@ function smartItems() {
 
 // Plats proposés, au prix des paquets entiers qu'ils font acheter : un plat
 // paie les paquets qu'il entame, les plats suivants profitent des restes.
-function dishItems() {
+function dishItems(chain = smartShop()) {
   const need = {};
   return smartSettings().dishes.map((d) => ({ d, r: recipeById(d.id) })).filter((x) => x.r).map(({ d, r }) => {
     let price = 0;
     for (const i of r.ingredients.filter((x) => !x.pantry)) {
-      const res = resolveIng(i.key);
+      const res = resolveIng(i.key, chain);
       const before = Math.ceil((need[i.key] ?? 0) - 1e-6);
       need[i.key] = (need[i.key] ?? 0) + (i.amount * d.servings) / res.pack;
       price += (Math.ceil(need[i.key] - 1e-6) - before) * res.pack * res.perUnit;
     }
     return {
-      id: `dish:${r.id}`, qty: 1, must: false, dish: r, servings: d.servings, used: dishCost(r, d.servings),
+      id: `dish:${r.id}`, qty: 1, must: false, dish: r, servings: d.servings, used: dishCost(r, d.servings, chain),
       options: [{ tier: 'house', label: 'Plat', price: Math.round(price * 100) / 100 }],
     };
   });
@@ -1082,15 +1101,37 @@ function proposeDishes(profile, exclude = []) {
   return [...ids, ...desserts].map((id) => ({ id, servings: recipeById(id).type === 'dessert' ? pr.people : servingsFor(pr) }));
 }
 
+// Produits et plats du panier malin pour un magasin, dans l'ordre de remplissage :
+// liste (indispensables), plats, puis propositions.
+function basketItems(chain = smartShop()) {
+  const items = [...smartItems(chain), ...dishItems(chain)];
+  items.sort((a, b) => (b.must - a.must) || ((b.inList ? 1 : 0) - (a.inList ? 1 : 0)) || ((b.dish ? 1 : 0) - (a.dish ? 1 : 0)));
+  return items;
+}
+
+// Ta liste et tes plats au moins cher dans chaque magasin.
+function shopComparison() {
+  const rows = SMART_SHOPS.filter((c) => CATALOGS[c]).map((c) => {
+    const items = basketItems(c).filter((i) => i.inList || i.dish).map((i) => ({ ...i, must: true, pin: undefined }));
+    return { c, total: buildBasket(items, Infinity, 'cheap').total, n: items.length };
+  });
+  if (rows.length < 2 || !rows[0].n) return '';
+  rows.sort((a, b) => a.total - b.total);
+  const gap = rows[1].total - rows[0].total;
+  return `<div class="shop-compare"><span class="small muted">Ta liste${smartSettings().dishes.length ? ' et tes plats' : ''} au moins cher :</span>
+    <div class="row" style="gap:8px">${rows.map((r, i) => `<button class="chip ${i === 0 && gap > 0.005 ? 'on' : ''}" data-action="smart-shop" data-val="${r.c}">${logo(r.c, 'sm')} ${esc(CHAINS[r.c].name)} <b class="num">${eur(r.total)}</b></button>`).join('')}</div>
+    ${gap > 0.005 ? `<span class="small"><b>${esc(CHAINS[rows[0].c].name)}</b> est moins cher de <b>${eur(gap)}</b>.</span>` : ''}</div>`;
+}
+
 function viewSmart() {
   const sm = smartSettings();
-  if (!CATALOG) {
-    loadCatalog().then(() => { if (smartOpen) render(); });
-    return `<button class="btn ghost small" data-action="smart-close">← Ma liste</button><div class="empty"><span class="spin"></span><b>Je charge les prix Colruyt…</b></div>`;
+  const shop = smartShop();
+  if (!CATALOG || !CATALOGS[shop]) {
+    loadCatalog().then(() => loadOtherCatalogs()).then(() => { if (smartOpen) render(); });
+    return `<button class="btn ghost small" data-action="smart-close">← Ma liste</button><div class="empty"><span class="spin"></span><b>Je charge les prix ${esc(CHAINS[shop].name)}…</b></div>`;
   }
-  const items = [...smartItems(), ...dishItems()];
-  // Ordre de remplissage : liste (indispensables), plats, puis propositions.
-  items.sort((a, b) => (b.must - a.must) || ((b.inList ? 1 : 0) - (a.inList ? 1 : 0)) || ((b.dish ? 1 : 0) - (a.dish ? 1 : 0)));
+  if (!CATALOGS.delhaize) loadOtherCatalogs();
+  const items = basketItems(shop);
   const res = buildBasket(items, sm.budget, sm.goal);
   const picked = new Map(res.lines.map((l) => [l.id, l]));
   const pct = Math.min(100, (res.total / Math.max(sm.budget, 1)) * 100);
@@ -1135,6 +1176,8 @@ function viewSmart() {
   return `
     <button class="btn ghost small" data-action="smart-close">← Ma liste</button>
     <h1>Panier malin</h1>
+    <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${c}" aria-pressed="${shop === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
+    ${shopComparison()}
     ${quizCard}
     <div class="card">
       <label class="field"><span>Mon budget pour les courses</span>
@@ -1167,11 +1210,10 @@ function viewSmart() {
 // Le panier choisi remplace la liste : gamme choisie = article précis du catalogue.
 function applySmart() {
   const sm = smartSettings();
-  const items = [...smartItems(), ...dishItems()];
-  items.sort((a, b) => (b.must - a.must) || ((b.inList ? 1 : 0) - (a.inList ? 1 : 0)) || ((b.dish ? 1 : 0) - (a.dish ? 1 : 0)));
+  const shop = smartShop();
+  const items = basketItems(shop);
   const res = buildBasket(items, sm.budget, sm.goal);
   const byId = new Map(items.map((i) => [i.id, i]));
-  const rows = new Map(CATALOG.rows.map((r) => [r[ROW.id], r]));
   const list = [];
   const dishes = [];
   for (const l of res.lines) {
@@ -1181,8 +1223,9 @@ function applySmart() {
     let id = l.id;
     // Produit du catalogue de l'app au premier choix : on garde le produit
     // générique (l'app cherche le moins cher dans chaque magasin).
-    if (!o.fixed && l.option > 0 && rows.has(o.id)) {
-      const p = catalogProduct(rows.get(o.id));
+    const row = !o.fixed && l.option > 0 ? rowById(shop, o.id) : null;
+    if (row) {
+      const p = catalogProduct(row, shop);
       if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
       id = p.id;
     }
@@ -1285,6 +1328,14 @@ function viewPlats() {
     <div class="recipes">${ok.map(recipeCard).join('') || '<div class="empty"><b>Aucune recette</b><span>Coche d\'autres appareils ou change de filtre.</span></div>'}</div>`;
 }
 
+// Prix du plat dans chaque magasin (catalogues chargés).
+function dishShops(r, n) {
+  if (!CATALOGS.delhaize) { loadOtherCatalogs(); return ''; }
+  const rows = SMART_SHOPS.filter((c) => CATALOGS[c]).map((c) => ({ c, cost: dishCost(r, n, c) })).sort((a, b) => a.cost - b.cost);
+  if (rows.length < 2) return '';
+  return `<div class="row shop-compare" style="gap:8px">${rows.map((x, i) => `<span class="chip ${i === 0 && rows[1].cost - x.cost > 0.005 ? 'on' : ''}">${logo(x.c, 'sm')} ${esc(CHAINS[x.c].name)} <b class="num">≈ ${eur(x.cost)}</b></span>`).join('')}</div>`;
+}
+
 function viewRecipe(r) {
   if (!r) { recipeOpen = null; return viewPlats(); }
   const n = state.settings.servings ?? smartSettings().profile?.people ?? 1;
@@ -1305,6 +1356,7 @@ function viewRecipe(r) {
     </div>
     <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
       ${r.src ? `<p class="tiny muted">Recette adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a> (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
+    ${dishShops(r, n)}
     <button class="btn primary lg block" data-action="recipe-add" data-id="${r.id}">${icon('cart')} Ajouter à ma liste · ≈ ${eur(dishCost(r, n))}</button>
     <p class="foot">Prix estimé avec la quantité utilisée ; en magasin on achète des paquets entiers (le reste servira pour d'autres plats).</p>`;
 }
@@ -1885,6 +1937,11 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'smart-budget') {
     smartSettings().budget = Number(b.dataset.val);
+    save();
+    render();
+  } else if (a === 'smart-shop') {
+    const sm = smartSettings();
+    if (sm.shop !== b.dataset.val) { sm.shop = b.dataset.val; sm.pins = {}; }
     save();
     render();
   } else if (a === 'smart-goal') {
