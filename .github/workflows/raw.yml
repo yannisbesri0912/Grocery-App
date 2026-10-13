@@ -13,34 +13,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Recettes Wikibooks Cookbook (CC BY-SA 4.0)
-        run: |
-          mkdir -p data-raw/wikibooks
-          python3 - <<'PY'
-          import json, urllib.request
-          api = 'https://huggingface.co/api/datasets/gossminn/wikibooks-cookbook'
-          info = json.load(urllib.request.urlopen(api))
-          for f in info.get('siblings', []):
-              name = f['rfilename']
-              print(name)
-              if name.endswith(('.json', '.jsonl', '.md', '.csv')):
-                  url = f'https://huggingface.co/datasets/gossminn/wikibooks-cookbook/resolve/main/{name}'
-                  dest = 'data-raw/wikibooks/' + name.replace('/', '__')
-                  urllib.request.urlretrieve(url, dest)
-                  print('  ->', dest)
-          PY
-          ls -la data-raw/wikibooks
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - name: Delhaize
-        run: node prices/raw-dump.mjs
+      - name: Catalogues complets (test)
+        run: node prices/probe-catalog.mjs
         continue-on-error: true
       - name: Enregistrer
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Les gros fichiers (> 90 Mo) sont compressés.
-          for f in data-raw/wikibooks/*; do [ $(stat -c%s "$f") -gt 90000000 ] && gzip -9 "$f"; done
           git add data-raw
-          git commit -m "Relevé brut" || exit 0
+          git commit -m "Relevé brut (catalogues)" || exit 0
+          git pull --rebase -q origin data-raw || true
           git push
