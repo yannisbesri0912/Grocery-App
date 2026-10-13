@@ -14,6 +14,7 @@ import { fetchSite } from './sites.mjs';
 import { fetchDelhaizeCatalog, fetchAldiCatalog, toCandidate, toRow } from './catalogs.mjs';
 import { toFrench } from '../src/translate.js';
 import { sameProducts } from '../src/same.js';
+import { addDay } from '../src/history.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'data/prices.json');
@@ -152,6 +153,20 @@ if (runs('promos')) {
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, `${JSON.stringify(result, null, 1)}\n`);
+
+// Historique : un point par jour et par enseigne relevée (à la date de son relevé).
+{
+  const HIST = join(root, 'data/history.json');
+  let hist = existsSync(HIST) ? JSON.parse(readFileSync(HIST, 'utf8')) : { dates: [], p: {} };
+  for (const chain of ['colruyt', 'delhaize', 'aldi']) {
+    const src = result.sources[chain];
+    if (!runs(chain) || !src?.ok || !src.date) continue;
+    const day = {};
+    for (const [pid, it] of Object.entries(result.items)) if (it[chain] && !it[chain].promoOnly) day[pid] = { [chain]: it[chain].price };
+    hist = addDay(hist, src.date, day);
+  }
+  writeFileSync(HIST, `${JSON.stringify(hist)}\n`);
+}
 
 // Même article chez Colruyt et Delhaize (comparaison directe dans l'app).
 if (existsSync(CATALOG('colruyt')) && existsSync(CATALOG('delhaize'))) {

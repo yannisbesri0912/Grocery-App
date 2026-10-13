@@ -6,6 +6,7 @@ import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours
 import { SHOPS, orderLink } from './order.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
 import { dealTotal, dealAdvice } from './deals.js';
+import { priceSignal, KEEPS } from './history.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
@@ -68,12 +69,62 @@ function save() {
 
 // ---------- Vrais prix (data/prices.json, mis à jour chaque nuit) ----------
 let PRICES = { items: {}, sources: {} };
+let HISTORY = null; // data/history.json : prix des produits de l'app jour par jour
 async function loadPrices() {
   try {
-    const res = await fetch('data/prices.json', { cache: 'no-cache' });
+    const [res, hist] = await Promise.all([fetch('data/prices.json', { cache: 'no-cache' }), fetch('data/history.json', { cache: 'no-cache' }).catch(() => null)]);
     if (res.ok) PRICES = await res.json();
+    if (hist?.ok) HISTORY = await hist.json();
   } catch { /* hors ligne : estimations */ }
   render();
+}
+
+// ---------- Historique : bon moment pour acheter ----------
+const today = () => new Date().toISOString().slice(0, 10);
+// Prix bas aujourd'hui (le plus bas des 30 derniers jours) pour un produit, par enseigne.
+function lowPrices(p) {
+  const out = [];
+  for (const [chain, it] of Object.entries(PRICES.items?.[p.id] ?? {})) {
+    if (!it?.price || it.promoOnly) continue;
+    const sig = priceSignal(HISTORY, p.id, chain, it.price, today());
+    if (sig?.low) out.push({ chain, price: it.price, sig });
+  }
+  return out.sort((a, b) => b.sig.below - a.sig.below);
+}
+// Petite courbe des prix (60 derniers jours).
+function sparkline(pid, chain, w = 120, h = 26) {
+  const arr = HISTORY?.p?.[pid]?.[chain];
+  if (!arr) return '';
+  const pts = arr.map((v, i) => [i, v]).filter(([, v]) => v > 0).slice(-60);
+  if (pts.length < 3) return '';
+  const xs = pts.map(([i]) => i);
+  const vs = pts.map(([, v]) => v);
+  const [x0, x1, lo, hi] = [Math.min(...xs), Math.max(...xs), Math.min(...vs), Math.max(...vs)];
+  const X = (i) => ((i - x0) / Math.max(1, x1 - x0)) * (w - 4) + 2;
+  const Y = (v) => (hi === lo ? h / 2 : h - 3 - ((v - lo) / (hi - lo)) * (h - 6));
+  const line = pts.map(([i, v]) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const [li, lv] = pts.at(-1);
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Prix de ${eur(lo)} à ${eur(hi)} sur ${pts.length} relevés"><polyline points="${line}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${X(li).toFixed(1)}" cy="${Y(lv).toFixed(1)}" r="2.6" fill="currentColor"/></svg>`;
+}
+function lowLine(p) {
+  const [best] = lowPrices(p);
+  return best ? `<span class="sub low">📉 Prix bas chez ${esc(CHAINS[best.chain].name)} : ${eur(best.price)} (−${Math.round(best.sig.below * 100)} % vs d'habitude)${KEEPS.has(p.cat) ? ' · se garde, fais du stock' : ''}</span>` : '';
+}
+// Carte « Bon moment pour acheter » (onglet Prix) : tes produits d'abord.
+function goodMomentCard() {
+  if (!HISTORY) return '';
+  const mine = new Set([...state.list.map((l) => l.id), ...state.recurring.map((r) => r.id)]);
+  const rows = PRODUCTS.map((p) => ({ p, low: lowPrices(p)[0] })).filter((x) => x.low)
+    .sort((a, b) => (mine.has(b.p.id) - mine.has(a.p.id)) || (b.low.sig.below - a.low.sig.below)).slice(0, 8);
+  if (!rows.length) return '';
+  return `<div class="card good-moment"><h2>📉 Bon moment pour acheter</h2>
+    <p class="small muted">Prix le plus bas des 30 derniers jours. Les produits qui se gardent (épicerie, boissons, hygiène, entretien) valent le coup d'en prendre d'avance.</p>
+    <ul class="items">${rows.map(({ p, low }) => `<li>
+      ${logo(low.chain, 'sm')}
+      <span class="name">${esc(p.name)}<span class="sub">${eur(low.price)} · −${Math.round(low.sig.below * 100)} % vs moyenne (${eur(low.sig.avg)})${KEEPS.has(p.cat) ? ' · <b>fais du stock</b>' : ''}</span></span>
+      ${sparkline(p.id, low.chain, 70, 24)}
+      ${state.list.some((l) => l.id === p.id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-action="add" data-id="${p.id}" aria-label="Ajouter ${esc(p.name)}">${icon('plus')}</button>`}
+    </li>`).join('')}</ul></div>`;
 }
 
 // ---------- Catalogues complets (data/catalog-<enseigne>.json) ----------
@@ -935,7 +986,7 @@ function viewList() {
   const listHtml = [...groups.entries()]
     .sort((a, b) => CATEGORIES.indexOf(a[0]) - CATEGORIES.indexOf(b[0]))
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
@@ -1754,13 +1805,15 @@ function viewPrices() {
   const shown = state.stores.length ? [...new Set(state.stores.map((s) => s.chain))] : Object.keys(ch);
   return `
     <h1>Prix</h1>
+    ${goodMomentCard()}
     ${freshnessCard()}
     <div class="searchbox">${icon('search')}<input type="search" id="price-search" placeholder="Comparer un produit…" value="${esc(priceSearch)}" autocomplete="off"></div>
     <p class="small muted">${q ? '' : state.list.length ? 'Les produits de ta liste.' : 'Quelques exemples.'} Touche un prix pour le corriger avec celui de ton ticket.</p>
     ${list.map((p) => {
       const infos = shown.map((k) => [k, priceInfo(p, k, ch, state.overrides, PRICES.items ?? {})]).filter(([, i]) => i);
       const min = Math.min(...infos.map(([, i]) => i.price));
-      return `<div class="card"><h3>${esc(p.name)}</h3><div>${infos.sort((a, b) => a[1].price - b[1].price).map(([k, info]) => `
+      const curve = ['colruyt', 'delhaize'].map((c) => [c, sparkline(p.id, c)]).filter(([, svg]) => svg);
+      return `<div class="card"><h3>${esc(p.name)}</h3>${curve.length ? `<div class="curves">${curve.map(([c, svg]) => `<span class="small muted">${esc(CHAINS[c].name)}</span>${svg}`).join('')}<span class="tiny muted">60 derniers jours</span></div>` : ''}<div>${infos.sort((a, b) => a[1].price - b[1].price).map(([k, info]) => `
         <div class="price-row ${info.price === min ? 'best' : ''}">
           ${logo(k, 'sm')}
           <span class="grow"><b>${esc(ch[k].name)}</b> ${KIND[info.kind] ?? ''}${info.article ? `<span class="tiny muted" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(info.article)}${info.until ? ` · jusqu'au ${dateFr(info.until)}` : ''}</span>` : ''}</span>

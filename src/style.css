@@ -446,3 +446,13 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .sub.deal, span.deal { color: var(--promo); font-weight: 600; }
 .items .name .sub.deal { display: block; font-size: .78rem; }
 button.link { border: 0; background: var(--promo-soft); color: var(--promo); font: inherit; font-weight: 700; border-radius: 99px; padding: 0 8px; margin-left: 4px; cursor: pointer; }
+
+/* Historique des prix */
+.spark { color: var(--accent); flex: none; }
+.curves { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-bottom: 6px; }
+.items .name .sub.low { display: block; font-size: .78rem; color: var(--accent); font-weight: 600; }
+.good-moment .items { grid-template-columns: minmax(0, 1fr); }
+.good-moment .items li { gap: 8px; min-width: 0; }
+.good-moment .items .name .sub { white-space: normal; }
+.items .name .sub.deal, .items .name .sub.low, .items .name .sub.compare { white-space: normal; }
+.items { grid-template-columns: minmax(0, 1fr); }
