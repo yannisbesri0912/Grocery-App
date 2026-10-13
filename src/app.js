@@ -84,7 +84,22 @@ const CATALOGS = {}; // enseigne → { date, rows }
 let CATALOG = null; // Colruyt
 let catalogLoading = null;
 const otherLoading = {};
+// Même article chez Colruyt et Delhaize (data/same.json, calculé chaque nuit).
+let SAME = null; // { colruyt: Map(id → id Delhaize), delhaize: Map(id → id Colruyt) }
+let sameLoading = null;
+function twinOf(chain, id) {
+  const other = chain === 'colruyt' ? 'delhaize' : chain === 'delhaize' ? 'colruyt' : null;
+  const tid = other && SAME?.[chain].get(id);
+  const r = tid != null ? rowById(other, tid) : null;
+  return r ? { chain: other, r } : null;
+}
+const rowUrl = (chain, r) => (r[ROW.url] ? new URL(r[ROW.url], `https://www.${CHAINS[chain].domain}`).href : undefined);
 function loadOtherCatalogs() {
+  sameLoading ??= fetch('data/same.json', { cache: 'no-cache' }).then((res) => (res.ok ? res.json() : null)).then((data) => {
+    if (!data?.pairs) return;
+    SAME = { colruyt: new Map(data.pairs.map(([c, d]) => [c, d])), delhaize: new Map(data.pairs.map(([c, d]) => [d, c])) };
+    rerenderArticles();
+  }).catch(() => { sameLoading = null; });
   for (const chain of CATALOG_CHAINS.slice(1)) {
     otherLoading[chain] ??= fetch(`data/catalog-${chain}.json`, { cache: 'no-cache' })
       .then((res) => (res.ok ? res.json() : null))
@@ -92,11 +107,17 @@ function loadOtherCatalogs() {
         if (!data?.rows) return;
         CATALOGS[chain] = data;
         refreshCatalogPrices();
+        rerenderArticles();
         if (search.trim()) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); }
       })
       .catch(() => { otherLoading[chain] = null; });
   }
   return Promise.all(Object.values(otherLoading));
+}
+// Nouvelles données de comparaison : on redessine si la liste contient des articles précis
+// (pas pendant une saisie dans la recherche).
+function rerenderArticles() {
+  if (state.custom.some(isArticle) && !search.trim()) render();
 }
 function rowById(chain, id) {
   const cat = CATALOGS[chain];
@@ -121,6 +142,7 @@ function loadCatalog() {
       CATALOGS.colruyt = data;
       ingCache.clear();
       refreshCatalogPrices();
+      rerenderArticles();
       if (search.trim()) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); }
     })
     .catch(() => { catalogLoading = null; });
@@ -150,7 +172,7 @@ function catalogProduct(r, chain = 'colruyt') {
       id: `${chain}-${r[ROW.id]}`, name: `${r[ROW.name]}${content}`, cat: r[ROW.cat], custom: true, nutri,
       // Prix de référence (indice 100) : les autres enseignes sont estimées à partir de lui.
       ref: Math.round((r[ROW.price] * 100 / (CHAINS[chain]?.index ?? 100)) * 100) / 100,
-      shop: { chain, id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], url: r[ROW.url] ? new URL(r[ROW.url], `https://www.${CHAINS[chain].domain}`).href : undefined, date: CATALOGS[chain]?.date },
+      shop: { chain, id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], url: rowUrl(chain, r), date: CATALOGS[chain]?.date },
     };
   }
   const weight = r[ROW.weight] === 1;
@@ -166,8 +188,13 @@ const isArticle = (p) => Boolean(p.colruyt || p.shop);
 function realPrices() {
   const real = { ...(PRICES.items ?? {}) };
   for (const p of state.custom) {
-    if (p.colruyt && !p.colruyt.gone) real[p.id] = { colruyt: { price: p.colruyt.price, ...(p.colruyt.promo ? { promo: true } : {}) } };
-    if (p.shop && !p.shop.gone) real[p.id] = { [p.shop.chain]: { price: p.shop.price, article: p.name, url: p.shop.url, ...(p.shop.promo ? { promo: true } : {}) } };
+    const entry = {};
+    if (p.colruyt && !p.colruyt.gone) entry.colruyt = { price: p.colruyt.price, ...(p.colruyt.promo ? { promo: true } : {}) };
+    if (p.shop && !p.shop.gone) entry[p.shop.chain] = { price: p.shop.price, article: p.name, url: p.shop.url, ...(p.shop.promo ? { promo: true } : {}) };
+    // Comparaison automatique : le même article dans l'autre enseigne, à son vrai prix.
+    const tw = p.colruyt ? twinOf('colruyt', p.colruyt.id) : p.shop ? twinOf(p.shop.chain, p.shop.id) : null;
+    if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), url: rowUrl(tw.chain, tw.r), ...(tw.r[ROW.promo] ? { promo: true } : {}) };
+    if (Object.keys(entry).length) real[p.id] = entry;
   }
   return real;
 }
@@ -809,6 +836,24 @@ const NUTRI_RANK = { A: 0, B: 1, C: 2, D: 4, E: 5 };
 const nutriRank = (n) => NUTRI_RANK[n] ?? 3;
 const nutriBadge = (n, size = '') => (/^[A-E]$/.test(n ?? '') ? ` <span class="nutri ${size} n${n}" title="Nutri-Score ${n}">${n}</span>` : '');
 
+// Article de la liste vendu dans les deux enseignes : les deux vrais prix, le moins cher en vert.
+function compareLine(p) {
+  const own = p.colruyt ? { chain: 'colruyt', price: p.colruyt.price, id: p.colruyt.id } : p.shop ? { chain: p.shop.chain, price: p.shop.price, id: p.shop.id } : null;
+  const tw = own && twinOf(own.chain, own.id);
+  if (!tw) return '';
+  const both = [own, { chain: tw.chain, price: tw.r[ROW.price] }].sort((a, b) => a.price - b.price);
+  return `<span class="sub compare">${both.map((x, i) => `<span class="${i === 0 && x.price < both[1].price ? 'cheaper' : ''}">${esc(CHAINS[x.chain].name)} ${eur(x.price)}</span>`).join(' · ')}</span>`;
+}
+
+// « Même article chez Delhaize : 5,09 € » sous un article du catalogue.
+function twinLine(chain, r) {
+  const tw = twinOf(chain, r[ROW.id]);
+  if (!tw) return '';
+  const d = tw.r[ROW.price] - r[ROW.price];
+  const where = CHAINS[tw.chain].name;
+  return ` · <span class="twin ${d < -0.005 ? 'cheaper' : ''}">${d < -0.005 ? `${eur(-d)} moins cher chez ${where}` : d > 0.005 ? `${where} : ${eur(tw.r[ROW.price])} (+${eur(d)})` : `même prix chez ${where}`}</span>`;
+}
+
 function searchResults() {
   if (!search.trim()) return '';
   const q = norm(search.trim());
@@ -829,7 +874,7 @@ function searchResults() {
     (cat.length ? `<div class="results-head"><span class="grow">Article précis · vrais prix ${esc(shops)}</span>
       <button class="chip ${healthy ? 'on' : ''}" data-action="healthy" aria-pressed="${Boolean(healthy)}">Santé d'abord</button></div>` : '') +
     cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}
-        <span class="sub">${unit(r)}</span></span>
+        <span class="sub">${unit(r)}${twinLine(chain, r)}</span></span>
         <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tous les catalogues…</div>' : '') +
     (exact ? '' : `<button data-action="add-custom"><span>Ajouter « ${esc(search.trim())} » avec mon prix</span><span class="small muted">autre</span></button>`);
@@ -858,7 +903,7 @@ function viewList() {
   const listHtml = [...groups.entries()]
     .sort((a, b) => CATEGORIES.indexOf(a[0]) - CATEGORIES.indexOf(b[0]))
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>

@@ -100,7 +100,7 @@ const CAT_HINT = {
   8: 'lessive adoucissant vaisselle eponge nettoyant javel',
 };
 const HINT = new Map(Object.entries(CAT_HINT).flatMap(([c, words]) => words.split(' ').map((w) => [w, Number(c)])));
-const BRAND = /^([A-ZÀ-Ý0-9&'.\-+]{2,}\s+)+/;
+export const BRAND = /^([A-ZÀ-Ý0-9&'.\-+]{2,}\s+)+/;
 
 /**
  * Cherche dans le catalogue. Le produit « général » passe avant les produits

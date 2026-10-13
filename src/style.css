@@ -431,3 +431,7 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 .tp-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: var(--line); cursor: pointer; }
 .tp-dots button[aria-current="true"] { width: 22px; background: var(--accent); }
 [hidden] { display: none !important; }
+
+/* Même article dans l'autre enseigne */
+.twin.cheaper, .compare .cheaper { color: var(--accent); font-weight: 700; }
+.items .name .sub.compare { display: block; font-size: .78rem; color: var(--muted); }

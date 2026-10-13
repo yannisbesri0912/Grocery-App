@@ -13,6 +13,7 @@ import { fetchPromotions } from './prijsprofeet.mjs';
 import { fetchSite } from './sites.mjs';
 import { fetchDelhaizeCatalog, fetchAldiCatalog, toCandidate, toRow } from './catalogs.mjs';
 import { toFrench } from '../src/translate.js';
+import { sameProducts } from '../src/same.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'data/prices.json');
@@ -150,6 +151,14 @@ if (runs('promos')) {
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, `${JSON.stringify(result, null, 1)}\n`);
+
+// Même article chez Colruyt et Delhaize (comparaison directe dans l'app).
+if (existsSync(CATALOG('colruyt')) && existsSync(CATALOG('delhaize'))) {
+  const rowsOf = (c) => JSON.parse(readFileSync(CATALOG(c), 'utf8')).rows;
+  const pairs = sameProducts(rowsOf('colruyt'), rowsOf('delhaize'));
+  writeFileSync(join(root, 'data/same.json'), `{"date":"${result.updatedAt.slice(0, 10)}","pairs":${JSON.stringify(pairs)}}\n`);
+  log.push(`- **même produit** : ${pairs.length} articles identiques Colruyt / Delhaize`);
+}
 
 // Rapport lisible : quel article a été retenu pour chaque produit, par enseigne.
 const chains = ['colruyt', 'delhaize', 'aldi', 'lidl'];

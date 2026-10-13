@@ -17,6 +17,21 @@ const DELHAIZE_CATS = {
 };
 const UNIT_OF = { kilogram: 'kg', kg: 'kg', liter: 'l', litre: 'l', l: 'l', pieces: 'pc', piece: 'pc', pc: 'pc' };
 
+// Relevé des formes de promo rencontrées (diagnostic : node prices/catalogs.mjs delhaize).
+export const PROMO_SEEN = new Map();
+function seePromo(p, row) {
+  const pr = p.price ?? {};
+  const promos = p.potentialPromotions ?? [];
+  const key = promos.length
+    ? promos.map((x) => [x.promotionTypeCode, x.redemptionLevel, x.qualifyingCount, x.freeCount, x.percentageDiscount, x.range, x.pickAndMix].join('|')).join(' + ')
+    : pr.discountedPriceFormatted ? `(sans promo, prix réduit ${pr.wasPrice ? 'avec wasPrice' : ''} ${pr.showStrikethroughPrice ? 'barré' : ''})` : null;
+  if (!key) return;
+  const e = PROMO_SEEN.get(key) ?? { n: 0, ex: [] };
+  e.n++;
+  if (e.ex.length < 4) e.ex.push({ name: row.name, price: pr.value, discounted: pr.discountedPriceFormatted, was: pr.wasPrice, strike: pr.showStrikethroughPrice, promos: promos.map((x) => ({ title: x.title, msg: x.simplePromotionMessage, desc: x.description, type: x.promotionType, q: x.qualifyingCount, free: x.freeCount, pct: x.percentageDiscount, lvl: x.redemptionLevel, end: x.endDate, burn: x.priceToBurn, offerType: x.offerType, badge: x.alternativePromotionBadge })) });
+  PROMO_SEEN.set(key, e);
+}
+
 function delhaizeRow(p) {
   const pr = p.price ?? {};
   const price = pr.value ?? num(pr.formattedValue);
@@ -50,6 +65,11 @@ function delhaizeRow(p) {
     nutri: /^[A-E]$/.test(p.nutriScoreLetter ?? '') ? p.nutriScoreLetter : '',
     kind: ['v2PET', 'v2BAB'].includes(p.firstLevelCategory?.code) ? (p.firstLevelCategory.code === 'v2PET' ? 'pet' : 'baby') : undefined,
   };
+}
+function delhaizeRowSeen(p) {
+  const row = delhaizeRow(p);
+  if (row) seePromo(p, row);
+  return row;
 }
 
 export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 } = {}) {
@@ -104,7 +124,7 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
         total = r.totalPages;
         pages++;
         if (pages === 1) log(`  exemple : ${r.products.slice(0, 3).map((p) => p.name).join(' | ')}`);
-        for (const p of r.products) { const row = delhaizeRow(p); if (row) rows.set(row.id, row); }
+        for (const p of r.products) { const row = delhaizeRowSeen(p); if (row) rows.set(row.id, row); }
         await sleep(250 + Math.random() * 250);
       }
       log(`  Delhaize ${cat} : ${total} pages, ${rows.size} articles au total`);
@@ -123,7 +143,7 @@ export async function fetchDelhaizeCatalog({ log = console.log, maxPages = 400 }
           const res = await fetch(x, { headers: { 'content-type': 'application/json', 'apollo-require-preflight': 'true' } });
           return res.ok ? (await res.json()).data?.productSearch?.products ?? [] : [];
         }, [searchUrl, { [textKey ?? 'searchQuery']: q, pageNumber: 0, pageSize: 50, lang: 'fr' }]).catch(() => []);
-        for (const p of r) { const row = delhaizeRow(p); if (row && !rows.has(row.id)) rows.set(row.id, row); }
+        for (const p of r) { const row = delhaizeRowSeen(p); if (row && !rows.has(row.id)) rows.set(row.id, row); }
         await sleep(200 + Math.random() * 200);
       }
       log(`  Delhaize recherches : +${rows.size - before} articles (clé « ${textKey} »)`);
@@ -241,5 +261,6 @@ if (process.argv[1]?.endsWith('catalogs.mjs')) {
     console.log(`${chain} : ${rows.length} articles en ${Math.round((Date.now() - t) / 1000)} s`);
     console.log(rows.slice(0, 5));
     writeFileSync(`data-raw/catalog-${chain}.json`, JSON.stringify(rows));
+    if (chain === 'delhaize') writeFileSync('data-raw/delhaize-promos.json', JSON.stringify([...PROMO_SEEN].sort((a, b) => b[1].n - a[1].n), null, 1));
   }
 }
