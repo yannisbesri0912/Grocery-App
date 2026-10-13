@@ -12,7 +12,7 @@ import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
@@ -1111,7 +1111,17 @@ function resolveIng(key, chain = smartShop()) {
   return out;
 }
 
-const ingName = (key) => ING[key].name ?? productById(ING[key].p)?.name.replace(/\s*\(.*\)$/, '') ?? key;
+const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+const ingName = (key) => (ING[key]
+  ? ING[key].name ?? productById(ING[key].p)?.name.replace(/\s*\(.*\)$/, '') ?? key
+  : cap(PANTRY_LABELS[key] ?? key.replace(/-/g, ' ')));
+// « J'ai déjà » : ingrédients de placard (sel, huile…) supposés présents sauf si
+// marqués manquants ; ingrédients achetés cochés « j'ai » pendant 10 jours.
+function haveIng(i) {
+  const v = state.pantry?.[i.key];
+  if (i.pantry) return v !== 'missing';
+  return typeof v === 'string' && v !== 'missing' && (Date.now() - new Date(v).getTime()) / DAY <= 10;
+}
 const dishCost = (r, servings = 1, chain = smartShop()) => r.ingredients.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * servings * resolveIng(i.key, chain).perUnit, 0);
 const recipeById = (id) => RECIPES.find((r) => r.id === id);
 
@@ -1134,12 +1144,20 @@ function addNeed(id, fraction) {
 }
 
 /** Ingrédients d'une recette dans la liste (sans le placard). */
+// Ajoute à la liste ce qui manque pour un plat (rien de ce que tu as déjà).
 function addDish(r, servings) {
-  for (const i of r.ingredients.filter((x) => !x.pantry)) {
-    const res = resolveIng(i.key);
+  const chain = CATALOGS[smartShop()] ? smartShop() : 'colruyt';
+  // Placard marqué manquant (sel, huile…) : produit simple à ajouter.
+  for (const i of r.ingredients.filter((x) => x.pantry && !haveIng(x))) {
+    const id = ING[i.key]?.p ?? `placard-${i.key}`;
+    if (!productById(id)) state.custom.push({ id, name: ingName(i.key), cat: 4, ref: 1.5, custom: true });
+    if (!state.list.some((l) => l.id === id)) state.list.push({ id, qty: 1, checked: false });
+  }
+  for (const i of r.ingredients.filter((x) => !x.pantry && !haveIng(x))) {
+    const res = resolveIng(i.key, chain);
     let id = res.product?.id;
     if (!id && res.row) {
-      const p = catalogProduct(res.row);
+      const p = catalogProduct(res.row, chain);
       if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
       id = p.id;
     }
@@ -1456,8 +1474,10 @@ function viewPlats() {
   const k = kitchen();
   const q = norm(recipeSearch.trim());
   const filters = recipeFilters({ maxTime: recipeQuick ? 20 : Infinity });
+  const styles = state.settings.recipeStyles ?? [];
   const all = RECIPES.filter((r) => r.type === recipeType && (!q || norm(r.name).includes(q) || r.ingredients.some((i) => norm(ingName(i.key)).includes(q))));
-  const ok = all.filter((r) => compatible(r, filters)).sort((a, b) => dishCost(a) - dishCost(b));
+  const ok = all.filter((r) => compatible(r, filters) && styles.every((st) => (st === 'pascher' ? dishCost(r) <= 2 : STYLES[st]?.test(r) ?? true)))
+    .sort((a, b) => dishCost(a) - dishCost(b));
   const menu = (state.menu ?? []).map((m) => recipeById(m.id)).filter(Boolean);
   return `
     <h1>Plats</h1>
@@ -1472,6 +1492,7 @@ function viewPlats() {
     <div class="seg" role="group" aria-label="Type">${Object.entries(TYPES).map(([t, l]) => `<button data-action="recipe-type" data-val="${t}" aria-pressed="${recipeType === t}">${l}</button>`).join('')}</div>
     <div class="row" style="gap:8px"><div class="searchbox grow">${icon('search')}<input type="search" id="recipe-search" placeholder="Plat ou ingrédient…" value="${esc(recipeSearch)}" autocomplete="off"></div>
       <button class="chip" data-action="recipe-quick" aria-pressed="${recipeQuick}">≤ 20 min</button></div>
+    <div class="chips wrap" role="group" aria-label="Envies">${[...Object.entries(STYLES).map(([k, st]) => [k, st.label, st.hint]), ['pascher', 'Pas cher', '≤ 2 € par personne']].map(([k, label, hint]) => `<button class="chip" data-action="recipe-style" data-val="${k}" aria-pressed="${styles.includes(k)}" ${hint ? `title="${esc(hint)}"` : ''}>${styles.includes(k) ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
     <p class="small muted">${ok.length} recette${ok.length > 1 ? 's' : ''} faisable${ok.length > 1 ? 's' : ''} avec ta cuisine${all.length > ok.length ? ` (${all.length - ok.length} autre${all.length - ok.length > 1 ? 's' : ''} demandent un autre appareil ou un autre régime)` : ''} · prix par personne, vrais prix Colruyt.</p>
     <div class="recipes">${ok.map(recipeCard).join('') || '<div class="empty"><b>Aucune recette</b><span>Coche d\'autres appareils ou change de filtre.</span></div>'}</div>`;
 }
@@ -1484,6 +1505,15 @@ function dishShops(r, n) {
   return `<div class="row shop-compare" style="gap:8px">${rows.map((x, i) => `<span class="chip ${i === 0 && rows[1].cost - x.cost > 0.005 ? 'on' : ''}">${logo(x.c, 'sm')} ${esc(CHAINS[x.c].name)} <b class="num">≈ ${eur(x.cost)}</b></span>`).join('')}</div>`;
 }
 
+// Ligne d'ingrédient avec case « j'ai déjà ».
+function ingRow(i, n, priced) {
+  const have = haveIng(i);
+  const amount = i.amount ? formatAmount(i.amount * (i.unit === 'cc' || i.unit === 'cs' ? n : n), i.unit) : '';
+  return `<li class="${have ? 'done' : ''}"><button class="have" data-action="have" data-key="${esc(i.key)}" data-pantry="${i.pantry ? 1 : 0}" aria-pressed="${have}" aria-label="J'ai déjà ${esc(ingName(i.key))}">${have ? icon('check') : ''}</button>
+    <span class="name">${esc(ingName(i.key))}</span><span class="num">${amount}</span>
+    ${priced ? `<span class="num muted small" style="min-width:56px;text-align:right">${have ? 'j\'ai' : eur(i.amount * n * resolveIng(i.key).perUnit)}</span>` : ''}</li>`;
+}
+
 function viewRecipe(r) {
   if (!r) { recipeOpen = null; return viewPlats(); }
   const n = state.settings.servings ?? smartSettings().profile?.people ?? 1;
@@ -1494,18 +1524,25 @@ function viewRecipe(r) {
   return `
     <button class="btn ghost small" data-action="recipe-back">← Plats</button>
     <h1>${esc(r.name)}</h1>
-    <p class="small muted">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}</p>
+    <p class="small muted">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'} · ≈ ${proteinOf(r)} g de protéines par personne</p>
     ${missing.length ? `<div class="banner warn-banner">⚠️<span class="small">Il te faut : ${esc(missing.join(', '))}.</span></div>` : ''}
     <div class="card">
       <div class="row" style="justify-content:space-between"><b>Personnes</b>
         <span class="stepper"><button data-action="servings" data-d="-1" aria-label="Moins">${icon('minus')}</button><b class="num">${n}</b><button data-action="servings" data-d="1" aria-label="Plus">${icon('plus')}</button></span></div>
-      <ul class="items">${bought.map((i) => `<li><span class="name">${esc(ingName(i.key))}</span><span class="num">${formatAmount(i.amount * n, i.unit)}${i.unit === 'pc' ? '' : ''}</span><span class="num muted small" style="min-width:56px;text-align:right">${eur(i.amount * n * resolveIng(i.key).perUnit)}</span></li>`).join('')}</ul>
-      ${pantry.length ? `<p class="small muted">Dans ton placard : ${esc(pantry.map((i) => ingName(i.key)).join(', '))}.</p>` : ''}
+      <p class="small muted" style="margin:0">Coche ce que tu as déjà : ce ne sera pas ajouté à ta liste.</p>
+      <ul class="items checklist">${bought.map((i) => ingRow(i, n, true)).join('')}</ul>
+      ${pantry.length ? `<span class="eyebrow">Placard</span><ul class="items checklist">${pantry.map((i) => ingRow(i, n, false)).join('')}</ul>` : ''}
     </div>
     <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
       ${r.src ? `<p class="tiny muted">Recette adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a> (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
     ${dishShops(r, n)}
-    <button class="btn primary lg block" data-action="recipe-add" data-id="${r.id}">${icon('cart')} Ajouter à ma liste · ≈ ${eur(dishCost(r, n))}</button>
+    ${(() => {
+      const need = r.ingredients.filter((i) => !haveIng(i));
+      const cost = need.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * n * resolveIng(i.key).perUnit, 0);
+      return need.length
+        ? `<button class="btn primary lg block" data-action="recipe-add" data-id="${r.id}">${icon('cart')} Ajouter ce qui manque (${need.length}) · ≈ ${eur(cost)}</button>`
+        : '<div class="banner">✓ <span class="grow">Tu as tout ce qu\'il faut</span></div>';
+    })()}
     <p class="foot">Prix estimé avec la quantité utilisée ; en magasin on achète des paquets entiers (le reste servira pour d'autres plats).</p>`;
 }
 
@@ -2140,6 +2177,21 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'smart-budget') {
     smartSettings().budget = Number(b.dataset.val);
+    save();
+    render();
+  } else if (a === 'recipe-style') {
+    const st = new Set(state.settings.recipeStyles ?? []);
+    if (st.has(b.dataset.val)) st.delete(b.dataset.val); else st.add(b.dataset.val);
+    state.settings.recipeStyles = [...st];
+    save();
+    render();
+  } else if (a === 'have') {
+    state.pantry ??= {};
+    const pantryItem = b.dataset.pantry === '1';
+    const has = b.getAttribute('aria-pressed') === 'true';
+    if (pantryItem) state.pantry[b.dataset.key] = has ? 'missing' : undefined;
+    else state.pantry[b.dataset.key] = has ? undefined : new Date().toISOString().slice(0, 10);
+    if (state.pantry[b.dataset.key] === undefined) delete state.pantry[b.dataset.key];
     save();
     render();
   } else if (a === 'swap') {

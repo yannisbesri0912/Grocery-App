@@ -76,3 +76,15 @@ test('recettes Wikibooks : toutes chargées, ingrédients connus, source indiqu�
     assert.ok(r.steps.length > 20 && !/°F/.test(r.steps), r.name);
   }
 });
+
+test('recettes importées : ingrédients de placard nommés, cuillères, filtres d\'envies', async () => {
+  const { makeRecipe, formatAmount, PANTRY_LABELS, STYLES, proteinOf } = await import('../src/recipes.js');
+  const r = makeRecipe(['Test', 'plat', 12, 'plaques', 'poulet:150g tomates:200g ~sel:0.25cc ~huile-d-olive:1cs ~poivre', 'Cuire.']);
+  const salt = r.ingredients.find((i) => i.key === 'sel');
+  assert.equal(salt.pantry, true);
+  assert.equal(formatAmount(salt.amount, salt.unit), '¼ c. à café');
+  assert.equal(formatAmount(1.5, 'cs'), '1½ c. à soupe');
+  assert.equal(PANTRY_LABELS['huile-d-olive'], "huile d'olive");
+  assert.equal(proteinOf(r), 35);
+  assert.ok(STYLES.rapide.test(r) && STYLES.proteine.test(r) && STYLES.healthy.test(r) && !STYLES.veggie.test(r));
+});

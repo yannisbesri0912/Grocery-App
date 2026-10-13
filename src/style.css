@@ -473,3 +473,9 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 .share-box .qr svg { width: min(240px, 70vw); height: auto; }
 
 .items .name .sub.tip { display: block; white-space: normal; font-size: .78rem; color: var(--ink); }
+
+/* Check-list des recettes */
+.checklist button.have { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--accent-ink); cursor: pointer; padding: 0; }
+.checklist button.have[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.checklist button.have .i { width: 16px; height: 16px; }
+.checklist li.done .name { text-decoration: line-through; color: var(--muted); }

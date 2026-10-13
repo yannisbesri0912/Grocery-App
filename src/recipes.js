@@ -224,6 +224,109 @@ const R = [
   ['Cookies au chocolat', 'dessert', 25, 'four|airfryer', 'farine:45g beurre:25g sucre:25g chocolat:25g oeufs:0.25pc', "Mélanger beurre mou et sucre, ajouter l'œuf, la farine et le chocolat en morceaux. Former des boules, cuire 10 à 12 min à 180 °C."],
 ];
 
+// Ingrédients de placard des recettes importées (« ~sel:0.25cc ») : nom affiché.
+export const PANTRY_LABELS = {
+  'ail-en-poudre': "ail en poudre",
+  'aneth': "aneth",
+  'ase-fetide': "ase fétide",
+  'assaisonnement': "assaisonnement",
+  'basilic': "basilic",
+  'beurre': "beurre",
+  'bicarbonate': "bicarbonate",
+  'bouillon': "bouillon",
+  'cacao': "cacao",
+  'cannelle': "cannelle",
+  'cardamome': "cardamome",
+  'cassonade': "cassonade",
+  'cerises-confites': "cerises confites",
+  'ciboulette': "ciboulette",
+  'cinq-epices': "cinq-épices",
+  'clous-de-girofle': "clous de girofle",
+  'coriandre': "coriandre",
+  'coriandre-fraiche': "coriandre fraîche",
+  'creme': "crème",
+  'creme-de-tartre': "crème de tartre",
+  'cube-de-bouillon': "cube de bouillon",
+  'cumin': "cumin",
+  'curcuma': "curcuma",
+  'curry': "curry",
+  'dattes': "dattes",
+  'eau': "eau",
+  'ecrevisses-sechees': "écrevisses séchées",
+  'edulcorant': "édulcorant",
+  'epices-cajun': "épices cajun",
+  'epinards': "épinards",
+  'estragon': "estragon",
+  'farine': "farine",
+  'farine-levante': "farine levante",
+  'fecule-de-mais': "fécule de maïs",
+  'garam-masala': "garam masala",
+  'ghee': "ghee",
+  'gingembre': "gingembre",
+  'glacons': "glaçons",
+  'glutamate': "glutamate",
+  'graines-de-celeri': "graines de céleri",
+  'graines-de-fenouil': "graines de fenouil",
+  'graines-de-moutarde': "graines de moutarde",
+  'graines-de-pavot': "graines de pavot",
+  'graines-de-sesame': "graines de sésame",
+  'herbes': "herbes",
+  'herbes-italiennes': "herbes italiennes",
+  'huile': "huile",
+  'huile-d-olive': "huile d'olive",
+  'huile-de-sesame': "huile de sésame",
+  'jus-de-citron': "jus de citron",
+  'ketchup': "ketchup",
+  'lait': "lait",
+  'laurier': "laurier",
+  'levure-chimique': "levure chimique",
+  'levure-de-boulanger': "levure de boulanger",
+  'macis': "macis",
+  'marjolaine': "marjolaine",
+  'melange-d-epices': "mélange d'épices",
+  'menthe': "menthe",
+  'miel': "miel",
+  'moutarde': "moutarde",
+  'muscade': "muscade",
+  'oignon-en-poudre': "oignon en poudre",
+  'origan': "origan",
+  'paprika': "paprika",
+  'paprika-fume': "paprika fumé",
+  'pepites-de-chocolat': "pépites de chocolat",
+  'persil': "persil",
+  'petits-pains': "petits pains",
+  'piment': "piment",
+  'pistaches-ou-amandes': "pistaches ou amandes",
+  'poivre': "poivre",
+  'quatre-epices': "quatre-épices",
+  'raisins-secs': "raisins secs",
+  'rhum': "rhum",
+  'romarin': "romarin",
+  'safran': "safran",
+  'sarriette': "sarriette",
+  'sauce-pimentee': "sauce pimentée",
+  'sauce-piquante': "sauce piquante",
+  'sauce-poisson': "sauce poisson",
+  'sauce-soja': "sauce soja",
+  'sauce-worcestershire': "sauce Worcestershire",
+  'sauge': "sauge",
+  'sel': "sel",
+  'semoule-de-mais': "semoule de maïs",
+  'sucre': "sucre",
+  'sucre-glace': "sucre glace",
+  'thym': "thym",
+  'tofu': "tofu",
+  'vanille': "vanille",
+  'vin': "vin",
+  'vinaigre': "vinaigre",
+  'vinaigre-balsamique': "vinaigre balsamique",
+  'vinaigre-de-cidre': "vinaigre de cidre",
+  'vinaigre-de-vin': "vinaigre de vin",
+  'zeste': "zeste",
+  'zeste-d-orange': "zeste d'orange",
+  'zeste-de-citron': "zeste de citron",
+};
+
 export const TYPES = { plat: 'Plats', midi: 'Midi', petitdej: 'Petit-déj', dessert: 'Desserts' };
 
 const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/œ/g, 'oe').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -232,7 +335,7 @@ function parseIngredients(text) {
   return text.split(/\s+/).filter(Boolean).map((tok) => {
     const pantry = tok.startsWith('~');
     const [key, amt] = tok.replace(/^~/, '').split(':');
-    const m = (amt ?? '').match(/^([\d.]+)(g|ml|pc)?$/);
+    const m = (amt ?? '').match(/^([\d.]+)(g|ml|pc|cc|cs)?$/);
     return { key, amount: m ? Number(m[1]) : 0, unit: m?.[2] ?? null, pantry: pantry || Boolean(ING[key]?.pantry) };
   });
 }
@@ -261,7 +364,7 @@ export function addRecipes(rows, prefix = 'wb-') {
   let added = 0;
   for (const row of rows) {
     const r = makeRecipe(row, prefix);
-    if (ids.has(r.id) || r.ingredients.some((i) => !ING[i.key])) continue;
+    if (ids.has(r.id) || r.ingredients.some((i) => !ING[i.key] && !(i.pantry && PANTRY_LABELS[i.key]))) continue;
     ids.add(r.id);
     RECIPES.push(r);
     added++;
@@ -278,6 +381,43 @@ export const DIETS = {
 };
 export const ALLERGIES = { d: 'Sans lactose', g: 'Sans gluten', e: 'Sans œufs', n: 'Sans fruits à coque' };
 
+// ---------- Envies : filtres de style ----------
+// Protéines (g pour 100 g / 100 ml, ou par pièce pour les œufs) des ingrédients achetés.
+const PROTEIN = {
+  poulet: 23, dinde: 24, boeuf: 26, steak: 26, 'steak-burger': 17, hache: 18, 'boeuf-ragout': 20, porc: 20, jambon: 18, lardons: 14,
+  chorizo: 24, merguez: 15, saumon: 20, thon: 25, cabillaud: 18, crevettes: 20, moules: 12, oeufs: 6, lentilles: 24, 'pois-chiches': 8,
+  'haricots-rouges': 8, tofu: 13, skyr: 11, 'fromage-frais': 8, gouda: 25, emmental: 28, mozzarella: 18, parmesan: 33, feta: 14,
+  cheddar: 25, reblochon: 20, quinoa: 14, yaourts: 4, lait: 3.4, houmous: 8, falafel: 13, pates: 12, riz: 7, semoule: 12, nouilles: 10,
+  cacahuete: 25, amandes: 21, noix: 15, lasagne: 12, gnocchi: 4,
+};
+const VEG = { tomates: 1, concombre: 1, carottes: 1, oignons: 1, courgettes: 1, poivrons: 1, brocoli: 1, champignons: 1, epinards: 1,
+  poireaux: 1, aubergine: 1, 'chou-fleur': 1, chicons: 1, courge: 1, 'haricots-verts': 1, 'legumes-surg': 1, 'patate-douce': 1,
+  'tomates-conc': 1, mais: 1, salade: 100, avocats: 150 }; // pièce → grammes
+const bought = (r) => r.ingredients.filter((i) => !i.pantry);
+const grams = (r, keys) => bought(r).filter((i) => keys[i.key]).reduce((t, i) => t + (i.unit === 'pc' ? i.amount * (keys[i.key] > 1 ? keys[i.key] : 0) : i.amount), 0);
+
+/** Protéines par portion (g), approximatives. */
+export function proteinOf(r) {
+  return Math.round(bought(r).reduce((t, i) => t + (PROTEIN[i.key] ? (i.unit === 'pc' ? i.amount * PROTEIN[i.key] : (i.amount / 100) * PROTEIN[i.key]) : 0), 0));
+}
+/** Légumes par portion (g). */
+export const vegOf = (r) => Math.round(grams(r, VEG));
+
+export const STYLES = {
+  rapide: { label: 'Ultra rapide', hint: '≤ 15 min', test: (r) => r.minutes <= 15 },
+  pates: { label: 'Pâtes', test: (r) => bought(r).some((i) => ['pates', 'lasagne', 'gnocchi', 'nouilles'].includes(i.key)) },
+  veggie: { label: 'Veggie', test: (r) => !r.flags.has('m') && !r.flags.has('f') },
+  proteine: { label: 'Protéiné', hint: '≥ 25 g de protéines', test: (r) => proteinOf(r) >= 25 },
+  healthy: {
+    label: 'Healthy',
+    test: (r) => r.type !== 'dessert' && vegOf(r) >= 150
+      && !bought(r).some((i) => ['frites', 'pizza', 'pate-feuil', 'bouchees', 'chocolat', 'sirop'].includes(i.key))
+      && bought(r).filter((i) => i.key === 'sucre').reduce((t, i) => t + i.amount, 0) <= 15
+      && bought(r).filter((i) => ['creme', 'beurre'].includes(i.key)).reduce((t, i) => t + i.amount, 0) <= 30
+      && bought(r).filter((i) => ['gouda', 'emmental', 'mozzarella', 'parmesan', 'cheddar', 'reblochon', 'feta'].includes(i.key)).reduce((t, i) => t + i.amount, 0) <= 40,
+  },
+};
+
 /** La recette est-elle faisable avec ces ustensiles et ce régime ? */
 export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], maxTime = Infinity } = {}) {
   if (r.minutes > maxTime) return false;
@@ -287,8 +427,13 @@ export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], max
 }
 
 /** Quantité affichée : « 250 g », « 1,5 L », « 2 ». */
+const FRACTIONS = { 0.125: '⅛', 0.25: '¼', 0.375: '⅜', 0.5: '½', 0.625: '⅝', 0.75: '¾', 0.875: '⅞' };
+const spoon = (x) => { const whole = Math.floor(x); const f = FRACTIONS[Math.round((x - whole) * 8) / 8]; return `${whole || ''}${f ?? ''}` || '¼'; };
+
 export function formatAmount(amount, unit) {
   const r = (x) => (x >= 10 ? Math.round(x / 5) * 5 : Math.round(x * 10) / 10).toLocaleString('fr-BE');
+  if (unit === 'cc') return `${spoon(amount)} c. à café`;
+  if (unit === 'cs') return `${spoon(amount)} c. à soupe`;
   if (unit === 'g') return amount >= 1000 ? `${(Math.round(amount / 100) / 10).toLocaleString('fr-BE')} kg` : `${r(amount)} g`;
   if (unit === 'ml') return amount >= 1000 ? `${(Math.round(amount / 100) / 10).toLocaleString('fr-BE')} L` : `${r(amount)} ml`;
   return r(amount);

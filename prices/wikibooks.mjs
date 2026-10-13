@@ -148,6 +148,56 @@ function parseQty(text) {
   return { qty: b ? (a + b) / 2 : a, rest: t.slice(m[0].length).trim() };
 }
 
+// ---------- Ingrédients de placard : nom français ----------
+// (gardés dans la recette avec leur quantité, mais pas achetés pour elle)
+const PANTRY_FR = [
+  [/seasoning cube|stock cube|maggi|knorr/, 'cube de bouillon'], [/\bmace\b/, 'macis'], [/italian seasoning|italian herbs/, 'herbes italiennes'],
+  [/five.spice/, 'cinq-épices'], [/cajun/, 'épices cajun'], [/mixed spice|pumpkin pie spice|seasoning|spices?\b|suya|banga/, 'mélange d\'épices'],
+  [/celery seed/, 'graines de céleri'], [/zest.*lemon|lemon.*zest/, 'zeste de citron'], [/zest.*orange|orange.*zest/, 'zeste d\'orange'], [/zest/, 'zeste'], [/chil[ie]+ sauce/, 'sauce pimentée'], [/cornmeal|maize/, 'semoule de maïs'],
+  [/\bmsg\b/, 'glutamate'], [/saffron/, 'safran'], [/asafoetida/, 'ase fétide'], [/ghee/, 'ghee'], [/\brum\b/, 'rhum'],
+  [/chocolate chip/, 'pépites de chocolat'], [/raisin/, 'raisins secs'], [/\bdates\b/, 'dattes'], [/spinach/, 'épinards'], [/tofu/, 'tofu'],
+  [/sweetener/, 'édulcorant'], [/savory/, 'sarriette'], [/cherr/, 'cerises confites'], [/pistachio|almond/, 'pistaches ou amandes'],
+  [/crayfish/, 'écrevisses séchées'], [/buns?\b/, 'petits pains'],
+  [/olive oil/, 'huile d\'olive'], [/sesame oil/, 'huile de sésame'], [/\boil\b|cooking spray|shortening/, 'huile'],
+  [/baking powder/, 'levure chimique'], [/baking soda|bicarbonate/, 'bicarbonate'], [/yeast/, 'levure de boulanger'],
+  [/cream of tartar/, 'crème de tartre'], [/corn ?starch|cornflour/, 'fécule de maïs'],
+  [/vanilla/, 'vanille'], [/cinnamon/, 'cannelle'], [/nutmeg/, 'muscade'], [/smoked paprika/, 'paprika fumé'], [/paprika/, 'paprika'],
+  [/cumin/, 'cumin'], [/turmeric/, 'curcuma'], [/garam masala/, 'garam masala'], [/curry/, 'curry'],
+  [/cayenne|chil[ie]+ (powder|flakes)|red pepper flakes|pepper flakes|hot pepper/, 'piment'],
+  [/garlic powder|garlic salt/, 'ail en poudre'], [/onion powder/, 'oignon en poudre'], [/ginger/, 'gingembre'],
+  [/oregano/, 'origan'], [/thyme/, 'thym'], [/rosemary/, 'romarin'], [/basil/, 'basilic'], [/bay lea/, 'laurier'],
+  [/sage/, 'sauge'], [/marjoram/, 'marjolaine'], [/tarragon/, 'estragon'], [/dill/, 'aneth'], [/mint/, 'menthe'],
+  [/chives/, 'ciboulette'], [/cilantro|coriander lea|fresh coriander/, 'coriandre fraîche'], [/coriander/, 'coriandre'],
+  [/parsley/, 'persil'], [/herbs|herbes/, 'herbes'], [/clove/, 'clous de girofle'], [/allspice/, 'quatre-épices'],
+  [/cardamom/, 'cardamome'], [/sesame seed/, 'graines de sésame'], [/poppy seed/, 'graines de pavot'],
+  [/mustard seed/, 'graines de moutarde'], [/fennel seed/, 'graines de fenouil'],
+  [/worcestershire/, 'sauce Worcestershire'], [/soy sauce/, 'sauce soja'], [/fish sauce/, 'sauce poisson'],
+  [/hot sauce|tabasco|sriracha/, 'sauce piquante'], [/ketchup/, 'ketchup'], [/mustard/, 'moutarde'],
+  [/cider vinegar/, 'vinaigre de cidre'], [/wine vinegar/, 'vinaigre de vin'], [/balsamic/, 'vinaigre balsamique'], [/vinegar/, 'vinaigre'],
+  [/stock|broth|bouillon/, 'bouillon'], [/lemon zest|lemon rind|lemon peel/, 'zeste de citron'], [/orange zest|orange rind|orange peel/, 'zeste d\'orange'],
+  [/lemon juice/, 'jus de citron'], [/honey/, 'miel'], [/cocoa/, 'cacao'], [/icing sugar|powdered sugar|confectioner/, 'sucre glace'],
+  [/brown sugar/, 'cassonade'], [/sugar/, 'sucre'], [/self.raising|self.rising/, 'farine levante'], [/flour/, 'farine'],
+  [/butter|margarine/, 'beurre'], [/milk/, 'lait'], [/cream/, 'crème'], [/wine/, 'vin'],
+  [/\bwater\b/, 'eau'], [/\bice\b/, 'glaçons'], [/black pepper|white pepper|peppercorn|\bpepper\b/, 'poivre'], [/salt/, 'sel'],
+];
+export function pantryName(en) {
+  const t = String(en ?? '').toLowerCase();
+  return PANTRY_FR.find(([re]) => re.test(t))?.[1] ?? null;
+}
+// Quantité d'un ingrédient de placard : cuillères gardées telles quelles (cc, cs).
+function pantryAmount(qty, unit) {
+  if (!(qty > 0)) return null;
+  if (unit === 'tsp') return [qty, 'cc'];
+  if (unit === 'tbsp') return [qty, 'cs'];
+  if (unit === 'cup') return [qty * 240, 'ml'];
+  const g = { g: 1, kg: 1000, lb: 454, oz: 28.35 }[unit];
+  const ml = { ml: 1, l: 1000, dl: 100, cl: 10, floz: 30 }[unit];
+  if (g) return [qty * g, 'g'];
+  if (ml) return [qty * ml, 'ml'];
+  if (!unit || unit === 'pc' || unit === 'clove') return [qty, 'pc'];
+  return null;
+}
+
 /** « 2 cups flour, sifted » → { key, amount (unité du paquet), pantry } ou null (introuvable). */
 export function parseIngredient(line) {
   const clean = line.replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
@@ -167,10 +217,10 @@ export function parseIngredient(line) {
   const optional = /optional|to taste|for (garnish|serving|frying|greasing|dusting)|as needed/i.test(clean);
   let hit = null;
   for (const [re, key, conv] of MAP) if (re.test(name)) { hit = { key, conv: conv ?? {} }; break; }
-  if (!hit) return optional ? { pantry: true, name } : null;
-  if (hit.key === 'skip') return optional ? { pantry: true, name } : null;
-  if (hit.key === 'pantry' || unit === 'tiny') return { pantry: true, name };
-  if (hit.key === 'vin-cuisine') return { pantry: true, name };
+  if (!hit) return optional ? { pantry: true, name, qty, unit } : null;
+  if (hit.key === 'skip') return optional ? { pantry: true, name, qty, unit } : null;
+  if (hit.key === 'pantry' || unit === 'tiny') return { pantry: true, name, qty: unit === 'tiny' ? null : qty, unit };
+  if (hit.key === 'vin-cuisine') return { pantry: true, name, qty, unit };
   const def = ING[hit.key];
   if (!def) return null;
   const target = def.pack[1];
@@ -178,7 +228,7 @@ export function parseIngredient(line) {
   const q = qty ?? (target === 'pc' ? 1 : null);
   if (q == null) {
     // Sans quantité : une pièce ou une portion habituelle.
-    if (['beurre', 'sucre', 'farine', 'lait', 'miel', 'creme'].includes(hit.key)) return { pantry: true, name };
+    if (['beurre', 'sucre', 'farine', 'lait', 'miel', 'creme'].includes(hit.key)) return { pantry: true, name, qty, unit };
     if (c.piece) return { key: hit.key, total: target === 'pc' ? 1 : c.piece, name };
     return optional ? { pantry: true, name } : null;
   }
@@ -214,7 +264,7 @@ export function parseIngredient(line) {
   }
   if (amount == null || !(amount > 0)) return null;
   // Petites quantités de sucre / farine / beurre / miel : placard.
-  if (['sucre', 'farine', 'miel'].includes(hit.key) && amount <= 30) return { pantry: true, name };
+  if (['sucre', 'farine', 'miel'].includes(hit.key) && amount <= 30) return { pantry: true, name, qty: amount, unit: target };
   return { key: hit.key, total: amount, name };
 }
 
@@ -248,6 +298,24 @@ function minutesOf(time, steps, tools) {
   return 15 + steps * 5 + (tools.includes('four') ? 30 : 0);
 }
 
+// Ingrédients de placard → « ~sel:0.25cc ~levure-de-boulanger:2g ~poivre », par personne.
+function pantryTokens(items, servings) {
+  const acc = new Map();
+  for (const p of items) {
+    const fr = pantryName(p.name) ?? 'assaisonnement';
+    const amt = pantryAmount(p.qty, p.unit);
+    const cur = acc.get(fr) ?? { amount: 0, unit: amt?.[1] ?? null };
+    if (amt && (cur.unit === amt[1] || !cur.amount)) { cur.amount += amt[0]; cur.unit = amt[1]; }
+    acc.set(fr, cur);
+  }
+  const slug = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return [...acc].map(([fr, { amount, unit }]) => {
+    const per = amount / servings;
+    const nice = unit === 'cc' || unit === 'cs' ? Math.round(per * 8) / 8 : unit === 'pc' ? Math.round(per * 4) / 4 : Math.round(per);
+    return `~${slug(fr)}${amount && nice > 0 ? `:${nice}${unit}` : ''}`;
+  });
+}
+
 export function importRecipes(raw) {
   const out = [];
   const reasons = {};
@@ -278,7 +346,7 @@ export function importRecipes(raw) {
     const round = (x, u) => (u === 'pc' ? Math.round(x * 100) / 100 : Math.max(1, Math.round(x)));
     const ingredients = [
       ...per.map(([key, a]) => `${key}:${round(a, ING[key].pack[1])}${ING[key].pack[1]}`),
-      ...[...new Set(parsed.filter((p) => p.pantry).map((p) => (/oil/.test(p.name) ? 'huile' : 'epices')))].map((k) => `~${k}`),
+      ...pantryTokens(parsed.filter((p) => p.pantry), servings),
     ].join(' ');
     out.push({ src: r.url, title, type, minutes, servings, tools: tools.join(' '), ingredients, steps });
     why('gardée');
