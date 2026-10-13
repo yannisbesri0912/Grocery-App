@@ -1,0 +1,220 @@
+{
+ "delhaize": {
+  "links": [
+   "/nl/c/v2WIN|Wijn & bubbels",
+   "/c/v2SPO|Sport en gezondheid",
+   "/c/v2FRU|Verse groenten en fruit",
+   "/c/v2MEA|Vlees, vis en vegetarische producten",
+   "/c/v2DAI|Zuivel, kaas en plantaardige alternatiev",
+   "/c/v2CON|Snel en smakelijk",
+   "/c/v2APE|Apero en voorgerechten",
+   "/c/v2BAK|Bakkerij en banket",
+   "/c/v2SWE|Zoete kruidenierswaren",
+   "/c/v2SAL|Zoute kruidenierswaren",
+   "/c/v2FRO|Diepvries",
+   "/c/v2SPE|Bewuste voeding",
+   "/c/v2WIN|Wijn & bubbels",
+   "/c/v2DRI|Koude en warme dranken",
+   "/c/v2ALC|Bieren, Alcohol & Alcoholvrij",
+   "/c/v2CLE|Onderhoud en huishouden",
+   "/c/v2NON|Keuken, wonen en vrije tijd",
+   "/c/v2HYG|Hygiëne en verzorging",
+   "/c/v2BAB|Baby",
+   "/c/v2PET|Huisdieren"
+  ],
+  "ops": [
+   "GetFlashOfferBanner",
+   "PredictMyProducts",
+   "FullHeader",
+   "DeliveryTypes"
+  ],
+  "tries": [
+   {
+    "v": {},
+    "status": 200,
+    "n": 20,
+    "pag": {
+     "currentPage": 0,
+     "totalResults": 1305,
+     "totalPages": 66,
+     "sort": "relevance",
+     "__typename": "Pagination"
+    },
+    "codes": "[{\"code\":\"country\",\"name\":\"Land\",\"category\":false,\"facetUiType\":\"LONG_MULTI_SELECT_LIST\",\"values\":[{\"code\":\"Argentinië\",\"count\":36,\"name\":\"Argentinië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Argentini%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Armenië\",\"count\":5,\"name\":\"Armenië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Armeni%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Australië\",\"count\":41,\"name\":\"Australië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Australi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"België\",\"count\":7,\"name\":\"België\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Belgi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Chili\",\"count\":57,\"name\":\"Chili\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Chili\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Duitsland\",\"count\":12,\"name\":\"Duitsland\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Duitsland\",\"__typename\":\"InternalP",
+    "head": "{\"data\":{\"categoryProductSearch\":{\"products\":[{\"available\":true,\"averageRating\":null,\"numberOfReviews\":null,\"manufacturerName\":\"de Castellane\",\"manufacturerSubBrandName\":null,\"code\":\"S2011042900241370000\",\"deliveryType\":\"NEXT_DAY\",\"country\":\"Frankrijk\",\"countryFlagUrl\":\"/medias/sys_master/country-flags/h3a/hfc/13764495376414.svg\",\"badges\":[],\"badgeBrand\":{\"code\":\"champagne de castellane\",\"image\":n",
+    "keys": [
+     "products",
+     "breadcrumbs",
+     "categoryBreadcrumbs",
+     "facets",
+     "sorts",
+     "pagination",
+     "currentQuery",
+     "categorySearchTree",
+     "__typename"
+    ]
+   },
+   {
+    "v": {
+     "pageSize": 20,
+     "pageNumber": 1
+    },
+    "status": 200,
+    "n": 20,
+    "pag": {
+     "currentPage": 1,
+     "totalResults": 1305,
+     "totalPages": 66,
+     "sort": "relevance",
+     "__typename": "Pagination"
+    },
+    "codes": "[{\"code\":\"country\",\"name\":\"Land\",\"category\":false,\"facetUiType\":\"LONG_MULTI_SELECT_LIST\",\"values\":[{\"code\":\"Argentinië\",\"count\":36,\"name\":\"Argentinië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Argentini%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Armenië\",\"count\":5,\"name\":\"Armenië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Armeni%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Australië\",\"count\":41,\"name\":\"Australië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Australi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"België\",\"count\":7,\"name\":\"België\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Belgi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Chili\",\"count\":57,\"name\":\"Chili\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Chili\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Duitsland\",\"count\":12,\"name\":\"Duitsland\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Duitsland\",\"__typename\":\"InternalP",
+    "head": "{\"data\":{\"categoryProductSearch\":{\"products\":[{\"available\":true,\"averageRating\":null,\"numberOfReviews\":null,\"manufacturerName\":\"Veuve Clicquot\",\"manufacturerSubBrandName\":null,\"code\":\"S1971080100243540000\",\"deliveryType\":\"NEXT_DAY\",\"country\":\"Frankrijk\",\"countryFlagUrl\":\"/medias/sys_master/country-flags/h3a/hfc/13764495376414.svg\",\"badges\":[],\"badgeBrand\":{\"code\":\"veuve-clicquot\",\"image\":null,\"too",
+    "keys": [
+     "products",
+     "breadcrumbs",
+     "categoryBreadcrumbs",
+     "facets",
+     "sorts",
+     "pagination",
+     "currentQuery",
+     "categorySearchTree",
+     "__typename"
+    ]
+   },
+   {
+    "v": {
+     "pageSize": 48
+    },
+    "status": 200,
+    "n": 48,
+    "pag": {
+     "currentPage": 0,
+     "totalResults": 1305,
+     "totalPages": 28,
+     "sort": "relevance",
+     "__typename": "Pagination"
+    },
+    "codes": "[{\"code\":\"country\",\"name\":\"Land\",\"category\":false,\"facetUiType\":\"LONG_MULTI_SELECT_LIST\",\"values\":[{\"code\":\"Argentinië\",\"count\":36,\"name\":\"Argentinië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Argentini%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Armenië\",\"count\":5,\"name\":\"Armenië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Armeni%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Australië\",\"count\":41,\"name\":\"Australië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Australi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"België\",\"count\":7,\"name\":\"België\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Belgi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Chili\",\"count\":57,\"name\":\"Chili\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Chili\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Duitsland\",\"count\":12,\"name\":\"Duitsland\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Duitsland\",\"__typename\":\"InternalP",
+    "head": "{\"data\":{\"categoryProductSearch\":{\"products\":[{\"available\":true,\"averageRating\":null,\"numberOfReviews\":null,\"manufacturerName\":\"de Castellane\",\"manufacturerSubBrandName\":null,\"code\":\"S2011042900241370000\",\"deliveryType\":\"NEXT_DAY\",\"country\":\"Frankrijk\",\"countryFlagUrl\":\"/medias/sys_master/country-flags/h3a/hfc/13764495376414.svg\",\"badges\":[],\"badgeBrand\":{\"code\":\"champagne de castellane\",\"image\":n",
+    "keys": [
+     "products",
+     "breadcrumbs",
+     "categoryBreadcrumbs",
+     "facets",
+     "sorts",
+     "pagination",
+     "currentQuery",
+     "categorySearchTree",
+     "__typename"
+    ]
+   },
+   {
+    "v": {
+     "pageSize": 50
+    },
+    "status": 200,
+    "n": 50,
+    "pag": {
+     "currentPage": 0,
+     "totalResults": 1305,
+     "totalPages": 27,
+     "sort": "relevance",
+     "__typename": "Pagination"
+    },
+    "codes": "[{\"code\":\"country\",\"name\":\"Land\",\"category\":false,\"facetUiType\":\"LONG_MULTI_SELECT_LIST\",\"values\":[{\"code\":\"Argentinië\",\"count\":36,\"name\":\"Argentinië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Argentini%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Armenië\",\"count\":5,\"name\":\"Armenië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Armeni%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Australië\",\"count\":41,\"name\":\"Australië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Australi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"België\",\"count\":7,\"name\":\"België\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Belgi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Chili\",\"count\":57,\"name\":\"Chili\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Chili\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Duitsland\",\"count\":12,\"name\":\"Duitsland\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Duitsland\",\"__typename\":\"InternalP",
+    "head": "{\"data\":{\"categoryProductSearch\":{\"products\":[{\"available\":true,\"averageRating\":null,\"numberOfReviews\":null,\"manufacturerName\":\"de Castellane\",\"manufacturerSubBrandName\":null,\"code\":\"S2011042900241370000\",\"deliveryType\":\"NEXT_DAY\",\"country\":\"Frankrijk\",\"countryFlagUrl\":\"/medias/sys_master/country-flags/h3a/hfc/13764495376414.svg\",\"badges\":[],\"badgeBrand\":{\"code\":\"champagne de castellane\",\"image\":n",
+    "keys": [
+     "products",
+     "breadcrumbs",
+     "categoryBreadcrumbs",
+     "facets",
+     "sorts",
+     "pagination",
+     "currentQuery",
+     "categorySearchTree",
+     "__typename"
+    ]
+   },
+   {
+    "v": {
+     "pageSize": 40
+    },
+    "status": 200,
+    "n": 40,
+    "pag": {
+     "currentPage": 0,
+     "totalResults": 1305,
+     "totalPages": 33,
+     "sort": "relevance",
+     "__typename": "Pagination"
+    },
+    "codes": "[{\"code\":\"country\",\"name\":\"Land\",\"category\":false,\"facetUiType\":\"LONG_MULTI_SELECT_LIST\",\"values\":[{\"code\":\"Argentinië\",\"count\":36,\"name\":\"Argentinië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Argentini%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Armenië\",\"count\":5,\"name\":\"Armenië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Armeni%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Australië\",\"count\":41,\"name\":\"Australië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Australi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"België\",\"count\":7,\"name\":\"België\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Belgi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Chili\",\"count\":57,\"name\":\"Chili\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Chili\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Duitsland\",\"count\":12,\"name\":\"Duitsland\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Duitsland\",\"__typename\":\"InternalP",
+    "head": "{\"data\":{\"categoryProductSearch\":{\"products\":[{\"available\":true,\"averageRating\":null,\"numberOfReviews\":null,\"manufacturerName\":\"de Castellane\",\"manufacturerSubBrandName\":null,\"code\":\"S2011042900241370000\",\"deliveryType\":\"NEXT_DAY\",\"country\":\"Frankrijk\",\"countryFlagUrl\":\"/medias/sys_master/country-flags/h3a/hfc/13764495376414.svg\",\"badges\":[],\"badgeBrand\":{\"code\":\"champagne de castellane\",\"image\":n",
+    "keys": [
+     "products",
+     "breadcrumbs",
+     "categoryBreadcrumbs",
+     "facets",
+     "sorts",
+     "pagination",
+     "currentQuery",
+     "categorySearchTree",
+     "__typename"
+    ]
+   },
+   {
+    "v": {
+     "pageSize": 30
+    },
+    "status": 200,
+    "n": 30,
+    "pag": {
+     "currentPage": 0,
+     "totalResults": 1305,
+     "totalPages": 44,
+     "sort": "relevance",
+     "__typename": "Pagination"
+    },
+    "codes": "[{\"code\":\"country\",\"name\":\"Land\",\"category\":false,\"facetUiType\":\"LONG_MULTI_SELECT_LIST\",\"values\":[{\"code\":\"Argentinië\",\"count\":36,\"name\":\"Argentinië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Argentini%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Armenië\",\"count\":5,\"name\":\"Armenië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Armeni%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Australië\",\"count\":41,\"name\":\"Australië\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Australi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"België\",\"count\":7,\"name\":\"België\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Belgi%C3%AB\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Chili\",\"count\":57,\"name\":\"Chili\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Chili\",\"__typename\":\"InternalPageQuery\"},\"__typename\":\"PageQuery\"},\"selected\":false,\"__typename\":\"FacetValue\"},{\"code\":\"Duitsland\",\"count\":12,\"name\":\"Duitsland\",\"query\":{\"query\":{\"value\":\"categoryIdentifier=v2WIN&searchQuery=:relevance:country:Duitsland\",\"__typename\":\"InternalP",
+    "head": "{\"data\":{\"categoryProductSearch\":{\"products\":[{\"available\":true,\"averageRating\":null,\"numberOfReviews\":null,\"manufacturerName\":\"de Castellane\",\"manufacturerSubBrandName\":null,\"code\":\"S2011042900241370000\",\"deliveryType\":\"NEXT_DAY\",\"country\":\"Frankrijk\",\"countryFlagUrl\":\"/medias/sys_master/country-flags/h3a/hfc/13764495376414.svg\",\"badges\":[],\"badgeBrand\":{\"code\":\"champagne de castellane\",\"image\":n",
+    "keys": [
+     "products",
+     "breadcrumbs",
+     "categoryBreadcrumbs",
+     "facets",
+     "sorts",
+     "pagination",
+     "currentQuery",
+     "categorySearchTree",
+     "__typename"
+    ]
+   }
+  ],
+  "catUrl": "https://www.delhaize.be/api/v1/?operationName=GetCategoryProductSearch&variables=%7B%22lang%22%3A%22nl%22%2C%22searchQuery%22%3A%22%22%2C%22category%22%3A%22v2WIN%22%2C%22pageNumber%22%3A0%2C%22pageSize%22%3A20%2C%22filterFlag%22%3Atrue%2C%22fields%22%3A%22PRODUCT_TILE%22%2C%22plainChildCategories%22%3Atrue%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22d8bff3916275ffeb6f51604d36d7a3aa2f9cd92847487a7f2e3bdf6bb2115cdd%22%7D%7D"
+ },
+ "aldi": {
+  "an_prd_be_fr_products2": {
+   "status": 200,
+   "nb": 2829,
+   "names": [
+    "Chips bolognese ou barbecue 250 g 1.19",
+    "Pop-corn 200 g 1.45",
+    "Multipack de chips, 15 pcs 15 x 25 g 3.59",
+    "Eau fortement gazeuse 1 l 0.49",
+    "Brie en tranches 150 g 2.99"
+   ]
+  },
+  "an_prd_be_nl_products2": {
+   "status": 200,
+   "nb": 2829,
+   "names": [
+    "Bolognese- of barbecuechips 250 g 1.19",
+    "Popcorn 200 g 1.45",
+    "Multipack chips, 15 st. 15 x 25 g 3.59",
+    "Sterk bruisend water 1 l 0.49",
+    "Brie in sneetjes 150 g 2.99"
+   ]
+  }
+ }
+}
