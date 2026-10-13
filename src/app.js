@@ -6,7 +6,7 @@ import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours
 import { SHOPS, orderLink } from './order.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
 import { TIERS, tierOf, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes } from './recipes.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 
@@ -377,6 +377,16 @@ function viewList() {
     ${state.list.length ? `<div class="card">${listHtml}</div>` : `<div class="empty">${icon('cart')}<b>Ta liste est vide</b><span>Cherche un produit ou touche un ajout rapide.</span></div>`}`;
 }
 
+// ---------- Recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) ----------
+let moreRecipes = null;
+function loadMoreRecipes() {
+  moreRecipes ??= fetch('data/recipes-wikibooks.json', { cache: 'no-cache' })
+    .then((res) => (res.ok ? res.json() : []))
+    .then((rows) => { addRecipes(rows); render(); })
+    .catch(() => { moreRecipes = null; });
+  return moreRecipes;
+}
+
 // ---------- Recettes : ingrédients, prix et ajout à la liste ----------
 const ingCache = new Map();
 const UNIT_BASE = { g: ['kg', 1000], ml: ['l', 1000], pc: ['pc', 1] };
@@ -647,6 +657,7 @@ function applySmart() {
 
 // ---------- Questions du panier malin ----------
 function startQuiz(mode) {
+  loadMoreRecipes();
   const sm = smartSettings();
   const answers = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}), kitchen: Object.keys(kitchen()).filter((k) => kitchen()[k]), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [] };
   quiz = { mode, i: 0, answers };
@@ -704,6 +715,7 @@ function recipeCard(r) {
 
 function viewPlats() {
   if (!CATALOG) loadCatalog().then(() => { if (state.tab === 'plats') render(); });
+  loadMoreRecipes();
   if (recipeOpen) return viewRecipe(recipeById(recipeOpen));
   const k = kitchen();
   const q = norm(recipeSearch.trim());
@@ -746,7 +758,8 @@ function viewRecipe(r) {
       <ul class="items">${bought.map((i) => `<li><span class="name">${esc(ingName(i.key))}</span><span class="num">${formatAmount(i.amount * n, i.unit)}${i.unit === 'pc' ? '' : ''}</span><span class="num muted small" style="min-width:56px;text-align:right">${eur(i.amount * n * resolveIng(i.key).perUnit)}</span></li>`).join('')}</ul>
       ${pantry.length ? `<p class="small muted">Dans ton placard : ${esc(pantry.map((i) => ingName(i.key)).join(', '))}.</p>` : ''}
     </div>
-    <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p></div>
+    <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
+      ${r.src ? `<p class="tiny muted">Recette adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a> (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
     <button class="btn primary lg block" data-action="recipe-add" data-id="${r.id}">${icon('cart')} Ajouter à ma liste · ≈ ${eur(dishCost(r, n))}</button>
     <p class="foot">Prix estimé avec la quantité utilisée ; en magasin on achète des paquets entiers (le reste servira pour d'autres plats).</p>`;
 }

@@ -3,10 +3,10 @@ import { RULES } from '../src/match-rules.js';
 import { openBrowser, searchProducts } from './browser.mjs';
 
 export const SITES = {
-  // Delhaize : adresse de recherche et requêtes de résultats vues dans les journaux.
+  // Delhaize : recherche en français (/fr/ : noms français, reconnus bien plus souvent).
   delhaize: {
     name: 'Delhaize',
-    searchUrl: (q) => `https://www.delhaize.be/shop/search?text=${encodeURIComponent(q)}`,
+    searchUrl: (q) => `https://www.delhaize.be/fr/shop/search?text=${encodeURIComponent(q)}`,
     dataUrl: /operationName=(GetProductSearch|GetCategoryProductSearch)/,
     embedded: false,
   },

@@ -90,6 +90,14 @@ export const ING = {
   tofu: Q('tofu', 'Tofu', 200, 'g', 2.2),
   falafel: Q('falafels', 'Falafels', 200, 'g', 2.5, 'g'),
   houmous: Q('houmous', 'Houmous', 200, 'g', 1.8),
+  'raisins-secs': Q('raisins secs', 'Raisins secs', 500, 'g', 2),
+  noix: Q('walnoten', 'Noix', 600, 'g', 8, 'n'),
+  amandes: Q('amandelen', 'Amandes', 250, 'g', 5, 'n'),
+  cacao: Q('cacaopoeder', 'Cacao en poudre', 250, 'g', 4),
+  'fromage-frais': Q('roomkaas', 'Fromage frais', 200, 'g', 1.5, 'd'),
+  cacahuete: Q('pindakaas', 'Beurre de cacahuète', 350, 'g', 1.6, 'n'),
+  porc: Q('varkenskotelet', 'Côtelettes de porc', 1000, 'g', 6.2, 'mp'),
+  fraises: Q('BONI fraises', 'Fraises', 1000, 'g', 4),
   // Placard : supposé à la maison, listé à part
   huile: { p: 'huile', pack: [1000, 'ml'], pantry: true, name: 'Huile' },
   epices: { p: 'sel-poivre', pack: [1, 'pc'], pantry: true, name: 'Sel, poivre, épices' },
@@ -229,16 +237,37 @@ function parseIngredients(text) {
   });
 }
 
-export const RECIPES = R.map(([name, type, minutes, tools, ingredients, steps]) => {
+/** [nom, type, minutes, ustensiles, ingrédients, étapes, source?] → recette. */
+export function makeRecipe([name, type, minutes, tools, ingredients, steps, src], prefix = '') {
   const ings = parseIngredients(ingredients);
   const flags = new Set(ings.filter((i) => !i.pantry).flatMap((i) => [...(ING[i.key]?.flags ?? '')]));
   return {
-    id: slug(name), name, type, minutes, steps,
+    id: prefix + slug(name), name, type, minutes, steps,
     tools: tools ? tools.split(/\s+/).map((g) => g.split('|')) : [],
     ingredients: ings,
     flags,
+    ...(src ? { src } : {}),
   };
-});
+}
+
+export const RECIPES = R.map((r) => makeRecipe(r));
+
+/**
+ * Ajoute des recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) :
+ * ingrédients inconnus écartés, identifiants uniques.
+ */
+export function addRecipes(rows, prefix = 'wb-') {
+  const ids = new Set(RECIPES.map((r) => r.id));
+  let added = 0;
+  for (const row of rows) {
+    const r = makeRecipe(row, prefix);
+    if (ids.has(r.id) || r.ingredients.some((i) => !ING[i.key])) continue;
+    ids.add(r.id);
+    RECIPES.push(r);
+    added++;
+  }
+  return added;
+}
 
 // ---------- Filtres ----------
 export const DIETS = {

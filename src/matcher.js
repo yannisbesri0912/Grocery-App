@@ -105,7 +105,10 @@ export function rankMatches(rule, candidates, globalNot = [], limit = Infinity) 
     if (!(c.price > 0) || !nameMatches(rule, c.name, globalNot)) continue;
     if (c.kind === 'baby' || (c.kind === 'pet' && !rule.pets)) continue;
     if (rule.frozen !== 'any' && Boolean(rule.frozen) !== isFrozen(c)) continue;
-    let size = c.size?.unit === unit ? c.size : parseSizes(c.content ? `${c.name} ${c.content}` : c.name).find((x) => x.unit === unit);
+    const sizes = c.size ? [c.size] : parseSizes(c.content ? `${c.name} ${c.content}` : c.name);
+    let size = sizes.find((x) => x.unit === unit);
+    // Vendu à la pièce sans contenance écrite (« Concombre », « Laitue ») : une pièce.
+    if (!size && unit === 'pc' && !sizes.length && !c.perUnit && amount === 1) size = { amount: 1, unit: 'pc' };
     let unitPrice;
     if (size) {
       const ratio = size.amount / amount;
