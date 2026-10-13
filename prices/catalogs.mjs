@@ -171,7 +171,8 @@ if (process.argv[1]?.endsWith('catalogs.mjs')) {
   mkdirSync('data-raw', { recursive: true });
   for (const chain of process.argv.slice(2)) {
     const t = Date.now();
-    const rows = chain === 'delhaize' ? await fetchDelhaizeCatalog() : await fetchAldiCatalog();
+    const rows = await (chain === 'delhaize' ? fetchDelhaizeCatalog() : fetchAldiCatalog()).catch((e) => { console.log(`${chain} : ${e.message}`); return null; });
+    if (!rows) continue;
     console.log(`${chain} : ${rows.length} articles en ${Math.round((Date.now() - t) / 1000)} s`);
     console.log(rows.slice(0, 5));
     writeFileSync(`data-raw/catalog-${chain}.json`, JSON.stringify(rows));
