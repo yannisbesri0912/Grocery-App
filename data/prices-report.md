@@ -1,9 +1,7 @@
-# Prix réels — 2026-10-13 13:40 UTC
+# Prix réels — 2026-10-13 13:57 UTC
 
 - **colruyt** : 68 produits au 2026-10-12
 - **colruyt** : catalogue complet de 9556 articles
-- **delhaize** : 60 produits au 2026-10-13
-- **delhaize** : catalogue complet de 14380 articles
 - **même produit** : 833 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
