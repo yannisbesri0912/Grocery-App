@@ -243,6 +243,31 @@ function catalogProduct(r, chain = 'colruyt') {
 }
 const isArticle = (p) => Boolean(p.colruyt || p.shop);
 
+// ---------- Préférence œufs ----------
+const EGGS = {
+  any: { label: 'Peu importe' },
+  sol: { label: 'Au sol', re: /\b(sol|scharrel)/i },
+  pleinair: { label: 'Plein air', re: /plein air|uitloop/i },
+  bio: { label: 'Bio', re: /\bbio\b/i },
+};
+const EGG_ROW = /(^|[^a-zà-ÿ])(oeufs?|œufs?|eieren)([^a-zà-ÿ]|$)/i;
+const EGG_NOT = /chocola|paas|p[âa]ques|pasta|p[âa]tes|mayo|gekookt|durs?\b|kwartel|caille|salade|nouilles|noedels|blanc d|eiwit|liquide|vloeibaar/i;
+// Œufs les moins chers du type choisi dans un magasin, ramenés à une boîte de 12.
+function eggsFor(chain) {
+  const pref = EGGS[state.settings.eggs];
+  if (!pref?.re || !CATALOGS[chain]) return null;
+  let best = null;
+  for (const r of CATALOGS[chain].rows) {
+    const name = `${rowName(r)} ${r[ROW.name]}`;
+    if (r[ROW.cat] !== 2 || !EGG_ROW.test(name) || EGG_NOT.test(name) || !pref.re.test(name)) continue;
+    const n = parseSizes(`${r[ROW.name]} ${r[ROW.content] ?? ''}`).find((x) => x.unit === 'pc')?.amount;
+    if (!(n >= 4 && n <= 30)) continue;
+    const per = r[ROW.price] / n;
+    if (!best || per < best.per) best = { r, per };
+  }
+  return best && { price: Math.round(best.per * 12 * 100) / 100, article: `${rowName(best.r)}${best.r[ROW.content] ? ` ${best.r[ROW.content]}` : ''}`, url: rowUrl(chain, best.r), deal: best.r[ROW.deal] || undefined };
+}
+
 // Numéros d'un article Colruyt (pour les liens directs Collect&Go appris).
 function colruytRef(id, snap = {}) {
   const r = rowById('colruyt', id);
@@ -261,6 +286,12 @@ function realPrices() {
     const tw = p.colruyt ? twinOf('colruyt', p.colruyt.id) : p.shop ? twinOf(p.shop.chain, p.shop.id) : null;
     if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), url: rowUrl(tw.chain, tw.r), deal: tw.r[ROW.deal] || undefined, ...(tw.chain === 'colruyt' ? { ref: colruytRef(tw.r[ROW.id]) } : {}), ...(tw.r[ROW.promo] ? { promo: true } : {}) };
     if (Object.keys(entry).length) real[p.id] = entry;
+  }
+  // Œufs : le type choisi dans les réglages, pour comparer la même chose partout.
+  if (EGGS[state.settings.eggs]?.re) {
+    const eggs = {};
+    for (const c of CATALOG_CHAINS) { const e = eggsFor(c); if (e) eggs[c] = e; }
+    real.oeufs = eggs;
   }
   return real;
 }
@@ -717,7 +748,9 @@ const eur = (x) => x.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const norm = (s) => s.replace(/œ/gi, 'oe').replace(/æ/gi, 'ae').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const dateFr = (iso) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString('fr-BE', { day: 'numeric', month: 'short' }) : '');
-const allProducts = () => [...PRODUCTS, ...state.custom];
+// Œufs : le nom suit le type choisi dans les réglages.
+const eggName = () => ({ sol: 'Œufs au sol (12)', pleinair: 'Œufs plein air (12)', bio: 'Œufs bio (12)' }[state.settings.eggs] ?? 'Œufs (12)');
+const allProducts = () => [...PRODUCTS.map((p) => (p.id === 'oeufs' ? { ...p, name: eggName() } : p)), ...state.custom];
 const productById = (id) => allProducts().find((p) => p.id === id);
 // Niveau de prix de chaque enseigne : réglage, corrigé par tes tickets (src/calib.js).
 const baseChains = () => Object.fromEntries(Object.entries(CHAINS).map(([k, c]) => [k, { ...c, index: state.chainIndex[k] ?? c.index }]));
@@ -964,6 +997,37 @@ function dealLine(p, qty) {
   return `<span class="sub deal">${text}${adv.add > 0 ? ` <button class="link" data-action="qty" data-id="${esc(p.id)}" data-d="${adv.add}">+${adv.add}</button>` : ''}</span>`;
 }
 
+// ---------- Promos sur tes produits habituels ----------
+const weekKey = () => { const d = new Date(); const j = new Date(d.getFullYear(), 0, 1); return `${d.getFullYear()}-${Math.ceil(((d - j) / DAY + j.getDay() + 1) / 7)}`; };
+function habitPromos() {
+  const ids = [...new Set([...state.recurring.map((r) => r.id), ...Object.keys(state.purchases ?? {})])];
+  const shops = state.stores.length ? [...new Set(state.stores.map((x) => x.chain))] : ['colruyt', 'delhaize'];
+  const real = realPrices();
+  const out = [];
+  for (const id of ids) {
+    const p = productById(id);
+    if (!p) continue;
+    for (const c of shops) {
+      const r = real[id]?.[c];
+      if (!r) continue;
+      // Promo de la semaine (pas le -10 % carte Plus permanent).
+      const deal = r.deal && !/carte Plus$/.test(r.deal.txt) && (!r.deal.m || hasCard(c)) && !(r.deal.end && r.deal.end < today()) ? r.deal : null;
+      const txt = deal ? deal.txt : r.regular?.price > r.price ? `−${Math.round((1 - r.price / r.regular.price) * 100)} %` : r.promo ? 'promo' : null;
+      if (txt) { out.push({ p, chain: c, txt }); break; }
+    }
+  }
+  return out;
+}
+function habitPromoBanner() {
+  if (state.promoHidden === weekKey()) return '';
+  const list = habitPromos();
+  if (!list.length) return '';
+  const inList = new Set(state.list.map((l) => l.id));
+  return `<div class="card habit-promo"><div class="row"><b class="grow">🏷️ ${list.length} de tes produits habituels en promo</b><button class="btn ghost small" data-action="promo-hide">OK</button></div>
+    <ul class="items">${list.slice(0, 5).map(({ p, chain, txt }) => `<li>${logo(chain, 'sm')}<span class="name">${esc(p.name.replace(/\s*\(.*\)$/, ''))}<span class="sub deal">${esc(CHAINS[chain].name)} : ${esc(txt)}</span></span>
+      ${inList.has(p.id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-action="add" data-id="${esc(p.id)}" aria-label="Ajouter ${esc(p.name)}">${icon('plus')}</button>`}</li>`).join('')}</ul></div>`;
+}
+
 // Déjà à la maison (placard) ?
 function homeLine(p) {
   const k = ING_OF_PRODUCT[p.id];
@@ -1064,6 +1128,7 @@ function viewList() {
   return `
     <div class="section-head"><h1>Ma liste</h1>${state.list.length ? `<span class="row" style="gap:4px"><button class="btn ghost small" data-action="share-list">${icon('share')} Partager</button><button class="btn ghost danger small" data-action="clear">Vider</button></span>` : ''}</div>
     ${state.list.length ? `<button class="banner smart-entry" data-action="smart-open">${icon('spark')}<span class="grow"><b>Panier malin</b><br><span class="small muted">Donne un budget : je compose le meilleur panier</span></span>${icon('arrow')}</button>` : ''}
+    ${habitPromoBanner()}
     ${due.length ? `<div class="banner">${icon('repeat')}<span class="grow">${due.length} produit${due.length > 1 ? 's' : ''} habituel${due.length > 1 ? 's' : ''} à racheter</span><button class="btn primary" data-action="add-due">Ajouter</button></div>` : ''}
     <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit…" value="${esc(search)}" autocomplete="off" enterkeyhint="done">
       <button class="sb-btn" data-action="voice" aria-label="Dicter">${icon('mic')}</button><button class="sb-btn" data-action="scan" aria-label="Scanner un code-barres">${icon('scan')}</button></div>
@@ -2072,7 +2137,8 @@ function viewPrices() {
     <div class="searchbox">${icon('search')}<input type="search" id="price-search" placeholder="Comparer un produit…" value="${esc(priceSearch)}" autocomplete="off"></div>
     <p class="small muted">${q ? '' : state.list.length ? 'Les produits de ta liste.' : 'Quelques exemples.'} Touche un prix pour le corriger avec celui de ton ticket.</p>
     ${list.map((p) => {
-      const infos = shown.map((k) => [k, priceInfo(p, k, ch, state.overrides, PRICES.items ?? {})]).filter(([, i]) => i);
+      const real = realPrices();
+      const infos = shown.map((k) => [k, priceInfo(p, k, ch, state.overrides, real)]).filter(([, i]) => i);
       const min = Math.min(...infos.map(([, i]) => i.price));
       const curve = ['colruyt', 'delhaize'].map((c) => [c, sparkline(p.id, c)]).filter(([, svg]) => svg);
       return `<div class="card"><h3>${esc(p.name)}</h3>${curve.length ? `<div class="curves">${curve.map(([c, svg]) => `<span class="small muted">${esc(CHAINS[c].name)}</span>${svg}`).join('')}<span class="tiny muted">60 derniers jours</span></div>` : ''}<div>${infos.sort((a, b) => a[1].price - b[1].price).map(([k, info]) => `
@@ -2117,6 +2183,8 @@ function viewSettings() {
         <label class="field">Minutes par magasin<input type="number" min="0" data-setting="minutesPerStore" data-num value="${s.minutesPerStore}"></label>
       </div>
       <label class="row"><input type="checkbox" class="switch" data-setting="openNow" data-bool-check ${s.openNow ? 'checked' : ''}><span class="grow">Seulement les magasins ouverts maintenant</span></label>
+      <label class="field"><span>Mes œufs</span><div class="seg" role="group" aria-label="Œufs">${Object.entries(EGGS).map(([k, e]) => `<button data-action="eggs" data-val="${k}" aria-pressed="${(s.eggs ?? 'any') === k}">${esc(e.label)}</button>`).join('')}</div>
+        <span class="tiny muted">Choisis un type : l'app compare les œufs de ce type dans chaque magasin, au prix d'une boîte de 12.</span></label>
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
@@ -2315,6 +2383,15 @@ document.addEventListener('click', async (e) => {
   } else if (a === 'placard-remove') {
     delete state.pantry?.[b.dataset.key];
     delete state.pantryUntil?.[b.dataset.key];
+    save();
+    render();
+  } else if (a === 'promo-hide') {
+    state.promoHidden = weekKey();
+    save();
+    render();
+  } else if (a === 'eggs') {
+    state.settings.eggs = b.dataset.val;
+    if (b.dataset.val !== 'any') { loadCatalog(); loadOtherCatalogs(); }
     save();
     render();
   } else if (a === 'recipe-style') {
@@ -2686,7 +2763,7 @@ async function importShared(shared) {
 if (state.settings.autoAdd) autoAddDue({ silent: false });
 render();
 loadPrices();
-if (state.custom.some(isArticle)) loadCatalog();
+if (state.custom.some(isArticle) || EGGS[state.settings.eggs]?.re) loadCatalog();
 {
   const shared = readShared(location.hash);
   if (shared) importShared(shared);
