@@ -74,17 +74,50 @@ async function loadPrices() {
   render();
 }
 
-// ---------- Catalogue complet Colruyt (data/catalog-colruyt.json) ----------
-// Chargé à la première recherche, ou au démarrage si la liste contient déjà
+// ---------- Catalogues complets (data/catalog-<enseigne>.json) ----------
+// Chargés à la première recherche, ou au démarrage si la liste contient déjà
 // des articles du catalogue (pour mettre leur prix à jour).
-let CATALOG = null; // { date, rows }
+// Colruyt sert aussi au panier malin et aux plats ; Delhaize et Aldi à la recherche.
+const CATALOG_CHAINS = ['colruyt', 'delhaize', 'aldi'];
+const CATALOGS = {}; // enseigne → { date, rows }
+let CATALOG = null; // Colruyt
 let catalogLoading = null;
+const otherLoading = {};
+function loadOtherCatalogs() {
+  for (const chain of CATALOG_CHAINS.slice(1)) {
+    otherLoading[chain] ??= fetch(`data/catalog-${chain}.json`, { cache: 'no-cache' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.rows) return;
+        CATALOGS[chain] = data;
+        refreshCatalogPrices();
+        if (search.trim()) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); }
+      })
+      .catch(() => { otherLoading[chain] = null; });
+  }
+  return Promise.all(Object.values(otherLoading));
+}
+function rowById(chain, id) {
+  const cat = CATALOGS[chain];
+  if (!cat) return null;
+  cat.byId ??= new Map(cat.rows.map((r) => [r[ROW.id], r]));
+  return cat.byId.get(id) ?? null;
+}
+// Recherche dans tous les catalogues : les meilleurs de chaque enseigne, en alternance.
+function searchAll(query, perChain = 6) {
+  const lists = CATALOG_CHAINS.filter((c) => CATALOGS[c]).map((c) => searchCatalog(CATALOGS[c].rows, query, perChain).map((r) => ({ chain: c, r })));
+  const out = [];
+  for (let i = 0; i < perChain; i++) for (const l of lists) if (l[i]) out.push(l[i]);
+  return out;
+}
 function loadCatalog() {
+  loadOtherCatalogs();
   catalogLoading ??= fetch('data/catalog-colruyt.json', { cache: 'no-cache' })
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       if (!data?.rows) return;
       CATALOG = data;
+      CATALOGS.colruyt = data;
       ingCache.clear();
       refreshCatalogPrices();
       if (search.trim()) { const r = document.getElementById('results'); if (r) r.innerHTML = searchResults(); }
@@ -95,31 +128,45 @@ function loadCatalog() {
 
 // Prix du jour pour les articles ajoutés depuis le catalogue.
 function refreshCatalogPrices() {
-  const byId = new Map(CATALOG.rows.map((r) => [r[ROW.id], r]));
   let changed = false;
   for (const p of state.custom) {
-    if (!p.colruyt) continue;
-    const r = byId.get(p.colruyt.id);
-    const next = r ? { ...p.colruyt, price: r[ROW.price], promo: r[ROW.promo], date: CATALOG.date, gone: false } : { ...p.colruyt, gone: true };
-    if (JSON.stringify(next) !== JSON.stringify(p.colruyt)) { p.colruyt = next; changed = true; }
+    const key = p.colruyt ? 'colruyt' : p.shop ? 'shop' : null;
+    const chain = p.colruyt ? 'colruyt' : p.shop?.chain;
+    if (!key || !CATALOGS[chain]) continue;
+    const r = rowById(chain, p[key].id);
+    const next = r ? { ...p[key], price: r[ROW.price], promo: r[ROW.promo], date: CATALOGS[chain].date, gone: false } : { ...p[key], gone: true };
+    if (JSON.stringify(next) !== JSON.stringify(p[key])) { p[key] = next; changed = true; }
   }
   if (changed) { save(); render(); }
 }
 
-function catalogProduct(r) {
+// Article précis d'un catalogue → produit de la liste.
+function catalogProduct(r, chain = 'colruyt') {
+  const nutri = r[ROW.nutri] || undefined;
+  if (chain !== 'colruyt') {
+    const content = r[ROW.content] && !norm(r[ROW.name]).includes(norm(r[ROW.content])) ? ` ${r[ROW.content]}` : '';
+    return {
+      id: `${chain}-${r[ROW.id]}`, name: `${r[ROW.name]}${content}`, cat: r[ROW.cat], custom: true, nutri,
+      // Prix de référence (indice 100) : les autres enseignes sont estimées à partir de lui.
+      ref: Math.round((r[ROW.price] * 100 / (CHAINS[chain]?.index ?? 100)) * 100) / 100,
+      shop: { chain, id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], url: r[ROW.url] ? new URL(r[ROW.url], `https://www.${CHAINS[chain].domain}`).href : undefined, date: CATALOGS[chain]?.date },
+    };
+  }
   const weight = r[ROW.weight] === 1;
   const name = `${rowName(r)}${r[ROW.content] ? ` ${r[ROW.content]}` : ''}${weight ? ' (1 kg)' : ''}`;
   return {
-    id: `col-${r[ROW.id]}`, name, cat: r[ROW.cat], ref: r[ROW.price], custom: true,
+    id: `col-${r[ROW.id]}`, name, cat: r[ROW.cat], ref: r[ROW.price], custom: true, nutri,
     colruyt: { id: r[ROW.id], price: r[ROW.price], promo: r[ROW.promo], date: CATALOG?.date },
   };
 }
+const isArticle = (p) => Boolean(p.colruyt || p.shop);
 
-// Vrais prix : relevés de la nuit + articles du catalogue Colruyt ajoutés à la liste.
+// Vrais prix : relevés de la nuit + articles des catalogues ajoutés à la liste.
 function realPrices() {
   const real = { ...(PRICES.items ?? {}) };
   for (const p of state.custom) {
     if (p.colruyt && !p.colruyt.gone) real[p.id] = { colruyt: { price: p.colruyt.price, ...(p.colruyt.promo ? { promo: true } : {}) } };
+    if (p.shop && !p.shop.gone) real[p.id] = { [p.shop.chain]: { price: p.shop.price, article: p.name, url: p.shop.url, ...(p.shop.promo ? { promo: true } : {}) } };
   }
   return real;
 }
@@ -130,7 +177,7 @@ function bestMatch(name) {
   // Mot entier (« lait » ne doit pas trouver « laitue »), pluriel accepté.
   const q = norm(name).replace(/[sx]\b/g, '').replace(/[^a-z0-9 ]/g, '').trim();
   const re = new RegExp(`(^|[^a-z])${q}[sx]?([^a-z]|$)`);
-  const generic = q && allProducts().find((p) => !p.colruyt && re.test(norm(p.name)));
+  const generic = q && allProducts().find((p) => !isArticle(p) && re.test(norm(p.name)));
   if (generic) return { product: generic };
   const [r] = CATALOG ? searchCatalog(CATALOG.rows, name, 1) : [];
   return r ? { row: r } : null;
@@ -139,7 +186,7 @@ function bestMatch(name) {
 function addItem(match, qty = 1) {
   let p = match.product;
   if (match.row) {
-    p = catalogProduct(match.row);
+    p = catalogProduct(match.row, match.chain);
     if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
   }
   const it = state.list.find((l) => l.id === p.id);
@@ -189,8 +236,9 @@ async function scan() {
     const b = e.target.closest('[data-pick]');
     if (!b) return;
     const pick = JSON.parse(b.dataset.pick);
-    const m = pick.id ? { product: productById(pick.id) } : { row: CATALOG.rows.find((r) => r[ROW.id] === pick.row) };
+    const m = pick.id ? { product: productById(pick.id) } : { row: rowById(pick.chain, pick.row), chain: pick.chain };
     const p = addItem(m, 1);
+    if (pick.nutri && !p.nutri) p.nutri = pick.nutri;
     save();
     render();
     toast(`${p.name} ajouté`);
@@ -204,19 +252,21 @@ async function scan() {
       await loadCatalog();
       if (!info) { out.innerHTML = `Code ${esc(code)} inconnu d'Open Food Facts. Cherche-le par son nom.`; return; }
       const brand = norm(info.brand);
-      const rows = CATALOG ? searchCatalog(CATALOG.rows, info.name, 12) : [];
-      rows.sort((a, b) => (brand && norm(rowName(b)).includes(brand)) - (brand && norm(rowName(a)).includes(brand)));
+      await loadOtherCatalogs();
+      const rows = searchAll(info.name, 4);
+      const hasBrand = (x) => Boolean(brand) && norm(rowName(x.r)).includes(brand);
+      rows.sort((a, b) => hasBrand(b) - hasBrand(a));
       const generic = bestMatch(info.name)?.product;
       const choices = [
         ...(generic ? [`<button class="btn soft block" data-pick='${esc(JSON.stringify({ id: generic.id }))}'>${esc(generic.name)} · produit général</button>`] : []),
-        ...rows.slice(0, 3).map((r) => `<button class="btn block" data-pick='${esc(JSON.stringify({ row: r[ROW.id] }))}'>${esc(rowName(r))} · ${eur(r[ROW.price])}</button>`),
+        ...rows.slice(0, 4).map(({ chain, r }) => `<button class="btn block row" style="gap:8px" data-pick='${esc(JSON.stringify({ row: r[ROW.id], chain, nutri: info.nutriscore ?? undefined }))}'>${logo(chain, 'sm')}<span class="grow" style="text-align:left">${esc(rowName(r))}</span><b class="num">${eur(r[ROW.price])}</b></button>`),
       ];
       wrap.querySelector('video').remove();
       wrap.querySelector('p b').textContent = 'Produit trouvé';
       out.innerHTML = `<div class="row" style="gap:10px">${info.image ? `<img src="${esc(info.image)}" alt="" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff">` : ''}
         <div class="grow"><b>${esc(info.name)}</b><br><span class="muted">${esc([info.brand, info.quantity].filter(Boolean).join(' · '))}</span></div>
         ${info.nutriscore ? `<span class="nutri n${info.nutriscore}" title="Nutri-Score">${info.nutriscore}</span>` : ''}</div>
-        <p class="small">${choices.length ? 'Ajouter à ma liste :' : 'Pas trouvé chez Colruyt : cherche-le par son nom.'}</p><div class="stack" style="gap:6px">${choices.join('')}</div>
+        <p class="small">${choices.length ? 'Ajouter à ma liste :' : 'Pas trouvé dans les catalogues : cherche-le par son nom.'}</p><div class="stack" style="gap:6px">${choices.join('')}</div>
         <p class="tiny muted">Données <a href="https://world.openfoodfacts.org/product/${esc(code)}" target="_blank" rel="noopener">Open Food Facts</a> (ODbL).</p>`;
     });
   } catch (e) {
@@ -236,11 +286,13 @@ function loadScript(src) {
 }
 
 // Ligne du ticket → produit de l'app (règles FR/NL), sinon article du catalogue.
-function receiptMatch(name) {
+function receiptMatch(name, chain) {
   const p = PRODUCTS.find((x) => RULES[x.id] && nameMatches(RULES[x.id], name, PET_BABY));
   if (p) return { id: p.id, label: p.name };
-  const [r] = CATALOG ? searchCatalog(CATALOG.rows, name, 1) : [];
-  return r ? { row: r[ROW.id], label: rowName(r) } : null;
+  // Catalogue du magasin du ticket s'il est connu, sinon Colruyt.
+  const c = CATALOGS[chain] ? chain : 'colruyt';
+  const [r] = CATALOGS[c] ? searchCatalog(CATALOGS[c].rows, name, 1) : [];
+  return r ? { row: r[ROW.id], chain: c, label: rowName(r) } : null;
 }
 
 let receipt = null; // { chain, items: [{ name, qty, price, total, match, use }], total }
@@ -252,14 +304,14 @@ async function readReceipt(file) {
   document.body.append(box);
   const bar = box.querySelector('.progress span');
   try {
-    await Promise.all([loadScript(TESSERACT), loadCatalog()]);
+    await Promise.all([loadScript(TESSERACT), loadCatalog(), loadOtherCatalogs()]);
     const { data } = await window.Tesseract.recognize(file, 'fra+nld', {
       logger: (m) => { if (m.status === 'recognizing text') bar.style.width = `${Math.round(m.progress * 100)}%`; },
     });
     const parsed = parseReceipt(data.text);
     if (!parsed.items.length) { toast('Ticket illisible : reprends la photo bien à plat, avec de la lumière'); return; }
     const chain = detectChain(data.text) ?? state.stores[0]?.chain ?? 'colruyt';
-    receipt = { chain, total: parsed.total, items: parsed.items.map((it) => ({ ...it, match: receiptMatch(it.name), use: true })) };
+    receipt = { chain, total: parsed.total, items: parsed.items.map((it) => ({ ...it, match: receiptMatch(it.name, chain), use: true })) };
     receiptView();
   } catch {
     toast('Lecture impossible (connexion ?) : réessaie');
@@ -305,9 +357,9 @@ function applyReceipt() {
     if (!it.match) continue;
     let pid = it.match.id;
     if (!pid && it.match.row) {
-      const r = CATALOG?.rows.find((x) => x[ROW.id] === it.match.row);
+      const r = rowById(it.match.chain, it.match.row);
       if (!r) continue;
-      const p = catalogProduct(r);
+      const p = catalogProduct(r, it.match.chain);
       if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
       pid = p.id;
     }
@@ -544,24 +596,33 @@ function viewSetup() {
 }
 
 // ---------- Liste ----------
+const NUTRI_RANK = { A: 0, B: 1, C: 2, D: 4, E: 5 };
+const nutriRank = (n) => NUTRI_RANK[n] ?? 3;
+const nutriBadge = (n, size = '') => (/^[A-E]$/.test(n ?? '') ? ` <span class="nutri ${size} n${n}" title="Nutri-Score ${n}">${n}</span>` : '');
+
 function searchResults() {
   if (!search.trim()) return '';
   const q = norm(search.trim());
   const rank = (n) => (n.startsWith(q) ? 0 : new RegExp(`(^|[^a-z])${q.replace(/[^a-z0-9 ]/g, '')}`).test(n) ? 1 : 2);
   // Produits généraux d'abord (comparés dans tous les magasins), puis articles précis Colruyt.
-  const hits = allProducts().filter((p) => !p.colruyt && norm(p.name).includes(q))
+  const hits = allProducts().filter((p) => !isArticle(p) && norm(p.name).includes(q))
     .sort((a, b) => rank(norm(a.name)) - rank(norm(b.name))).slice(0, 7);
   const exact = hits.some((p) => norm(p.name) === q);
   if (!CATALOG) loadCatalog();
-  const cat = CATALOG ? searchCatalog(CATALOG.rows, search, 12) : [];
+  let cat = searchAll(search, 6);
+  // Santé d'abord : Nutri-Score A et B en tête, D et E à la fin.
+  const healthy = state.settings.healthy;
+  if (healthy) cat = cat.map((x, i) => ({ ...x, i })).sort((a, b) => nutriRank(a.r[ROW.nutri]) - nutriRank(b.r[ROW.nutri]) || a.i - b.i);
   const unit = (r) => (r[ROW.unitPrice] && r[ROW.unit] && r[ROW.weight] !== 1 ? `${eur(r[ROW.unitPrice])}/${r[ROW.unit] === 'pc' ? 'pièce' : r[ROW.unit]}` : '');
+  const shops = CATALOG_CHAINS.filter((c) => CATALOGS[c]).map((c) => CHAINS[c].name).join(', ');
   return (hits.length && cat.length ? '<div class="results-head">Produit général · meilleur prix tous magasins</div>' : '') +
     hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
-    (cat.length ? `<div class="results-head">${logo('colruyt', 'sm')} Article précis · Colruyt${CATALOG.date ? ` · prix du ${dateFr(CATALOG.date)}` : ''}</div>` : '') +
-    cat.map((r) => `<button data-action="add-cat" data-id="${esc(r[ROW.id])}"><span class="grow">${esc(rowName(r))}${r[ROW.content] ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}
+    (cat.length ? `<div class="results-head"><span class="grow">Article précis · vrais prix ${esc(shops)}</span>
+      <button class="chip ${healthy ? 'on' : ''}" data-action="healthy" aria-pressed="${Boolean(healthy)}">Santé d'abord</button></div>` : '') +
+    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}
         <span class="sub">${unit(r)}</span></span>
         <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
-    (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tout Colruyt…</div>' : '') +
+    (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tous les catalogues…</div>' : '') +
     (exact ? '' : `<button data-action="add-custom"><span>Ajouter « ${esc(search.trim())} » avec mon prix</span><span class="small muted">autre</span></button>`);
 }
 
@@ -588,7 +649,7 @@ function viewList() {
   const listHtml = [...groups.entries()]
     .sort((a, b) => CATEGORIES.indexOf(a[0]) - CATEGORIES.indexOf(b[0]))
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${esc(l.p.name)}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
@@ -703,6 +764,7 @@ function smartSettings() {
 // Choix proposés pour un produit : gammes Colruyt, ou l'article choisi, ou un prix unique.
 function optionsFor(p) {
   if (p.colruyt) return [{ tier: tierOf(p.name), label: TIERS.find((t) => t.key === tierOf(p.name)).label, id: p.colruyt.id, article: p.name, price: p.colruyt.price, fixed: true }];
+  if (p.shop) return [{ tier: tierOf(p.name), label: TIERS.find((t) => t.key === tierOf(p.name)).label, id: p.shop.id, article: p.name, price: p.shop.price, fixed: true }];
   if (!optionCache.has(p.id)) {
     smartCands ??= candidatesFromRows(CATALOG.rows);
     optionCache.set(p.id, productOptions(p.id, smartCands));
@@ -1586,10 +1648,17 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'smart-apply') {
     applySmart();
+  } else if (a === 'healthy') {
+    state.settings.healthy = !state.settings.healthy;
+    save();
+    const res = document.getElementById('results');
+    if (res) res.innerHTML = searchResults();
+    return;
   } else if (a === 'add-cat') {
-    const r = CATALOG?.rows.find((x) => x[ROW.id] === id);
+    const chain = b.dataset.chain ?? 'colruyt';
+    const r = rowById(chain, id);
     if (!r) return;
-    const p = catalogProduct(r);
+    const p = catalogProduct(r, chain);
     if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
     const ex = state.list.find((l) => l.id === p.id);
     if (ex) ex.qty++; else state.list.push({ id: p.id, qty: 1, checked: false });
@@ -1790,7 +1859,7 @@ view.addEventListener('change', (e) => {
 if (state.settings.autoAdd) autoAddDue({ silent: false });
 render();
 loadPrices();
-if (state.custom.some((p) => p.colruyt)) loadCatalog();
+if (state.custom.some(isArticle)) loadCatalog();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});

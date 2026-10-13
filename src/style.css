@@ -144,6 +144,10 @@ label.field { display: grid; gap: 6px; font-size: .84rem; color: var(--muted); f
 .results button .sub { display: block; font-size: .78rem; color: var(--muted); }
 .results button .price { font-weight: 750; white-space: nowrap; }
 .results-head { display: flex; align-items: center; gap: 8px; padding: 10px 16px 6px; border-top: 1px solid var(--line); font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.results .results-head .chip { flex: none; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: .76rem; text-transform: none; letter-spacing: 0; color: var(--ink); }
+.results .results-head .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.results button > .logo { flex: none; }
+.items .name .logo { display: inline-grid; --size: 20px; font-size: .7rem; vertical-align: -4px; margin-right: 2px; }
 
 /* Segmenté */
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 14px; padding: 4px; gap: 4px; }

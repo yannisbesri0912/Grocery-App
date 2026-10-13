@@ -77,7 +77,8 @@ export function queryTerms(query) {
 }
 
 // Lignes du catalogue : [id, nom (nl), contenu, prix, prix unitaire, unité, rayon, promo, au poids, nom (fr)]
-export const ROW = { id: 0, name: 1, content: 2, price: 3, unitPrice: 4, unit: 5, cat: 6, promo: 7, weight: 8, fr: 9 };
+// Lignes Delhaize / Aldi : même forme, plus le lien de l'article et le Nutri-Score.
+export const ROW = { id: 0, name: 1, content: 2, price: 3, unitPrice: 4, unit: 5, cat: 6, promo: 7, weight: 8, fr: 9, url: 10, nutri: 11 };
 
 /** Nom affiché : français s'il existe. */
 export const rowName = (r) => r[ROW.fr] || r[ROW.name];

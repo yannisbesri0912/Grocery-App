@@ -11,6 +11,7 @@ import { pickBest } from '../src/matcher.js';
 import { fetchColruyt } from './colruyt.mjs';
 import { fetchPromotions } from './prijsprofeet.mjs';
 import { fetchSite } from './sites.mjs';
+import { fetchDelhaizeCatalog, fetchAldiCatalog, toCandidate, toRow } from './catalogs.mjs';
 import { toFrench } from '../src/translate.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -18,10 +19,22 @@ const OUT = join(root, 'data/prices.json');
 const REPORT = join(root, 'data/prices-report.md');
 const CATALOG = (chain) => join(root, `data/catalog-${chain}.json`);
 
+// Catalogue complet (rapide, tous les articles, en français) ; en cas d'échec,
+// recherche produit par produit sur le site comme avant.
+async function fromCatalog(chain, read) {
+  try {
+    const rows = await read();
+    return { date: new Date().toISOString().slice(0, 10), lang: 'fr', candidates: rows.map(toCandidate), catalog: rows.map(toRow), note: `catalogue complet (${rows.length} articles)` };
+  } catch (e) {
+    console.log(`  catalogue complet impossible (${e.message}) : recherche produit par produit`);
+    return fetchSite(chain);
+  }
+}
+
 const SOURCES = {
   colruyt: () => fetchColruyt(),
-  delhaize: () => fetchSite('delhaize'),
-  aldi: () => fetchSite('aldi'),
+  delhaize: () => fromCatalog('delhaize', fetchDelhaizeCatalog),
+  aldi: () => fromCatalog('aldi', fetchAldiCatalog),
 };
 
 const wanted = process.argv.slice(2);
@@ -40,7 +53,8 @@ function withUnitText(c) {
 // Noms néerlandais (Colruyt, Aldi, promos PrijsProfeet) affichés en français.
 const DUTCH = new Set(['colruyt', 'aldi', 'promos']);
 
-function match(candidates, source) {
+function match(candidates, source, lang) {
+  const dutch = DUTCH.has(source) && lang !== 'fr';
   const items = {};
   for (const p of PRODUCTS) {
     const rule = RULES[p.id];
@@ -49,7 +63,7 @@ function match(candidates, source) {
     if (best) {
       items[p.id] = {
         price: best.priceForSpec,
-        article: DUTCH.has(source) ? toFrench(best.name) : best.name,
+        article: dutch ? toFrench(best.name) : best.name,
         pack: Math.round(best.price * 100) / 100,
         unitPrice: Math.round(best.unitPrice * 1000) / 1000,
         unit: rule.size[1],
@@ -72,8 +86,8 @@ for (const [chain, fetcher] of Object.entries(SOURCES)) {
   if (!runs(chain)) continue;
   console.log(`\n=== ${chain}`);
   try {
-    const { date, candidates, note, catalog } = await fetcher();
-    const items = match(candidates.map(withUnitText), chain);
+    const { date, candidates, note, catalog, lang } = await fetcher();
+    const items = match(candidates.map(withUnitText), chain, lang);
     const count = Object.keys(items).length;
     if (!count) throw new Error('aucun produit reconnu');
     for (const [pid, it] of Object.entries(result.items)) if (it[chain] && !it[chain].promoOnly) delete it[chain];
