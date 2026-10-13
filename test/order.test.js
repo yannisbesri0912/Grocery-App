@@ -29,3 +29,14 @@ test('orderLink cherche l\'article, sinon la recherche du catalogue', () => {
   assert.equal(perso.query, 'Houmous');
   assert.equal(orderLink('lidl', { product: lait, info: {} }), null);
 });
+
+test('lien direct appris : numéro retrouvé dans une adresse collée, puis appliqué aux autres produits', async () => {
+  const { learnTemplate, fillTemplate, orderLink } = await import('../src/order.js');
+  const t = learnTemplate('https://www.collectandgo.be/cogo/fr/artikel/campina-room-culinair-20-vg-25cl/26280?x=1', { id: '10671', art: '26280', tech: '1397030' }, 'CAMPINA room culinair 20%vg 25cl');
+  assert.deepEqual(t, { tpl: 'https://www.collectandgo.be/cogo/fr/artikel/{slug}/{art}?x=1', key: 'art' });
+  assert.equal(fillTemplate(t, { art: '123' }, 'BONI Lait demi-écrémé 1L'), 'https://www.collectandgo.be/cogo/fr/artikel/boni-lait-demi-ecreme-1l/123?x=1');
+  assert.equal(learnTemplate('https://example.be/x/999', { id: '10671' }, 'X'), null);
+  const line = { product: { id: 'lait', name: 'Lait' }, info: { kind: 'real', article: 'BONI lait', ref: { art: '555' } } };
+  assert.equal(orderLink('colruyt', line, { colruyt: t }).kind, 'product');
+  assert.equal(orderLink('colruyt', line).kind, 'search');
+});

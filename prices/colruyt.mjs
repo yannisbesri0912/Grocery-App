@@ -32,6 +32,7 @@ export function toCandidate(p) {
     promo: Boolean(p.inPromo),
     deal: dealFromColruyt(p) ?? undefined,
     walk: p.walkRouteSequenceNumber || undefined,
+    ref: { id: p.productId, art: p.commercialArticleNumber || undefined, tech: p.technicalArticleNumber || undefined },
     id: p.productId,
     frozen: p.topCategoryName === 'Diepvries',
     kind: p.topCategoryName === 'Huisdieren' ? 'pet' : p.topCategoryName === 'Baby' ? 'baby' : undefined,
@@ -64,7 +65,7 @@ export function catalogRows(products) {
         p.productId, name, name.includes(p.content ?? '') ? '' : (p.content ?? ''), r2(pr.basicPrice),
         pr.measurementUnitPrice > 0 ? r2(pr.measurementUnitPrice) : 0, UNIT[pr.measurementUnit] ?? '',
         CAT_MAP[p.topCategoryName] ?? 4, p.inPromo ? 1 : 0, p.IsWeightArticle ? 1 : 0, fr === name ? '' : fr,
-        '', '', dealFromColruyt(p) ?? 0, p.walkRouteSequenceNumber ?? 0,
+        '', '', dealFromColruyt(p) ?? 0, p.walkRouteSequenceNumber ?? 0, p.commercialArticleNumber ?? '', p.technicalArticleNumber ?? '',
       ];
     })
     .sort((a, b) => (a[9] || a[1]).localeCompare(b[9] || b[1], 'fr'));

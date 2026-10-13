@@ -81,6 +81,7 @@ function match(candidates, source, lang) {
         ...(best.url ? { url: best.url } : {}),
         ...(best.deal ? { deal: best.deal } : {}),
         ...(best.walk ? { walk: best.walk } : {}),
+        ...(best.ref ? { ref: best.ref } : {}),
         ...(best.promo ? { promo: best.promoText ?? true, until: best.until ?? null } : {}),
       };
     }

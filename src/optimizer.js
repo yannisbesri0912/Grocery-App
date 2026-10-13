@@ -42,7 +42,7 @@ export function priceInfo(product, chainId, chains, overrides = {}, real = {}) {
   const own = overrides[product.id]?.[chainId];
   if (typeof own === 'number') return { price: own, kind: 'user' };
   const r = real[product.id]?.[chainId];
-  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal };
+  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal, ref: r.ref };
   if (product.notIn?.includes(chainId)) return null;
   const chain = chains[chainId];
   if (!chain) return null;

@@ -460,3 +460,5 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 /* Ordre des rayons */
 .items li.aisle-head { padding: 10px 0 0; border-top: 0; }
 .list-order button { font-size: .8rem; }
+
+.card.teach { border: 1px dashed var(--accent); }
