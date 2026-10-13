@@ -12,7 +12,7 @@ import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf } from './recipes.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
@@ -1460,6 +1460,85 @@ let recipeType = 'plat';
 let recipeSearch = '';
 let recipeQuick = false;
 
+// ---------- Menu de la semaine selon les promos ----------
+// Promo sur l'article qu'un ingrédient fait acheter dans une enseigne :
+// réduction directe (1 article), carte Plus si cochée, ou promo PrijsProfeet.
+function ingPromo(key, chain) {
+  const res = resolveIng(key, chain);
+  let deal = null;
+  let regular = null;
+  let flag = false;
+  if (res.product) {
+    const it = PRICES.items?.[res.product.id]?.[chain];
+    deal = it?.deal;
+    flag = Boolean(it?.promo);
+    if (it?.regular?.price > it?.price) regular = it.regular.price / it.price;
+  } else if (res.row && CATALOGS[chain]) { deal = res.row[ROW.deal] || null; flag = res.row[ROW.promo] === 1; }
+  if (deal && deal.k === 'g' && deal.q === 1 && !(deal.end && deal.end < today())) {
+    // Promo carte Plus : comptée seulement si la carte est cochée, sinon signalée.
+    return { d: deal.d, txt: deal.txt, card: Boolean(deal.m) && !hasCard(chain) };
+  }
+  if (regular) return { d: 1 - 1 / regular, txt: `−${Math.round((1 - 1 / regular) * 100)} %` };
+  // Prix par quantité Colruyt (« dès 3 ») : permanent, pas une promo de la semaine.
+  if (flag || (deal && deal.k !== 'f')) return { d: null, txt: deal && deal.k !== 'f' ? deal.txt : 'en promo' }; // montant inconnu
+  return null;
+}
+// Plats qui profitent le plus des promos, un ingrédient principal différent chacun.
+function promoMenu(chain, n = 5) {
+  const filters = recipeFilters();
+  const styles = state.settings.recipeStyles ?? [];
+  const main = (r) => r.ingredients.find((i) => !i.pantry && /[mfe]/.test(ING[i.key]?.flags ?? ''))?.key ?? r.ingredients.find((i) => !i.pantry)?.key;
+  const scored = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && compatible(r, filters)
+      && styles.every((st) => (st === 'pascher' ? true : STYLES[st]?.test(r) ?? true)))
+    .map((r) => {
+      let saving = 0;
+      const promos = [];
+      let weight = 0; // pour classer : montant inconnu compté comme ~15 %
+      for (const i of r.ingredients.filter((x) => !x.pantry)) {
+        const pr = ingPromo(i.key, chain);
+        if (!pr) continue;
+        const part = i.amount * resolveIng(i.key, chain).perUnit;
+        if (pr.d != null && !pr.card) saving += part * pr.d;
+        weight += part * (pr.d ?? 0.15);
+        promos.push(`${ingName(i.key)} ${pr.txt}${pr.card && !/carte/i.test(pr.txt) ? ' (carte Plus)' : ''}`);
+      }
+      const cost = dishCost(r, 1, chain);
+      return { r, cost, saving, weight: weight / Math.max(cost, 0.01), promos };
+    })
+    // Un vrai repas, à prix raisonnable (bouillons et fonds écartés).
+    .filter((x) => x.promos.length && x.cost <= 5 && !/bouillon|fond de|stock/i.test(x.r.name))
+    .sort((a, b) => b.weight - a.weight || a.cost - b.cost);
+  const picked = [];
+  const used = new Set();
+  for (const x of scored) {
+    const m = main(x.r);
+    if (used.has(m)) continue;
+    used.add(m);
+    picked.push(x);
+    if (picked.length >= n) break;
+  }
+  return picked;
+}
+function promoMenuCard() {
+  if (!CATALOG) return '';
+  const chain = smartShop();
+  if (!CATALOGS[chain]) { loadOtherCatalogs(); return ''; }
+  const n = smartSettings().profile?.dinners ?? 5;
+  const menu = promoMenu(chain, n);
+  if (!menu.length) return '';
+  const people = state.settings.servings ?? smartSettings().profile?.people ?? 1;
+  const total = menu.reduce((t, x) => t + x.cost, 0) * people;
+  const saved = menu.reduce((t, x) => t + x.saving, 0) * people;
+  return `<div class="card promo-menu">
+    <div class="section-head"><h2>🏷️ Menu de la semaine en promo</h2></div>
+    <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${c}" aria-pressed="${chain === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
+    <p class="small muted">${menu.length} plats dont des ingrédients sont en promo cette semaine chez ${esc(CHAINS[chain].name)}${chain === 'delhaize' && !hasCard('delhaize') ? ' (sans les promos carte Plus : coche-la dans Réglages si tu l\'as)' : ''}.</p>
+    <ul class="items">${menu.map((x) => `<li><span class="name"><button class="link-plain" data-action="recipe-open" data-id="${x.r.id}">${esc(x.r.name)}</button>
+      <span class="sub deal">${esc(x.promos.slice(0, 3).join(' · '))}</span></span><span class="num">≈ ${eur(x.cost)}<span class="sub">/ pers.</span></span></li>`).join('')}</ul>
+    <button class="btn primary block" data-action="promo-menu-add">${icon('cart')} Ajouter ce menu (${people} pers.) · ≈ ${eur(total)}${saved >= 0.5 ? `, dont −${eur(saved)} de promos` : ''}</button>
+  </div>`;
+}
+
 function recipeCard(r) {
   const cost = dishCost(r);
   return `<button class="recipe" data-action="recipe-open" data-id="${r.id}">
@@ -1481,6 +1560,7 @@ function viewPlats() {
   const menu = (state.menu ?? []).map((m) => recipeById(m.id)).filter(Boolean);
   return `
     <h1>Plats</h1>
+    ${promoMenuCard()}
     ${menu.length ? `<div class="card"><div class="section-head"><span class="eyebrow">Ajoutés à ta liste</span><button class="btn ghost small" data-action="menu-clear">Effacer</button></div>
       <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${r.id}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
     <div class="card">
@@ -2178,6 +2258,13 @@ document.addEventListener('click', async (e) => {
   } else if (a === 'smart-budget') {
     smartSettings().budget = Number(b.dataset.val);
     save();
+    render();
+  } else if (a === 'promo-menu-add') {
+    const people = state.settings.servings ?? smartSettings().profile?.people ?? 1;
+    const menu = promoMenu(smartShop(), smartSettings().profile?.dinners ?? 5);
+    for (const x of menu) addDish(x.r, people);
+    save();
+    toast(`${menu.length} plats ajoutés à ta liste`);
     render();
   } else if (a === 'recipe-style') {
     const st = new Set(state.settings.recipeStyles ?? []);

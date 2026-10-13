@@ -479,3 +479,6 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 .checklist button.have[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
 .checklist button.have .i { width: 16px; height: 16px; }
 .checklist li.done .name { text-decoration: line-through; color: var(--muted); }
+
+.link-plain { border: 0; background: none; padding: 0; font: inherit; font-weight: 650; color: var(--ink); text-align: left; cursor: pointer; }
+.promo-menu .items .name .sub.deal { white-space: normal; }
