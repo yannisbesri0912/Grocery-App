@@ -11,6 +11,9 @@ import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } fro
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
 import { startScanner, lookupBarcode } from './scan.js';
+import { parseReceipt, detectChain } from './receipt.js';
+import { RULES, PET_BABY } from './match-rules.js';
+import { nameMatches } from './matcher.js';
 
 // ---------- État (gardé sur le téléphone, jamais envoyé ailleurs) ----------
 const KEY = 'courses-opti:v1';
@@ -219,6 +222,125 @@ async function scan() {
   } catch (e) {
     out.textContent = e?.name === 'NotAllowedError' ? 'Autorise la caméra pour scanner.' : 'Caméra indisponible.';
   }
+}
+
+// ---------- Ticket de caisse ----------
+const TESSERACT = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if ([...document.scripts].some((x) => x.src === src)) return resolve();
+    const el = document.createElement('script');
+    el.src = src; el.onload = resolve; el.onerror = reject;
+    document.head.append(el);
+  });
+}
+
+// Ligne du ticket → produit de l'app (règles FR/NL), sinon article du catalogue.
+function receiptMatch(name) {
+  const p = PRODUCTS.find((x) => RULES[x.id] && nameMatches(RULES[x.id], name, PET_BABY));
+  if (p) return { id: p.id, label: p.name };
+  const [r] = CATALOG ? searchCatalog(CATALOG.rows, name, 1) : [];
+  return r ? { row: r[ROW.id], label: rowName(r) } : null;
+}
+
+let receipt = null; // { chain, items: [{ name, qty, price, total, match, use }], total }
+
+async function readReceipt(file) {
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.innerHTML = '<div class="modal-box"><p><b>Lecture du ticket…</b></p><div class="progress" style="background:var(--surface-2)"><span style="width:2%"></span></div><p class="small muted">Tout se passe sur ton téléphone. La première fois, le module de lecture (~10 Mo) se télécharge.</p></div>';
+  document.body.append(box);
+  const bar = box.querySelector('.progress span');
+  try {
+    await Promise.all([loadScript(TESSERACT), loadCatalog()]);
+    const { data } = await window.Tesseract.recognize(file, 'fra+nld', {
+      logger: (m) => { if (m.status === 'recognizing text') bar.style.width = `${Math.round(m.progress * 100)}%`; },
+    });
+    const parsed = parseReceipt(data.text);
+    if (!parsed.items.length) { toast('Ticket illisible : reprends la photo bien à plat, avec de la lumière'); return; }
+    const chain = detectChain(data.text) ?? state.stores[0]?.chain ?? 'colruyt';
+    receipt = { chain, total: parsed.total, items: parsed.items.map((it) => ({ ...it, match: receiptMatch(it.name), use: true })) };
+    receiptView();
+  } catch {
+    toast('Lecture impossible (connexion ?) : réessaie');
+  } finally {
+    box.remove();
+  }
+}
+
+function receiptView() {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  const sum = receipt.items.reduce((t, i) => t + i.total, 0);
+  wrap.innerHTML = `<div class="modal-box receipt-box" role="dialog" aria-modal="true">
+    <p><b>Vérifie ton ticket</b></p>
+    <label class="field"><span>Magasin</span><select id="receipt-chain">${Object.entries(CHAINS).map(([k, c]) => `<option value="${k}" ${k === receipt.chain ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
+    <ul class="items">${receipt.items.map((it, i) => `<li>
+      <input type="checkbox" class="check" data-ri="${i}" ${it.use ? 'checked' : ''} aria-label="Garder">
+      <span class="name">${it.qty > 1 ? `${it.qty} × ` : ''}${esc(it.name)}<span class="sub">${it.match ? `→ ${esc(it.match.label)}` : 'pas reconnu (compté dans le total seulement)'}</span></span>
+      <span class="num">${eur(it.total)}</span></li>`).join('')}</ul>
+    <p class="small">Total lu : <b>${eur(receipt.total ?? sum)}</b>${receipt.total && Math.abs(receipt.total - sum) > 0.05 ? ` (articles : ${eur(sum)})` : ''}</p>
+    <p class="tiny muted">« Appliquer » : le montant va dans ton budget, les articles reconnus sortent de ta liste, leurs prix sont corrigés pour ce magasin et tes achats réguliers deviennent des habitudes.</p>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-r="0">Annuler</button><button class="btn primary" data-r="1">Appliquer</button></div></div>`;
+  document.body.append(wrap);
+  wrap.addEventListener('change', (e) => {
+    if (e.target.dataset.ri != null) receipt.items[Number(e.target.dataset.ri)].use = e.target.checked;
+    if (e.target.id === 'receipt-chain') receipt.chain = e.target.value;
+  });
+  wrap.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-r]');
+    if (!b) return;
+    if (b.dataset.r === '1') applyReceipt();
+    wrap.remove();
+  });
+}
+
+function applyReceipt() {
+  const today = new Date().toISOString().slice(0, 10);
+  const { chain } = receipt;
+  const used = receipt.items.filter((i) => i.use);
+  let corrected = 0;
+  state.purchases ??= {};
+  for (const it of used) {
+    if (!it.match) continue;
+    let pid = it.match.id;
+    if (!pid && it.match.row) {
+      const r = CATALOG?.rows.find((x) => x[ROW.id] === it.match.row);
+      if (!r) continue;
+      const p = catalogProduct(r);
+      if (!state.custom.some((c) => c.id === p.id)) state.custom.push(p);
+      pid = p.id;
+    }
+    // Prix corrigé pour ce magasin, ramené au format du produit de l'app.
+    const rule = RULES[pid];
+    if (rule) {
+      const size = parseSizes(it.name).find((x) => x.unit === rule.size[1]);
+      const factor = size ? rule.size[0] / size.amount : (rule.size[1] === 'pc' && rule.size[0] === 1 ? 1 : null);
+      if (factor && factor > 0.2 && factor < 5) {
+        state.overrides[pid] = { ...(state.overrides[pid] ?? {}), [chain]: Math.round(it.price * factor * 100) / 100 };
+        corrected++;
+      }
+    }
+    // Retiré de la liste.
+    const li = state.list.find((l) => l.id === pid);
+    if (li) li.qty -= it.qty;
+    // Habitudes : rachat régulier → produit habituel.
+    const dates = [...(state.purchases[pid] ?? []), today].slice(-6);
+    state.purchases[pid] = dates;
+    const rec = state.recurring.find((r) => r.id === pid);
+    if (rec) Object.assign(rec, learnFrequency(rec, today));
+    else if (dates.length >= 2) {
+      const gaps = dates.slice(1).map((d, i) => (new Date(d) - new Date(dates[i])) / DAY).filter((g) => g >= 2);
+      if (gaps.length) state.recurring.push({ id: pid, every: Math.round(gaps.reduce((a, g) => a + g, 0) / gaps.length), last: today });
+    }
+  }
+  state.list = state.list.filter((l) => l.qty > 0);
+  const sum = Math.round(used.reduce((t, i) => t + i.total, 0) * 100) / 100;
+  state.history.unshift({ date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum, saving: 0, items: used.length });
+  receipt = null;
+  save();
+  render();
+  toast(`Ticket enregistré · ${corrected} prix corrigé${corrected > 1 ? 's' : ''}`);
 }
 
 // ---------- Utilitaires ----------
@@ -1145,6 +1267,7 @@ function budgetCard() {
       <span class="saving">Économisé grâce à l'app : ${eur(cur.saving)} ce mois · ${eur(savedAll)} en tout</span>
     </section>
     <div class="card">
+      <label class="btn soft block" style="cursor:pointer">${icon('scan')} Scanner un ticket de caisse<input type="file" id="receipt-file" accept="image/*" capture="environment" hidden></label>
       <label class="field"><span>Mon budget courses par mois</span><div class="row"><input type="number" min="0" step="10" inputmode="decimal" data-setting="monthBudget" data-num value="${budget || ''}" placeholder="ex. 300" style="max-width:140px"> <b>€</b></div></label>
       <div class="bars" role="img" aria-label="Dépenses des 6 derniers mois">${months.map((m) => `<div class="bar"><span class="num tiny">${m.total ? `${Math.round(m.total)} €` : ''}</span><i style="height:${(m.total / max) * 75}%" class="${budget && m.total > budget ? 'over' : ''}"></i><span class="tiny muted">${esc(m.label)}</span></div>`).join('')}</div>
       <p class="tiny muted">Chaque « Courses faites » compte le montant payé (ou l'estimation). Économie = les mêmes articles au magasin le plus proche, moins le prix du plan.</p>
@@ -1610,6 +1733,7 @@ view.addEventListener('change', (e) => {
     toast('Enregistré');
     return;
   }
+  if (t.id === 'receipt-file' && t.files?.[0]) { readReceipt(t.files[0]); t.value = ''; return; }
   if (t.id === 'smart-budget') {
     smartSettings().budget = Math.max(1, Number(String(t.value).replace(',', '.')) || 1);
     save();
