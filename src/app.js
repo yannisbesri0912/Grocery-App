@@ -857,6 +857,9 @@ function viewPlan() {
 // ---------- Panier assisté (commande Collect) ----------
 let orderStop = null; // magasin dont on prépare la commande
 
+// Format attendu d'un produit (« 1 L », « 500 g ») : dans son nom, entre parenthèses.
+const packOf = (p) => p.name.match(/\(([^)]*\d[^)]*)\)\s*$/)?.[1] ?? '';
+
 function viewOrder(plan, stop) {
   const st = stop.store;
   const shop = SHOPS[st.chain];
@@ -880,13 +883,16 @@ function viewOrder(plan, stop) {
         ${shop?.copy
           ? '<li>Touche <b>Copier et ouvrir</b> : le nom du produit est copié et le site s\'ouvre. Colle-le dans la barre de recherche, ajoute l\'article au panier, puis reviens ici. La case se coche toute seule.</li>'
           : '<li>Touche <b>Ouvrir</b> : le produit s\'ouvre sur le site, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>'}
+        <li>« Estimé » : l'app n'a pas encore le vrai article. Prends le format visé (pas un pack de 12 ni une salade préparée) : le prix réel peut différer.</li>
         <li>À la fin, ouvre ton panier pour choisir le créneau et payer sur le site.</li>
       </ol>
       ${min && sub < min ? `<p class="small warn-text">Minimum de commande : ${eur(min)} (il manque ${eur(min - sub)}).</p>` : ''}
     </div>
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
-        <span class="name">${l.qty > 1 ? `<b>${l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${esc(l.info?.article ?? `recherche : ${l.link.query}`)} · ${eur(l.total)}</span></span>
+        <span class="name">${l.qty > 1 ? `<b>${l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
+          ? `${esc(l.info.article)} · ${eur(l.total)}`
+          : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
         <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
     <a class="btn primary lg block" target="_blank" rel="noopener" href="${esc(shop?.cart ?? st.collect.url)}">${icon('cart')} ${esc(shop?.cartLabel ?? `Commander chez ${CHAINS[st.chain].name}`)}</a>
