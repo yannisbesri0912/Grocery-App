@@ -898,7 +898,9 @@ function render() {
   const showSetup = !state.home && !['prices', 'recurring', 'plats'].includes(state.tab);
   const views = { list: viewList, plats: viewPlats, plan: viewPlan, recurring: viewRecurring, prices: viewPrices, settings: viewSettings };
   if (smartOpen && state.tab === 'list') views.list = quiz ? viewQuiz : viewSmart;
-  view.innerHTML = showSetup && (state.tab === 'plan' || state.tab === 'settings' || !state.skipSetup) ? viewSetup() : (views[state.tab] ?? viewList)();
+  const offline = navigator.onLine === false
+    ? `<div class="banner warn-banner">📴<span class="grow small">Hors ligne : l'app marche avec les prix gardés sur ton téléphone${PRICES.updatedAt ? ` (relevés le ${dateFr(PRICES.updatedAt.slice(0, 10))})` : ''}.</span></div>` : '';
+  view.innerHTML = offline + (showSetup && (state.tab === 'plan' || state.tab === 'settings' || !state.skipSetup) ? viewSetup() : (views[state.tab] ?? viewList)());
   const cta = document.getElementById('cta');
   const showCta = state.tab === 'list' && !smartOpen && state.list.length && !(showSetup && !state.skipSetup);
   cta.innerHTML = showCta ? `<button class="btn primary lg block" data-tab="plan">${icon('route')} Où acheter au meilleur prix ? ${icon('arrow')}</button>` : '';
@@ -2770,6 +2772,12 @@ if (state.custom.some(isArticle) || EGGS[state.settings.eggs]?.re) loadCatalog()
 }
 window.addEventListener('hashchange', () => { const sh = readShared(location.hash); if (sh) importShared(sh); });
 
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
+// Catalogues préchargés quand le téléphone est libre : première recherche immédiate,
+// et tout reste utilisable sans réseau en magasin (gardés par sw.js).
+(window.requestIdleCallback ?? ((f) => setTimeout(f, 2500)))(() => { loadCatalog(); loadMoreRecipes(); }, { timeout: 6000 });
+window.addEventListener('online', () => render());
+window.addEventListener('offline', () => render());
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
