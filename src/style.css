@@ -258,7 +258,7 @@ body.has-cta #toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
 }
 #toast.show { opacity: 1; transform: translateX(-50%); }
 .modal { position: fixed; inset: 0; z-index: 30; display: grid; place-items: end center; padding: 16px; background: rgb(0 0 0 / 45%); }
-.modal-box { background: var(--surface); color: var(--ink); border-radius: 22px; padding: 20px; width: min(480px, 100%); display: grid; gap: 14px; margin-bottom: env(safe-area-inset-bottom); }
+.modal-box { background: var(--surface); color: var(--ink); border-radius: 22px; padding: 20px; width: min(480px, 100%); display: grid; gap: 14px; margin-bottom: env(safe-area-inset-bottom); max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
 .modal-box textarea { width: 100%; font: inherit; font-size: .85rem; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
 .spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -490,3 +490,9 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 .placard .placard-date { width: 132px; flex: none; font-size: .78rem; padding: 4px 6px; }
 .placard li.soon .name { color: var(--warn); }
 .items .name .sub.home { display: block; white-space: normal; font-size: .78rem; color: var(--muted); }
+
+/* Halal : viande chez le boucher */
+.pill.halal { background: var(--accent-soft); color: var(--accent); }
+.items .name .sub.halal { display: block; white-space: normal; font-size: .78rem; color: var(--accent); }
+.butcher-card .butcher-ico { font-size: 1.6rem; }
+.butcher-page h2 { margin: 4px 0; }

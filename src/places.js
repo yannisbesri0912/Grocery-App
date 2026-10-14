@@ -4,6 +4,7 @@
 // l'app marche autour de n'importe quelle adresse en Belgique.
 import { CHAINS } from './data.js';
 import { haversineKm } from './optimizer.js';
+import { selectButchers } from './halal.js';
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org';
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
@@ -147,6 +148,22 @@ export async function findStores(home, radiusKm = 3) {
       if (!res.ok) throw new Error(`Overpass ${res.status}`);
       const { elements = [] } = await res.json();
       return selectStores(elements, home);
+    } catch (e) { lastError = e; }
+  }
+  throw lastError ?? new Error('Overpass indisponible');
+}
+
+/** Boucheries autour d'un point (OpenStreetMap), halal indiqué d'abord. */
+export async function findButchers(home, radiusKm = 3) {
+  const r = Math.round(radiusKm * 1000);
+  const query = `[out:json][timeout:25];nwr["shop"="butcher"](around:${r},${home.lat},${home.lng});out center tags;`;
+  let lastError;
+  for (const endpoint of OVERPASS) {
+    try {
+      const res = await fetch(endpoint, { method: 'POST', body: new URLSearchParams({ data: query }) });
+      if (!res.ok) throw new Error(`Overpass ${res.status}`);
+      const { elements = [] } = await res.json();
+      return selectButchers(elements, home, haversineKm);
     } catch (e) { lastError = e; }
   }
   throw lastError ?? new Error('Overpass indisponible');

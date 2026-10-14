@@ -16,7 +16,7 @@ export const TOOLS = {
 // Ingrédients. p : produit de l'app ; q : recherche dans le catalogue Colruyt.
 // pack : contenance d'un paquet [quantité, unité] ; ref : prix indicatif d'un
 // paquet (si le catalogue n'est pas chargé).
-// flags : m viande, p porc, f poisson, d lait, e œuf, g gluten, n fruits à coque.
+// flags : m viande, p porc, f poisson, d lait, e œuf, g gluten, n fruits à coque, a alcool.
 // pantry : ingrédient de placard (pas acheté pour une recette).
 const P = (p, amount, unit, flags = '') => ({ p, pack: [amount, unit], flags });
 const Q = (q, name, amount, unit, ref, flags = '') => ({ q, name, pack: [amount, unit], ref, flags });
@@ -37,7 +37,7 @@ export const ING = {
   sucre: P('sucre', 1000, 'g'), 'tomates-conc': P('tomates-conc', 700, 'g'), chocolat: P('chocolat', 200, 'g'),
   'pois-chiches': P('pois-chiches', 400, 'g'), mayonnaise: P('mayonnaise', 500, 'ml', 'e'),
   'legumes-surg': P('legumes-surg', 1000, 'g'), frites: P('frites', 1000, 'g'), pizza: P('pizza', 1, 'pc', 'gd'),
-  biere: P('biere', 24, 'pc'),
+  biere: P('biere', 24, 'pc', 'a'),
   // Catalogue Colruyt
   boeuf: Q('rundergehakt', 'Haché pur bœuf', 500, 'g', 5.5, 'm'),
   steak: Q('steak cat', 'Steak de bœuf', 300, 'g', 6.5, 'm'),
@@ -340,10 +340,17 @@ function parseIngredients(text) {
   });
 }
 
+const ALCOHOL_PANTRY = new Set(['vin', 'rhum', 'biere']);
+// Ingrédients avec du porc qui existent en version halal chez le boucher.
+const HALAL_SWAP = new Set(['hache', 'jambon', 'lardons', 'chorizo', 'steak-burger']);
+
 /** [nom, type, minutes, ustensiles, ingrédients, étapes, source?] → recette. */
 export function makeRecipe([name, type, minutes, tools, ingredients, steps, src], prefix = '') {
   const ings = parseIngredients(ingredients);
   const flags = new Set(ings.filter((i) => !i.pantry).flatMap((i) => [...(ING[i.key]?.flags ?? '')]));
+  if (ings.some((i) => ALCOHOL_PANTRY.has(i.key))) flags.add('a'); // vin, rhum du placard
+  // Porc qu'un boucher halal remplace (haché, lardons, chorizo de bœuf ou de dinde) : noté à part.
+  if (flags.has('p') && ings.every((i) => i.pantry || !ING[i.key]?.flags?.includes('p') || HALAL_SWAP.has(i.key))) flags.add('h');
   return {
     id: prefix + slug(name), name, type, minutes, steps,
     tools: tools ? tools.split(/\s+/).map((g) => g.split('|')) : [],
@@ -375,7 +382,9 @@ export function addRecipes(rows, prefix = 'wb-') {
 // ---------- Filtres ----------
 export const DIETS = {
   tout: { label: 'Je mange de tout', not: '' },
-  'sans-porc': { label: 'Sans porc / halal', not: 'p' },
+  'sans-porc': { label: 'Sans porc', not: 'p' },
+  // Halal : ni porc ni alcool ; la viande s'achète chez un boucher halal (voir src/halal.js).
+  halal: { label: 'Halal', not: 'a', halal: true },
   vegetarien: { label: 'Végétarien', not: 'mpf' },
   vegan: { label: 'Vegan', not: 'mpfde' },
 };
@@ -458,6 +467,7 @@ export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], max
   if (r.minutes > maxTime) return false;
   if (!r.tools.every((group) => group.some((t) => kitchen[t]))) return false;
   const banned = (DIETS[diet]?.not ?? '') + allergies.join('');
+  if (DIETS[diet]?.halal && r.flags.has('p') && !r.flags.has('h')) return false;
   return ![...banned].some((f) => r.flags.has(f));
 }
 

@@ -2,7 +2,8 @@ import { CHAINS, COLLECT, DELIVERY, CATEGORIES, PRODUCTS } from './data.js';
 import {
   MODES, DEFAULT_SETTINGS, optimize, priceInfo, mapsUrl, dueRecurring, learnFrequency, isOpen, haversineKm,
 } from './optimizer.js';
-import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
+import { geocodeAddress, reverseGeocode, currentPosition, findStores, findButchers, todayHours } from './places.js';
+import { halalKind, BUTCHER_NAMES, butcherName } from './halal.js';
 import { SHOPS, orderLink, learnTemplate, searchText } from './order.js';
 import { equivalentOf } from './same.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
@@ -243,6 +244,33 @@ function catalogProduct(r, chain = 'colruyt') {
   };
 }
 const isArticle = (p) => Boolean(p.colruyt || p.shop);
+
+// ---------- Halal ----------
+// Réglage « Halal » : la viande fraîche part chez le boucher halal (hors du plan
+// supermarché) ; porc, alcool et plats avec viande non halal sont signalés.
+const halalOn = () => Boolean(DIETS[state.settings.diet]?.halal);
+function halalOf(p) {
+  if (!p || !halalOn()) return null;
+  return p.butcher ? 'butcher' : halalKind(p.name, p.cat);
+}
+// Nom à demander au boucher : « Haché de bœuf (500 g) ».
+function butcherLabel(p) {
+  if (p.butcher) return p.name;
+  const pack = p.name.match(/\(([^)]*\d[^)]*)\)\s*$/)?.[1] ?? (isArticle(p) ? p.name.match(/\d+([.,]\d+)?\s*(kg|g|gr|st|pc|pièces?)\b/i)?.[0] : null);
+  const base = BUTCHER_NAMES[p.id] ?? butcherName(p.name) ?? cap(searchText(p.name.replace(/\s*\(.*\)$/, '')).toLowerCase());
+  return pack ? `${base} (${pack})` : base;
+}
+const butcherItems = () => state.list.map((l) => ({ ...l, p: productById(l.id) })).filter((l) => l.p && halalOf(l.p) === 'butcher');
+function halalLine(p) {
+  const k = halalOf(p);
+  if (k === 'butcher') return `<span class="sub halal">🥩 Chez le boucher halal${butcherLabel(p) !== p.name ? ` : ${esc(butcherLabel(p))}` : ''} · <button class="link" data-action="butcher">où ?</button></span>`;
+  return k ? `<span class="sub warn-text">⚠️ ${HALAL_WARN[k]}</span>` : '';
+}
+const HALAL_WARN = { pork: 'Contient du porc', meat: 'Viande sans doute pas halal', alcohol: 'Contient de l\'alcool' };
+const halalPill = (name, cat) => {
+  const k = halalOn() ? halalKind(name, cat) : null;
+  return k === 'butcher' ? ' <span class="pill halal">boucher halal</span>' : k ? ` <span class="pill warn">${k === 'pork' ? 'porc' : k === 'alcohol' ? 'alcool' : 'pas halal ?'}</span>` : '';
+};
 
 // ---------- Préférence œufs ----------
 const EGGS = {
@@ -833,7 +861,7 @@ function collectPoints() {
 
 function computePlans() {
   return optimize({
-    items: state.list,
+    items: state.list.filter((l) => halalOf(productById(l.id)) !== 'butcher'), // viande : chez le boucher halal
     products: allProducts(),
     stores: [...state.stores, ...collectPoints()],
     delivery: DELIVERY,
@@ -1108,10 +1136,10 @@ function searchResults() {
   const unit = (r) => (r[ROW.unitPrice] && r[ROW.unit] && r[ROW.weight] !== 1 ? `${eur(r[ROW.unitPrice])}/${r[ROW.unit] === 'pc' ? 'pièce' : r[ROW.unit]}` : '');
   const shops = CATALOG_CHAINS.filter((c) => CATALOGS[c]).map((c) => CHAINS[c].name).join(', ');
   return (hits.length && cat.length ? '<div class="results-head">Produit général · meilleur prix tous magasins</div>' : '') +
-    hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
+    hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}${halalPill(p.name, p.cat)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (cat.length ? `<div class="results-head"><span class="grow">Article précis · vrais prix ${esc(shops)}</span>
       <button class="chip ${healthy ? 'on' : ''}" data-action="healthy" aria-pressed="${Boolean(healthy)}">Santé d'abord</button></div>` : '') +
-    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.deal] ? dealPill(r[ROW.deal], chain) : r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}
+    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.deal] ? dealPill(r[ROW.deal], chain) : r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}${halalPill(rowName(r), r[ROW.cat])}
         <span class="sub">${unit(r)}${twinLine(chain, r)}</span></span>
         <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tous les catalogues…</div>' : '') +
@@ -1145,7 +1173,7 @@ function viewList() {
     .sort((a, b) => catRank(a[0]) - catRank(b[0]))
     .map(([cat, ls]) => [cat, order ? [...ls].sort((a, b) => aisleOf(a.p, order) - aisleOf(b.p, order)) : ls])
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
-      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}${cheaperLine(l.p)}${homeLine(l.p)}</span>
+      <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${halalOf(l.p) === 'butcher' ? halalLine(l.p) : `${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}${cheaperLine(l.p)}${homeLine(l.p)}${halalLine(l.p)}`}</span>
         <span class="stepper">
           <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
@@ -1215,8 +1243,9 @@ function resolveIng(key, chain = smartShop()) {
 }
 
 const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+const halalMeat = (key) => halalOn() && Boolean(ING[key]?.flags?.includes('m'));
 const ingName = (key) => (ING[key]
-  ? ING[key].name ?? productById(ING[key].p)?.name.replace(/\s*\(.*\)$/, '') ?? key
+  ? (halalMeat(key) && BUTCHER_NAMES[key]) || (ING[key].name ?? productById(ING[key].p)?.name.replace(/\s*\(.*\)$/, '') ?? key)
   : cap(PANTRY_LABELS[key] ?? key.replace(/-/g, ' ')));
 // « J'ai déjà » : ingrédients de placard (sel, huile…) supposés présents sauf si
 // marqués manquants ; ingrédients achetés cochés « j'ai » pendant 10 jours.
@@ -1262,6 +1291,13 @@ function addDish(r, servings) {
     if (!state.list.some((l) => l.id === id)) state.list.push({ id, qty: 1, checked: false });
   }
   for (const i of r.ingredients.filter((x) => !x.pantry && !haveIng(x))) {
+    if (halalMeat(i.key)) { // viande : sur la liste du boucher halal
+      const [amt, unit] = ING[i.key].pack;
+      const id = `halal-${i.key}`;
+      if (!state.custom.some((c) => c.id === id)) state.custom.push({ id, name: `${ingName(i.key)} (${formatAmount(amt, unit)})`, cat: 3, ref: ING[i.key].ref ?? productById(ING[i.key].p)?.ref ?? 6, custom: true, butcher: true });
+      addNeed(id, (i.amount * servings) / amt);
+      continue;
+    }
     const res = resolveIng(i.key, chain);
     let id = res.product?.id;
     if (!id && res.row) {
@@ -1572,6 +1608,7 @@ let recipeQuick = false;
 // Promo sur l'article qu'un ingrédient fait acheter dans une enseigne :
 // réduction directe (1 article), carte Plus si cochée, ou promo PrijsProfeet.
 function ingPromo(key, chain) {
+  if (halalMeat(key)) return null; // viande achetée chez le boucher halal
   const res = resolveIng(key, chain);
   let deal = null;
   let regular = null;
@@ -1723,7 +1760,7 @@ function ingRow(i, n, priced) {
   const have = haveIng(i);
   const amount = i.amount ? formatAmount(i.amount * (i.unit === 'cc' || i.unit === 'cs' ? n : n), i.unit) : '';
   return `<li class="${have ? 'done' : ''}"><button class="have" data-action="have" data-key="${esc(i.key)}" data-pantry="${i.pantry ? 1 : 0}" aria-pressed="${have}" aria-label="J'ai déjà ${esc(ingName(i.key))}">${have ? icon('check') : ''}</button>
-    <span class="name">${esc(ingName(i.key))}</span><span class="num">${amount}</span>
+    <span class="name">${esc(ingName(i.key))}${halalMeat(i.key) ? ' <span class="pill halal">boucher halal</span>' : ''}</span><span class="num">${amount}</span>
     ${priced ? `<span class="num muted small" style="min-width:56px;text-align:right">${have ? 'j\'ai' : eur(i.amount * n * resolveIng(i.key).perUnit)}</span>` : ''}</li>`;
 }
 
@@ -1782,6 +1819,8 @@ function prefsBar() {
 function viewPlan() {
   if (!state.list.length) return `<h1>Meilleur plan</h1><div class="empty">${icon('route')}<b>Ajoute d'abord des produits à ta liste</b><button class="btn primary" data-tab="list">Ouvrir ma liste</button></div>`;
   if (!state.stores.length) return `<h1>Meilleur plan</h1><div class="card">${icon('pin')}<b>Aucun supermarché trouvé autour de ton adresse.</b><p class="small muted">Vérifie l'adresse ou élargis le rayon dans Réglages.</p><button class="btn primary" data-tab="settings">Réglages</button></div>`;
+  const meat = butcherCard();
+  if (meat && !state.list.some((l) => halalOf(productById(l.id)) !== 'butcher')) return `<h1>Meilleur plan</h1>${meat}`;
   const allPlans = computePlans();
   lastPlans = allPlans.filter((p) => modeOk(p, state.settings.planMode));
   if (!lastPlans.length) {
@@ -1846,6 +1885,7 @@ function viewPlan() {
       </div>
     </section>
     ${planWarnings(plan)}
+    ${meat}
     <div class="actions">
       ${plan.kind === 'trip' || plan.stops[0]?.store.lat != null
         ? `<a class="btn" target="_blank" rel="noopener" href="${esc(mapsUrl(state.home, plan, state.settings.mode))}">${icon('map')}Itinéraire</a>`
@@ -1924,6 +1964,87 @@ function viewOrder(plan, stop) {
     <p class="foot">Les quantités (« 2 × ») sont à régler sur le site. L'app ne voit pas ton compte : elle coche l'article quand tu l'ouvres, décoche-le s'il n'était pas disponible.</p>`;
 }
 
+// ---------- Boucher halal ----------
+// Carte du plan : la viande de la liste, à acheter chez un boucher halal.
+function butcherCard() {
+  const meat = butcherItems();
+  if (!meat.length) return '';
+  return `<div class="card butcher-card">
+    <div class="row"><span class="butcher-ico" aria-hidden="true">🥩</span><div class="grow"><b>Viande : chez le boucher halal</b>
+      <div class="small muted">${meat.length} produit${meat.length > 1 ? 's' : ''}, pas compté${meat.length > 1 ? 's' : ''} dans le plan supermarché</div></div></div>
+    <ul class="items">${meat.map((l) => `<li class="${l.checked ? 'done' : ''}"><input type="checkbox" class="check" data-action="check" data-id="${esc(l.id)}" ${l.checked ? 'checked' : ''} aria-label="Acheté">
+      <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(butcherLabel(l.p))}</span></li>`).join('')}</ul>
+    <button class="btn primary block" data-action="butcher">Trouver un boucher halal ${icon('arrow')}</button></div>`;
+}
+
+let butchers = null; // null : pas cherché ; 'loading' ; 'error' ; [boucheries]
+// Page « Il faut aller chez un boucher halal ».
+function openButcher() {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  document.body.append(wrap);
+  const close = () => { wrap.remove(); render(); };
+  const home = state.home;
+  if (home && (butchers === null || butchers === 'error')) {
+    butchers = 'loading';
+    findButchers(home, Math.max(3, state.settings.radiusKm ?? 3))
+      .then((list) => { butchers = list; }).catch(() => { butchers = 'error'; })
+      .finally(() => { if (wrap.isConnected) draw(); });
+  }
+  function draw() {
+    const meat = butcherItems();
+    // Au supermarché : seulement les articles marqués halal (catalogues chargés).
+    const labelled = CATALOG_CHAINS.filter((c) => CATALOGS[c]).flatMap((c) => CATALOGS[c].rows
+      .filter((r) => (r[ROW.cat] === 3 || r[ROW.cat] === 5) && /\bhalal\b/i.test(`${r[ROW.name]} ${r[ROW.fr] ?? ''}`)).map((r) => ({ c, r })))
+      .sort((a, b) => a.r[ROW.price] - b.r[ROW.price]).slice(0, 10);
+    const inList = new Set(state.list.map((l) => l.id));
+    const gmaps = home ? `https://www.google.com/maps/search/${encodeURIComponent('boucherie halal')}/@${home.lat},${home.lng},15z` : 'https://www.google.com/maps/search/boucherie+halal';
+    const shopRow = (b) => `<li><span class="name"><b>${esc(b.name)}</b> ${b.halal ? '<span class="pill good">halal indiqué</span>' : '<span class="pill">à confirmer</span>'}
+        <span class="sub">${esc(b.address || 'adresse non indiquée')} · ${b.km.toFixed(1).replace('.', ',')} km${b.hours ? ` · ${esc(b.hours)}` : ''}</span></span>
+        <a class="btn soft small" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}">${icon('map')}</a></li>`;
+    wrap.innerHTML = `<div class="modal-box butcher-page" role="dialog" aria-modal="true" aria-label="Boucher halal">
+      <div class="row"><span class="eyebrow grow">Halal</span><button class="btn ghost small" data-b="close" aria-label="Fermer">${icon('x')}</button></div>
+      <h2>Il faut aller chez un boucher halal</h2>
+      <p class="small">En supermarché, la viande fraîche n'est en général pas halal. Achète-la chez un boucher halal : l'app garde le reste de tes courses pour le supermarché.</p>
+      ${meat.length ? `<div class="stack"><span class="eyebrow">À demander au boucher</span><ul class="items">${meat.map((l) => `<li class="${l.checked ? 'done' : ''}">
+        <input type="checkbox" class="check" data-b="check" data-id="${esc(l.id)}" ${l.checked ? 'checked' : ''} aria-label="Acheté">
+        <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(butcherLabel(l.p))}</span></li>`).join('')}</ul></div>` : '<p class="small muted">Pas de viande dans ta liste pour le moment.</p>'}
+      <div class="stack"><span class="eyebrow">Boucheries près de chez toi</span>
+        ${!home ? '<p class="small muted">Choisis ton adresse (en haut de l\'app) pour voir les boucheries proches.</p>'
+          : butchers === 'loading' ? '<p class="small muted"><span class="spin"></span> Recherche des boucheries…</p>'
+          : butchers === 'error' ? '<p class="small warn-text">Recherche impossible pour le moment (pas de connexion ?).</p>'
+          : butchers?.length ? `<ul class="items">${butchers.map(shopRow).join('')}</ul>
+            <p class="tiny muted">« Halal indiqué » : noté sur OpenStreetMap. « À confirmer » : boucherie proche, demande sur place.</p>`
+          : '<p class="small muted">Aucune boucherie trouvée sur la carte autour de toi.</p>'}
+        <a class="btn soft block" target="_blank" rel="noopener" href="${esc(gmaps)}">${icon('search')} Chercher « boucherie halal » sur Google Maps</a></div>
+      ${labelled.length ? `<div class="stack"><span class="eyebrow">Au supermarché : seulement les articles marqués halal</span><ul class="items">${labelled.map(({ c, r }) => {
+        const id = c === 'colruyt' ? `col-${r[ROW.id]}` : `${c}-${r[ROW.id]}`;
+        return `<li>${logo(c, 'sm')}<span class="name">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}</span>
+          <span class="num">${eur(r[ROW.price])}</span>${inList.has(id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-b="add" data-chain="${c}" data-id="${esc(r[ROW.id])}" aria-label="Ajouter">${icon('plus')}</button>`}</li>`;
+      }).join('')}</ul></div>` : ''}
+      <button class="btn primary block" data-b="close">OK</button>
+    </div>`;
+  }
+  wrap.addEventListener('click', (e) => {
+    if (e.target === wrap) return close();
+    const b = e.target.closest('[data-b]');
+    if (!b) return;
+    e.stopPropagation();
+    if (b.dataset.b === 'close') return close();
+    if (b.dataset.b === 'check') {
+      const it = state.list.find((l) => l.id === b.dataset.id);
+      if (it) it.checked = b.checked;
+      save();
+    } else if (b.dataset.b === 'add') {
+      const r = CATALOGS[b.dataset.chain]?.rows.find((x) => String(x[ROW.id]) === b.dataset.id);
+      if (r) { addItem({ row: r, chain: b.dataset.chain }); save(); toast('Ajouté à ta liste'); }
+    }
+    draw();
+  });
+  Promise.all([loadCatalog(), loadOtherCatalogs()]).then(() => { if (wrap.isConnected) draw(); });
+  draw();
+}
+
 function priceSourcesNote() {
   const src = PRICES.sources ?? {};
   const real = ['colruyt', 'delhaize', 'aldi'].filter((c) => src[c]?.date).map((c) => `${CHAINS[c].name} ${dateFr(src[c].date)}`);
@@ -1984,6 +2105,8 @@ function planText(plan) {
     lines.push('', `📍 ${s.store.name}`);
     for (const l of s.lines) lines.push(`☐ ${l.qty > 1 ? `${l.qty} × ` : ''}${l.product.name}${l.packs && l.info?.article ? ` → ${l.packs} × ${l.info.article}` : ''} (${eur(l.total)})`);
   }
+  const meat = butcherItems();
+  if (meat.length) lines.push('', '🥩 Boucher halal', ...meat.map((l) => `☐ ${l.qty > 1 ? `${l.qty} × ` : ''}${butcherLabel(l.p)}`));
   if (plan.kind === 'trip') lines.push('', `🗺️ ${mapsUrl(state.home, plan, state.settings.mode)}`);
   return lines.join('\n');
 }
@@ -2217,6 +2340,8 @@ function viewSettings() {
       <label class="row"><input type="checkbox" class="switch" data-setting="openNow" data-bool-check ${s.openNow ? 'checked' : ''}><span class="grow">Seulement les magasins ouverts maintenant</span></label>
       <label class="field"><span>Mes œufs</span><div class="seg" role="group" aria-label="Œufs">${Object.entries(EGGS).map(([k, e]) => `<button data-action="eggs" data-val="${k}" aria-pressed="${(s.eggs ?? 'any') === k}">${esc(e.label)}</button>`).join('')}</div>
         <span class="tiny muted">Choisis un type : l'app compare les œufs de ce type dans chaque magasin, au prix d'une boîte de 12.</span></label>
+      <label class="field"><span>Mon alimentation</span><div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${d}" aria-pressed="${(s.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
+        <span class="tiny muted">Halal : ni porc ni alcool dans les recettes, et la viande va sur la liste du boucher halal (le supermarché ne garde que les articles marqués halal).</span></label>
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
@@ -2357,6 +2482,8 @@ document.addEventListener('click', async (e) => {
     k[b.dataset.val] = !k[b.dataset.val];
     save();
     render();
+  } else if (a === 'butcher') {
+    openButcher();
   } else if (a === 'diet') {
     state.settings.diet = b.dataset.val;
     save();
