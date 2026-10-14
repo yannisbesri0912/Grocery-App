@@ -42,7 +42,7 @@ export function priceInfo(product, chainId, chains, overrides = {}, real = {}) {
   const own = overrides[product.id]?.[chainId];
   if (typeof own === 'number') return { price: own, kind: 'user' };
   const r = real[product.id]?.[chainId];
-  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal, ref: r.ref };
+  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal, ref: r.ref, pack: r.pack, alts: r.alts };
   if (product.notIn?.includes(chainId)) return null;
   const chain = chains[chainId];
   if (!chain) return null;
@@ -123,6 +123,20 @@ export function usableDeal(deal, chainId, settings = {}, now = new Date()) {
   return deal;
 }
 
+/**
+ * Ce que coûte vraiment une ligne : on achète des paquets entiers. price est le
+ * prix ramené au format de la liste, pack le prix du paquet réellement vendu
+ * (ex. liste « 500 g » à 0,92 €, paquet de 750 g à 1,38 € : 1 paquet = 1,38 €).
+ * → { total, packs } (packs absent si l'article a le format de la liste)
+ */
+export function lineCost(price, qty, pack, deal) {
+  const ratio = pack > 0 && price > 0 ? price / pack : 1; // paquets par unité de la liste
+  if (Math.abs(ratio - 1) < 0.02) return { total: dealTotal(price, qty, deal) };
+  // Marge de 5 % : le prix au format de la liste est arrondi (6 × 1 L à 6,29 € → 1,05 € le litre).
+  const packs = Math.max(1, Math.ceil(qty * ratio - 0.05));
+  return { total: dealTotal(pack, packs, deal), packs };
+}
+
 // Affecte chaque article au magasin le moins cher de l'ensemble (prix de la
 // quantité voulue, promos comprises : « 2e à -50 % » compte si on en prend 2).
 function assign(lines, sellers, chains, overrides, real, settings = {}, now = new Date()) {
@@ -134,9 +148,14 @@ function assign(lines, sellers, chains, overrides, real, settings = {}, now = ne
     for (const s of sellers) {
       const info = priceInfo(product, s.chain, chains, overrides, real);
       if (!info) continue;
-      const deal = info.kind === 'user' ? null : usableDeal(info.deal, s.chain, settings, now);
-      const total = dealTotal(info.price, qty, deal);
-      if (!best || total < best.total) best = { store: s, total, info, deal };
+      // Article retenu, ou un format plus petit s'il revient moins cher pour cette quantité.
+      const formats = info.kind === 'user' || info.kind === 'estimate' ? [info] : [info, ...(info.alts ?? []).map((a) => ({ ...info, ...a, alts: undefined }))];
+      for (const f of formats) {
+        const deal = f.kind === 'user' ? null : usableDeal(f.deal, s.chain, settings, now);
+        // Prix estimé ou saisi : pas de paquet connu, prix au format de la liste.
+        const { total, packs } = lineCost(f.price, qty, f.kind === 'user' || f.kind === 'estimate' ? null : f.pack, deal);
+        if (!best || total < best.total) best = { store: s, total, info: f, deal, packs };
+      }
     }
     if (!best) {
       missing.push(product);
@@ -144,8 +163,9 @@ function assign(lines, sellers, chains, overrides, real, settings = {}, now = ne
     }
     const { total, info } = best;
     goods += total;
-    const saving = round2(info.price * qty - total);
-    byStore[best.store.id].push({ product, qty, unit: round2(total / qty), total, info, ...(saving > 0 ? { saving, deal: best.deal } : {}) });
+    const full = best.packs ? round2(best.packs * info.pack) : round2(info.price * qty);
+    const saving = round2(full - total);
+    byStore[best.store.id].push({ product, qty, unit: round2(total / qty), total, info, ...(best.packs ? { packs: best.packs } : {}), ...(saving > 0 ? { saving, deal: best.deal } : {}) });
   }
   return { byStore, missing, goods: round2(goods) };
 }

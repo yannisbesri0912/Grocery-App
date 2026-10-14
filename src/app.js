@@ -256,16 +256,18 @@ const EGG_NOT = /chocola|paas|p[âa]ques|pasta|p[âa]tes|mayo|gekookt|durs?\b|kw
 function eggsFor(chain) {
   const pref = EGGS[state.settings.eggs];
   if (!pref?.re || !CATALOGS[chain]) return null;
-  let best = null;
+  const bySize = new Map(); // taille de boîte → la moins chère
   for (const r of CATALOGS[chain].rows) {
     const name = `${rowName(r)} ${r[ROW.name]}`;
     if (r[ROW.cat] !== 2 || !EGG_ROW.test(name) || EGG_NOT.test(name) || !pref.re.test(name)) continue;
     const n = parseSizes(`${r[ROW.name]} ${r[ROW.content] ?? ''}`).find((x) => x.unit === 'pc')?.amount;
     if (!(n >= 4 && n <= 30)) continue;
-    const per = r[ROW.price] / n;
-    if (!best || per < best.per) best = { r, per };
+    if (!bySize.has(n) || r[ROW.price] < bySize.get(n)[ROW.price]) bySize.set(n, r);
   }
-  return best && { price: Math.round(best.per * 12 * 100) / 100, article: `${rowName(best.r)}${best.r[ROW.content] ? ` ${best.r[ROW.content]}` : ''}`, url: rowUrl(chain, best.r), deal: best.r[ROW.deal] || undefined };
+  // Chaque taille de boîte, au prix d'une boîte de 12 : le plan prend celle qui convient à ta quantité.
+  const fmt = [...bySize].map(([n, r]) => ({ price: Math.round((r[ROW.price] / n) * 12 * 100) / 100, pack: r[ROW.price], article: `${rowName(r)}${r[ROW.content] ? ` ${r[ROW.content]}` : ''}`, url: rowUrl(chain, r), deal: r[ROW.deal] || undefined }))
+    .sort((a, b) => a.price - b.price);
+  return fmt.length ? { ...fmt[0], alts: fmt.slice(1, 5) } : null;
 }
 
 // Numéros d'un article Colruyt (pour les liens directs Collect&Go appris).
@@ -1789,7 +1791,7 @@ function viewPlan() {
         const head = k === 0 || arr[k - 1].product.cat !== l.product.cat ? `<li class="aisle-head"><span class="eyebrow cat">${esc(CATEGORIES[l.product.cat] ?? 'Divers')}</span></li>` : '';
         return `${head}<li class="${item?.checked ? 'done' : ''}">
           <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
-          <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
+          <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${l.packs ? `${l.packs} × ` : ''}${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
           <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
       }).join('')}</ul>
     </div>`;
@@ -1885,8 +1887,8 @@ function viewOrder(plan, stop) {
     ${direct ? '<p class="small muted">Liens directs Collect&amp;Go activés. <button class="link" data-action="forget-link" data-chain="colruyt">Oublier</button></p>' : ''}
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
-        <span class="name">${l.qty > 1 ? `<b>${l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
-          ? `${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
+        <span class="name">${(l.packs ?? l.qty) > 1 ? `<b>${l.packs ?? l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
+          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
           : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
         <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy && l.link.kind !== 'product' ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy && l.link.kind !== 'product' ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
@@ -1952,7 +1954,7 @@ function planText(plan) {
   const lines = [`🛒 ${plan.label} — ${eur(plan.total)} (courses ${eur(plan.goods)})`];
   for (const s of plan.stops) {
     lines.push('', `📍 ${s.store.name}`);
-    for (const l of s.lines) lines.push(`☐ ${l.qty > 1 ? `${l.qty} × ` : ''}${l.product.name} (${eur(l.total)})`);
+    for (const l of s.lines) lines.push(`☐ ${l.qty > 1 ? `${l.qty} × ` : ''}${l.product.name}${l.packs && l.info?.article ? ` → ${l.packs} × ${l.info.article}` : ''} (${eur(l.total)})`);
   }
   if (plan.kind === 'trip') lines.push('', `🗺️ ${mapsUrl(state.home, plan, state.settings.mode)}`);
   return lines.join('\n');

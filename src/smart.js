@@ -68,7 +68,7 @@ export function productOptions(productId, candidates, chain = 'colruyt') {
   const best = {};
   for (const c of rankMatches(rule, prefilter(rule, candidates), PET_BABY, 60)) {
     const tier = tierOf(c.article ?? c.name, chain);
-    if (!best[tier]) best[tier] = { tier, label: tierLabel(tier, chain), id: c.id, article: c.article ?? c.name, price: c.priceForSpec, promo: c.promo };
+    if (!best[tier]) best[tier] = { tier, label: tierLabel(tier, chain), id: c.id, article: c.article ?? c.name, price: c.priceForSpec, pack: c.size?.amount === 1 && c.size.unit !== 'pc' ? undefined : c.price, promo: c.promo };
   }
   // Du premier prix à la grande marque ; une gamme plus chère qu'une gamme
   // au-dessus n'a pas d'intérêt et disparaît (les choix montent en prix).
@@ -86,7 +86,12 @@ export function productOptions(productId, candidates, chain = 'colruyt') {
  * rentrent, puis montée en gamme (le plus petit supplément d'abord).
  */
 export function buildBasket(items, budget, goal = 'best') {
-  const cost = (it, i) => it.options[i].price * it.qty;
+  // Paquets entiers (voir lineCost dans optimizer.js) : 500 g voulus, paquet de 750 g → 1 paquet.
+  const cost = (it, i) => {
+    const o = it.options[i];
+    const ratio = o.pack > 0 && o.price > 0 ? o.price / o.pack : 1;
+    return Math.abs(ratio - 1) < 0.02 ? o.price * it.qty : Math.max(1, Math.ceil(it.qty * ratio - 0.05)) * o.pack;
+  };
   const picked = new Map(); // id → index d'option
   let total = 0;
   for (const it of items) {

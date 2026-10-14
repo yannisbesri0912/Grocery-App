@@ -204,3 +204,34 @@ test('optimize : promo « 2e à -50 % » comptée si la quantité et la carte y 
   assert.equal(withCard.stops[0].lines[0].saving, 1);
   assert.equal(run(1, { delhaize: true }).stops[0].store.id, 'c'); // 1 seul : pas de promo
 });
+
+test('lineCost : on paie des paquets entiers', async () => {
+  const { lineCost } = await import('../src/optimizer.js');
+  assert.deepEqual(lineCost(0.92, 1, 1.38), { total: 1.38, packs: 1 }); // 500 g voulus, paquet de 750 g
+  assert.deepEqual(lineCost(0.92, 3, 1.38), { total: 2.76, packs: 2 }); // 1,5 kg = 2 paquets
+  assert.deepEqual(lineCost(4.19, 2, 3.49), { total: 10.47, packs: 3 }); // 24 œufs en boîtes de 10
+  assert.deepEqual(lineCost(1.29, 2, 1.29), { total: 2.58 }); // même format
+  assert.deepEqual(lineCost(1.39, 1, 2.09, { k: 'g', q: 2, d: 0.25 }), { total: 2.09, packs: 1 });
+});
+
+test('optimize : le format le moins cher pour la quantité voulue (1 L seul plutôt qu\'un pack de 6)', async () => {
+  const { optimize } = await import('../src/optimizer.js');
+  const products = [{ id: 'lait', name: 'Lait (1 L)', ref: 1 }];
+  const stores = [{ id: 'd', chain: 'delhaize', name: 'Delhaize', lat: 50.8, lng: 4.4 }];
+  const real = { lait: { delhaize: { price: 1.05, pack: 6.29, article: 'Lait 6 x 1 l', alts: [{ price: 1.15, pack: 1.15, article: 'Lait 1 l' }] } } };
+  const run = (qty) => optimize({ items: [{ id: 'lait', qty }], products, stores, chains: { delhaize: { index: 110 } }, real, home: { lat: 50.8, lng: 4.4 }, settings: { valueOfTime: 0 } })[0].stops[0].lines[0];
+  assert.equal(run(1).info.article, 'Lait 1 l');
+  assert.equal(run(1).total, 1.15);
+  assert.equal(run(6).info.article, 'Lait 6 x 1 l');
+  assert.equal(run(6).total, 6.29);
+});
+
+test('optimize : œufs, la boîte de 12 plutôt que des boîtes de 10 pour 12 ou 24 œufs', async () => {
+  const { optimize } = await import('../src/optimizer.js');
+  const products = [{ id: 'oeufs', name: 'Œufs (12)', ref: 3 }];
+  const stores = [{ id: 'd', chain: 'delhaize', name: 'Delhaize', lat: 50.8, lng: 4.4 }];
+  const real = { oeufs: { delhaize: { price: 4.19, pack: 3.49, article: 'œufs 10 pc', alts: [{ price: 4.29, pack: 4.29, article: 'œufs 12 pc' }] } } };
+  const run = (qty) => optimize({ items: [{ id: 'oeufs', qty }], products, stores, chains: { delhaize: { index: 110 } }, real, home: { lat: 50.8, lng: 4.4 }, settings: { valueOfTime: 0 } })[0].stops[0].lines[0];
+  assert.equal(run(1).info.article, 'œufs 12 pc');
+  assert.equal(run(2).total, 8.58);
+});

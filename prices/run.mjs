@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS } from '../src/data.js';
 import { RULES, PET_BABY } from '../src/match-rules.js';
-import { pickBest } from '../src/matcher.js';
+import { pickBest, rankMatches } from '../src/matcher.js';
 import { fetchColruyt } from './colruyt.mjs';
 import { fetchPromotions } from './prijsprofeet.mjs';
 import { fetchSite } from './sites.mjs';
@@ -84,6 +84,22 @@ function match(candidates, source, lang) {
         ...(best.ref ? { ref: best.ref } : {}),
         ...(best.promo ? { promo: best.promoText ?? true, until: best.until ?? null } : {}),
       };
+      // Autres formats (1 L seul quand le moins cher au litre est un pack de 6, boîte de 12
+      // œufs quand le moins cher à l'œuf est une boîte de 10) : l'app choisit le format le
+      // moins cher pour la quantité voulue. Le moins cher de chaque taille, 4 tailles au plus.
+      const alts = [];
+      const sizes = new Set([best.size?.amount]);
+      for (const c of rankMatches(rule, candidates, PET_BABY, 80)) {
+        if (!c.size || sizes.has(c.size.amount)) continue;
+        sizes.add(c.size.amount);
+        alts.push({
+          price: c.priceForSpec, pack: Math.round(c.price * 100) / 100,
+          article: dutch || c.nl ? toFrench(c.name) : c.name,
+          ...(c.url ? { url: c.url } : {}), ...(c.deal ? { deal: c.deal } : {}), ...(c.ref ? { ref: c.ref } : {}),
+        });
+        if (alts.length >= 4) break;
+      }
+      if (alts.length) items[p.id].alts = alts;
     }
   }
   return items;
