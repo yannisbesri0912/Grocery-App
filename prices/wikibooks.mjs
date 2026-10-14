@@ -13,7 +13,7 @@ import { ING } from '../src/recipes.js';
 const MAP = [
   [/(peanut|groundnut|coconut|sesame|palm|vegetable|canola|sunflower|corn) oil/i, 'pantry'],
   [/sesame seeds?|cumin seeds?|mustard seeds?|coriander seeds?|celery seeds?|fennel seeds?|poppy seeds?|whole cloves|^cloves$|garam masala|curry leaves|mace\b/i, 'pantry'],
-  [/raisin|sultana|currant/i, 'raisins-secs', { cup: 150 }],
+  [/\braisins?\b|sultana|currant/i, 'raisins-secs', { cup: 150 }],
   [/walnut|pecan|mixed nuts|chopped nuts|^nuts$/i, 'noix', { cup: 120 }],
   [/almond(?! (milk|extract|oil))/i, 'amandes', { cup: 140 }],
   [/cocoa/i, 'cacao', { cup: 85, tbsp: 6 }],
@@ -27,14 +27,20 @@ const MAP = [
   [/chocolate chip/i, 'chocolat', { cup: 170 }],
   [/^meat$|stewing meat/i, 'boeuf-ragout'],
   // à écarter (recette non retenue) : produits introuvables en Belgique
-  [/crayfish|stockfish|ponmo|dry ?fish|egusi|ogiri|iru|locust bean|yam\b|plantain|okra|cassava|garri|fufu|ugali|teff|injera|berbere|niter kibbeh|habanero|scotch bonnet|palm oil|uziza|utazi|ugu|bitterleaf|tamarind|jaggery|asafoetida|curry leaves|galangal|lemongrass|kaffir|fenugreek leaves|paneer|tofu skin|seaweed|nori|miso|mirin|sake|dashi|kimchi|tahini|harissa|sumac|za.?atar|molasses|shortening|\blard\b|suet|buttermilk|cornmeal|polenta|grits|masa|semolina|bulgur|millet|sorghum|barley|rye|spelt|buckwheat|venison|rabbit|goat|mutton|lamb|duck|goose|quail|veal|liver|kidney(?! bean)|tripe|oxtail|octopus|squid|clams|oysters|crab|lobster|anchov|sardine|herring|mackerel|catfish|tilapia|trout|halibut|snapper|swordfish|caviar|truffle|saffron|pomegranate|quince|persimmon|guava|papaya|passion fruit|lychee|kumquat|\bdates?\b|\bfigs?\b|prune|apricot|cranberr|blueberr|raspberr|blackberr|cherr|plum|peach|nectarine|mango|pineapple|melon|watermelon|grape(?!fruit)|grapefruit|kiwi|rhubarb|coconut(?! milk)|marshmallow|gelatin|agar|food colou?ring|sprinkles|marzipan|amaretto|\brum\b|brandy|cognac|whisk(e)?y|vodka|tequila|liqueur|sherry|\bport\b|beer|stout|cider(?! vinegar)|kale|chard|collard|arugula|watercress|endive|radicchio|fennel|artichoke|asparagus|turnip|parsnip|rutabaga|beet|radish|kohlrabi|celeriac|jicama|daikon|bok choy|napa|brussels|sprouts|edamame|lima|fava|black-eyed|pinto|cannellini|navy bean|black bean|mung|adzuki|split pea|tempeh|seitan|quorn|ricotta|mascarpone|gruy|brie|camembert|gorgonzola|blue cheese|roquefort|goat cheese|halloumi|manchego|pecorino|provolone|monterey|jack cheese|cottage|cream cheese|evaporated|condensed|half.and.half|ghee|clarified|margarine|maple|agave|corn syrup|golden syrup|treacle|pecan|walnut|almond|hazelnut|cashew|pistachio|peanut|macadamia|pine nut|nuts?\b|seeds?\b|raisin|sultana|currant|chocolate chip|cocoa|cacao|wafer|graham|cracker|cereal|corn flakes|oats?\b|rolled oat|bran|wheat germ|pita|naan|bagel|brioche|croissant|crumpet|english muffin|bun\b|rolls?\b|baguette|ciabatta|cornstarch\b.*cup/i, 'skip'],
+  [/crayfish|stockfish|ponmo|dry ?fish|egusi|ogiri|iru|locust bean|yam\b|plantain|okra|cassava|garri|fufu|ugali|teff|injera|berbere|niter kibbeh|habanero|scotch bonnet|palm oil|uziza|utazi|ugu|bitterleaf|tamarind|jaggery|asafoetida|curry leaves|galangal|lemongrass|kaffir|fenugreek leaves|paneer|tofu skin|seaweed|nori|miso|mirin|sake|dashi|kimchi|tahini|harissa|sumac|za.?atar|molasses|shortening|\blard\b|suet|buttermilk|cornmeal|polenta|grits|masa|semolina|bulgur|millet|sorghum|barley|rye|spelt|buckwheat|venison|rabbit|goat|mutton|lamb|duck|goose|quail|veal|liver|kidney(?! bean)|tripe|oxtail|octopus|squid|clams|oysters|crab|lobster|anchov|sardine|herring|mackerel|catfish|tilapia|trout|halibut|snapper|swordfish|caviar|truffle|saffron|pomegranate|quince|persimmon|guava|papaya|passion fruit|lychee|kumquat|\bdates?\b|\bfigs?\b|prune|apricot|cranberr|blueberr|raspberr|blackberr|cherr|plum|peach|nectarine|mango|pineapple|melon|watermelon|grape(?!fruit)|grapefruit|kiwi|rhubarb|coconut(?! milk)|marshmallow|gelatin|agar|food colou?ring|sprinkles|marzipan|amaretto|\brum\b|brandy|cognac|whisk(e)?y|vodka|tequila|liqueur|sherry|\bport\b|beer|stout|cider(?! vinegar)|kale|chard|collard|arugula|watercress|endive|radicchio|fennel|artichoke|asparagus|turnip|parsnip|rutabaga|beet|radish|kohlrabi|celeriac|jicama|daikon|bok choy|napa|brussels|sprouts|edamame|lima|fava|black-eyed|pinto|cannellini|navy bean|black bean|mung|adzuki|split pea|tempeh|seitan|quorn|ricotta|mascarpone|gruy|brie|camembert|gorgonzola|blue cheese|roquefort|goat cheese|halloumi|manchego|pecorino|provolone|monterey|jack cheese|cottage|cream cheese|evaporated|condensed|half.and.half|ghee|clarified|margarine|maple|agave|corn syrup|golden syrup|treacle|pecan|walnut|almond|hazelnut|cashew|pistachio|peanut|macadamia|pine nut|nuts?\b|seeds?\b|\braisins?\b|sultana|currant|chocolate chip|cocoa|cacao|wafer|graham|cracker|cereal|corn flakes|oats?\b|rolled oat|bran|wheat germ|pita|naan|bagel|brioche|croissant|crumpet|english muffin|bun\b|rolls?\b|baguette|ciabatta|cornstarch\b.*cup/i, 'skip'],
   // placard (épices fortes avant les poivrons frais)
   [/pepper flakes|chil[ie]+ (powder|flakes|sauce)|cayenne|black pepper|white pepper|ground pepper|peppercorn|^(salt and )?pepper$|salt and pepper|pepper to taste/i, 'pantry'],
   [/bell pepper|green pepper|red pepper|yellow pepper|sweet pepper|capsicum|jalape|green chil|red chil|chil[ie]s?$|chil[ie] pepper/i, 'poivrons', { piece: 150, cup: 150 }],
   [/coconut milk|coconut cream/i, 'lait-coco', { cup: 240, can: 400 }],
   // placard
-  [/\bwater\b|\bice\b|salt\b|pepper(corns)?\b(?!s? ?\(?(bell|green|red|yellow|sweet))|peppercorn|black pepper|white pepper|cayenne|paprika|cumin|coriander (seed|powder)|ground coriander|turmeric|cinnamon|nutmeg|clove(s)? \(spice\)|ground cloves|allspice|cardamom|ginger powder|ground ginger|curry powder|garam masala|chil[ie]+ (powder|flakes)|red pepper flakes|chili flakes|oregano|thyme|rosemary|basil|bay lea|sage|marjoram|tarragon|dill|mint|chives|cilantro|coriander lea|fresh coriander|parsley flakes|herbs|spice|seasoning|bouillon|stock cube|stock\b|broth|vanilla|baking powder|baking soda|bicarbonate|yeast|cream of tartar|cornstarch|corn starch|cornflour|vinegar|worcestershire|ketchup|mustard|soy sauce|fish sauce|hot sauce|tabasco|sriracha|oil\b|cooking spray|lemon zest|orange zest|zest|garlic (powder|salt)|onion powder|msg|sesame seed/i, 'pantry'],
+  [/^(?!.*\b(?:in|tuna|chestnut|potash|coconut)\b).*\bwater\b|\bice\b|salt\b|pepper(corns)?\b(?!s? ?\(?(bell|green|red|yellow|sweet))|peppercorn|black pepper|white pepper|cayenne|paprika|cumin|coriander (seed|powder)|ground coriander|turmeric|cinnamon|nutmeg|clove(s)? \(spice\)|ground cloves|allspice|cardamom|ginger powder|ground ginger|curry powder|garam masala|chil[ie]+ (powder|flakes)|red pepper flakes|chili flakes|oregano|thyme|rosemary|basil|bay lea|\bsage\b|marjoram|tarragon|dill|mint|chives|cilantro|coriander lea|fresh coriander|parsley flakes|herbs|spice|seasoning|bouillon|stock cube|stock\b|broth|vanilla|baking powder|baking soda|bicarbonate|yeast|cream of tartar|cornstarch|corn starch|cornflour|vinegar|worcestershire|ketchup|mustard|soy sauce|fish sauce|hot sauce|tabasco|sriracha|oil\b|cooking spray|lemon zest|orange zest|zest|garlic (powder|salt)|onion powder|msg|sesame seed/i, 'pantry'],
   // produits
+  // poissons d'abord : « salmon steaks », « tuna steak » ne sont pas du bœuf
+  [/salmon/i, 'saumon', { piece: 150 }],
+  [/tuna/i, 'thon', { can: 160 }],
+  [/shrimp|prawn/i, 'crevettes', { cup: 150 }],
+  [/cod\b|white fish|haddock|pollock|hake|fish fillet|fish\b/i, 'cabillaud', { piece: 150 }],
+  [/mussel/i, 'moules'],
   [/chicken (breast|fillet|thigh|drumstick|leg|wing|tender|piece)|chicken\b|poultry/i, 'poulet', { piece: 180, cup: 140 }],
   [/ground beef|minced beef|beef mince|hamburger meat/i, 'boeuf', { cup: 220 }],
   [/ground (pork|meat)|minced (pork|meat)|mince\b/i, 'hache', { cup: 220 }],
@@ -45,12 +51,7 @@ const MAP = [
   [/chorizo/i, 'chorizo'],
   [/sausage|frankfurter|hot dog|bratwurst/i, 'merguez'],
   [/turkey/i, 'dinde', { piece: 150 }],
-  [/salmon/i, 'saumon', { piece: 150 }],
-  [/tuna/i, 'thon', { can: 160 }],
-  [/shrimp|prawn/i, 'crevettes', { cup: 150 }],
-  [/cod\b|white fish|haddock|pollock|hake|fish fillet|fish\b/i, 'cabillaud', { piece: 150 }],
-  [/mussel/i, 'moules'],
-  [/egg yolk|egg white|eggs?\b/i, 'oeufs'],
+  [/egg yolk|egg white|eggs?\b(?! (pasta|noodle))/i, 'oeufs'],
   [/heavy cream|whipping cream|double cream|single cream|light cream|sour cream|cr[eè]me fra[iî]che|cream\b/i, 'creme'],
   [/milk/i, 'lait'],
   [/yog(h)?urt/i, 'yaourts', { cup: 245, piece: 125 }],
@@ -63,7 +64,7 @@ const MAP = [
   [/brown sugar|caster sugar|granulated sugar|white sugar|powdered sugar|icing sugar|confectioner|superfine|sugar/i, 'sucre', { cup: 200, tbsp: 12 }],
   [/honey/i, 'miel', { cup: 340, tbsp: 21 }],
   [/chocolate/i, 'chocolat', { cup: 170, piece: 30 }],
-  [/spaghetti|linguine|fettuccine|tagliatelle|macaroni|penne|fusilli|rigatoni|farfalle|pasta|noodle(?!s? soup)/i, 'pates', { cup: 100 }],
+  [/spaghetti|linguine|fettuccine|tagliatelle|macaroni|penne|fusilli|rigatoni|farfalle|pasta|noodle(?!s? soup)/i, 'pates', { cup: 100, piece: 80 }],
   [/lasagn/i, 'lasagne', { piece: 20 }],
   [/basmati|jasmine rice|long.grain|white rice|brown rice|cooked rice|uncooked rice|rice\b/i, 'riz', { cup: 185 }],
   [/couscous/i, 'semoule', { cup: 175 }],
@@ -284,6 +285,10 @@ function toolsOf(text) {
   if (/microwave/.test(t)) tools.push(tools.includes('plaques') ? null : 'micro');
   if (/blender|food processor|\bblend|pur[eé]e|liquidi[sz]e|immersion|hand mixer|electric mixer|stand mixer/.test(t)) tools.push('mixeur');
   if (/air ?fryer/.test(t)) return ['airfryer'];
+  // « Place on hot grill », « grilled » : gril du four ou poêle.
+  if (!tools.length && /\bgrill|broil/.test(t)) tools.push('four|plaques');
+  // Cuisson citée sans appareil reconnu : plaques ou four.
+  if (!tools.length && /\bcook|heat|fry|bake|roast|toast|saut|simmer|boil/.test(t)) tools.push('plaques|four');
   return tools.filter(Boolean);
 }
 
