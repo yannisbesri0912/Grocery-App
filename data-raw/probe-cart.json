@@ -1,0 +1,37 @@
+{
+ "links": [
+  "/checkout | Bekijk uw mandje, 0 producten"
+ ],
+ "tries": [
+  {
+   "path": "/fr/cart",
+   "url": "https://www.delhaize.be/fr/cart",
+   "h1": "Désolé, une erreur est survenue. Veuillez vérifier le formulaire et réessayer."
+  },
+  {
+   "path": "/cart",
+   "url": "https://www.delhaize.be/cart",
+   "h1": "Désolé, une erreur est survenue. Veuillez vérifier le formulaire et réessayer."
+  },
+  {
+   "path": "/fr/shop/cart",
+   "url": "https://www.delhaize.be/fr/shop/cart",
+   "h1": "Désolé, une erreur est survenue. Veuillez vérifier le formulaire et réessayer."
+  },
+  {
+   "path": "/fr/checkout",
+   "url": "https://www.delhaize.be/fr/checkout",
+   "h1": "Mon panier"
+  },
+  {
+   "path": "/fr/shop/cart/summary",
+   "url": "https://www.delhaize.be/fr/shop/cart/summary",
+   "h1": "Désolé, une erreur est survenue. Veuillez vérifier le formulaire et réessayer."
+  },
+  {
+   "path": "/fr/basket",
+   "url": "https://www.delhaize.be/fr/basket",
+   "h1": "Désolé, une erreur est survenue. Veuillez vérifier le formulaire et réessayer."
+  }
+ ]
+}
