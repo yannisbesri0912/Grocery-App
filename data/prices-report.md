@@ -1,8 +1,12 @@
-# Prix réels — 2026-10-13 20:49 UTC
+# Prix réels — 2026-10-14 01:03 UTC
 
 - **colruyt** : 68 produits au 2026-10-13
 - **colruyt** : catalogue complet de 9565 articles
-- **même produit** : 833 articles identiques Colruyt / Delhaize
+- **delhaize** : 60 produits au 2026-10-14
+- **delhaize** : catalogue complet de 14179 articles
+- **aldi** : 53 produits au 2026-10-14
+- **aldi** : catalogue complet de 2245 articles
+- **même produit** : 823 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
 
@@ -55,7 +59,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Chocolat noir (200 g) | 1.32 € — BONI Choconimo chocolat noir 225g | 1.65 € — DELHAIZE Chocolat, noir 200 gr | 1.65 € — CHOCEUR Chocolat fondant 2 x 200 g | — |
 | Pois chiches (400 g) | 0.85 € — BONI PLAN'T pois chiches 200g | 1.19 € — LUENGO Pois chiches, cuit 570 gr | 1.19 € — TAGINE Pois chiches cuits 400 g | — |
 | Mayonnaise (500 ml) | 1.15 € — EVERYDAY mayonnaise avec œufs 500ml | 1.82 € — DELHAIZE Mayonnaise, oeufs 30 cl | 1.15 € — REGALO Mayonnaise aux œufs 500 ml | — |
-| Nutella (750 g) | 3.66 € — NUTELLA pâte à tartiner choco 1kg | 3.86 € — NUTELLA Pâte à tartiner, choco-noisettes 1 kg | 3.74 € — NUTELLA Pâte à tartiner aux noisettes 1 kg | — |
+| Nutella (750 g) | 3.66 € — NUTELLA pâte à tartiner choco 1kg | 3.86 € — NUTELLA Pâte à tartiner, choco-noisettes 1 kg | 3.66 € — NUTELLA Pâte à tartiner aux noisettes 1 kg | — |
 | Biscuits (Lu / Délacre) | — | — | — | — |
 | Épices / sel / poivre | — | — | — | — |
 | Légumes surgelés (1 kg) | 1.09 € — BONI épinards en branches en porties 1,5kg | 1.22 € — DELHAIZE Epinards, feuilles, portions 1 kg | 1.09 € — ALL SEASONS Épinards en branches 1 kg | — |
