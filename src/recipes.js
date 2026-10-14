@@ -381,6 +381,41 @@ export const DIETS = {
 };
 export const ALLERGIES = { d: 'Sans lactose', g: 'Sans gluten', e: 'Sans œufs', n: 'Sans fruits à coque' };
 
+// Ingrédients des recettes dans les catalogues en français (Delhaize, Aldi) :
+// [recherche, mots exigés, mots exclus (plats préparés, soupes, jus…)].
+// Les recherches q ci-dessus visent le catalogue Colruyt (noms néerlandais).
+export const FR_Q = {
+  boeuf: ['haché', /b(oe|œ)uf/i, /veau|vegan|v[ée]g[ée]tal|burger|poulet|porc|[ée]pic|agneau|merguez|boulette/i],
+  steak: ['steak pelé boeuf', /steak|biefstuk/i, /moulu|bio|poivre|cerf|suisse|hach/i],
+  'boeuf-ragout': ['carbonnades boeuf', /carbonnade|braiser|stoofvlees/i, /bio|cuit|sauce/i],
+  'steak-burger': ['hamburger', /hamburger|burger/i, /compote|pur[ée]e|vegan|poulet|v[ée]g/i],
+  dinde: ['filet de dinde', /dinde/i, /tranche|fum|cuit|chorizo/i],
+  crevettes: ['crevettes décortiquées', /crevette|scampi/i, /sauce|curry|cocktail|ail/i],
+  cabillaud: ['filet de cabillaud', /cabillaud/i, /pan[ée]|sauce|fum/i],
+  moules: ['moules fraîches', /moules/i, /vinaigre|sauce|cuit/i],
+  parmesan: ['parmigiano reggiano', /parmigiano|parmesan/i, /romanesco|sauce|chips/i],
+  feta: ['feta', /feta/i, /olive|herbe|pesto|salade/i],
+  'lait-coco': ['lait de coco', /lait de coco|coconut milk|lait coco/i, /frais|boisson|yaourt|sp[ée]cialit/i],
+  'patate-douce': ['patate douce', /patate/i, /soupe|repas|pur[ée]e|chili|nouilles|frites|chips/i],
+  'chou-fleur': ['chou fleur', /chou.?fleur/i, /b[ée]chamel|riz|gratin|soupe/i],
+  chicons: ['chicon', /chicon/i, /brais|jambon|gastronom|gratin/i],
+  epinards: ['épinards', /[ée]pinard/i, /cr[eè]me|soupe|feuillet/i],
+  poireaux: ['poireaux', /poireau/i, /soupe|blanc/i],
+  noix: ['cerneaux de noix', /noix/i, /raisin|pecan|cajou|coco|muscade/i],
+  amandes: ['amandes nature', /amande/i, /sal[ée]|grill|chocolat|boisson|lait/i],
+  'fromage-frais': ['fromage frais nature', /fromage frais/i, /boursin|fondu|ail|herbe/i],
+  cacahuete: ['beurre de cacahuète', /beurre de cacahu/i, /snack|prot[ée]in/i],
+  porc: ['porc côtes', /porc/i, /grill[ée]|r[oô]ti|cuit|ib[ée]rico|hach|saucisse/i],
+  fraises: ['fraises', /fraise/i, /jus|smoothie|confiture|yaourt|glace|biscuit|barquette|gâteau|gateau|sirop|bonbon|lait|celsius|fruit-tella|\bcl\b|boisson/i],
+  lasagne: ['feuilles lasagne', /lasagne/i, /bolognaise|potiron|saumon|l[ée]gumes|v[ée]g/i],
+  nouilles: ['nouilles', /nouille|noodle/i, /wet|soupe|instant|poulet|b[oœ]uf|crevette/i],
+  'haricots-rouges': ['haricots rouges', /haricots?,? rouges/i, /chili|sauce|2 x 60/i],
+  mais: ['maïs doux', /ma[iï]s/i, /repas|baby|crispy|soupe|pop/i],
+  cacao: ['cacao poudre', /cacao/i, /nesquik|gaufre|truffe|chocolat en poudre|biscuit|chips/i],
+  chorizo: ['chorizo', /chorizo/i, /pizza|chips/i],
+  lardons: ['lardons', /lardon/i, /v[ée]g/i],
+};
+
 // ---------- Envies : filtres de style ----------
 // Protéines (g pour 100 g / 100 ml, ou par pièce pour les œufs) des ingrédients achetés.
 const PROTEIN = {

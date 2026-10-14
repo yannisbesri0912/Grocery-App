@@ -40,3 +40,10 @@ test('lien direct appris : numéro retrouvé dans une adresse collée, puis appl
   assert.equal(orderLink('colruyt', line, { colruyt: t }).kind, 'product');
   assert.equal(orderLink('colruyt', line).kind, 'search');
 });
+
+test('article Delhaize dans une commande Colruyt : on cherche son équivalent, sans la marque Delhaize', () => {
+  const est = orderLink('colruyt', { product: { id: 'delhaize-9', name: 'DELHAIZE Steak, cerf 300 gr' }, info: { kind: 'estimate' } });
+  assert.equal(est.query, 'Steak, cerf');
+  const eq = orderLink('colruyt', { product: { id: 'delhaize-9', name: 'DELHAIZE Lait, demi-écrémé 1 l' }, info: { kind: 'real', eq: true, article: 'BONI lait demi-écrémé 1L' } });
+  assert.equal(eq.query, 'lait demi-écrémé');
+});

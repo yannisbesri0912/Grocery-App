@@ -3,7 +3,8 @@ import {
   MODES, DEFAULT_SETTINGS, optimize, priceInfo, mapsUrl, dueRecurring, learnFrequency, isOpen, haversineKm,
 } from './optimizer.js';
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, todayHours } from './places.js';
-import { SHOPS, orderLink, learnTemplate } from './order.js';
+import { SHOPS, orderLink, learnTemplate, searchText } from './order.js';
+import { equivalentOf } from './same.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
 import { dealTotal, dealAdvice } from './deals.js';
 import { priceSignal, KEEPS } from './history.js';
@@ -12,7 +13,7 @@ import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal } from './recipes.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q } from './recipes.js';
 import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
@@ -277,6 +278,20 @@ function colruytRef(id, snap = {}) {
 }
 
 // Vrais prix : relevés de la nuit + articles des catalogues ajoutés à la liste.
+// Équivalent d'un article dans une autre enseigne (mis en cache par catalogue chargé).
+const eqCache = new Map();
+function equivalentRow(chain, id, other) {
+  const src = rowById(chain, id);
+  const cat = CATALOGS[other];
+  if (!src || !cat) return null;
+  const key = `${chain}|${id}|${other}|${cat.rows.length}`;
+  if (!eqCache.has(key)) {
+    const q = searchText(chain === 'colruyt' ? rowName(src) : src[ROW.name]);
+    eqCache.set(key, q ? equivalentOf(src, chain, searchCatalog(cat.rows, q, 30), other) : null);
+  }
+  return eqCache.get(key);
+}
+
 function realPrices() {
   const real = { ...(PRICES.items ?? {}) };
   for (const p of state.custom) {
@@ -287,6 +302,13 @@ function realPrices() {
     // Comparaison automatique : le même article dans l'autre enseigne, à son vrai prix.
     const tw = p.colruyt ? twinOf('colruyt', p.colruyt.id) : p.shop ? twinOf(p.shop.chain, p.shop.id) : null;
     if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), url: rowUrl(tw.chain, tw.r), deal: tw.r[ROW.deal] || undefined, ...(tw.chain === 'colruyt' ? { ref: colruytRef(tw.r[ROW.id]) } : {}), ...(tw.r[ROW.promo] ? { promo: true } : {}) };
+    // Sinon, un article équivalent (marque du magasin…) dans les autres enseignes.
+    const own = p.colruyt ? ['colruyt', p.colruyt.id] : p.shop ? [p.shop.chain, p.shop.id] : null;
+    if (own) for (const c of CATALOG_CHAINS) {
+      if (entry[c] || c === own[0]) continue;
+      const eq = equivalentRow(own[0], own[1], c);
+      if (eq) entry[c] = { price: eq[ROW.price], article: rowName(eq), eq: true, url: rowUrl(c, eq), deal: eq[ROW.deal] || undefined, ...(c === 'colruyt' ? { ref: colruytRef(eq[ROW.id]) } : {}), ...(eq[ROW.promo] ? { promo: true } : {}) };
+    }
     if (Object.keys(entry).length) real[p.id] = entry;
   }
   // Œufs : le type choisi dans les réglages, pour comparer la même chose partout.
@@ -1173,7 +1195,13 @@ function resolveIng(key, chain = smartShop()) {
     const price = cat ? optionsFor(product, chain)[0]?.price : priceInfo(product, chain, chains(), state.overrides, realPrices())?.price;
     out = { product, pack: packAmount, perUnit: (price ?? product.ref) / packAmount };
   } else {
-    const row = cat ? searchCatalog(cat.rows, def.q, 1)[0] : null;
+    // Colruyt : recherche du catalogue néerlandais ; Delhaize, Aldi : recherche française filtrée.
+    const fr = CATALOGS[chain] && chain !== 'colruyt' ? FR_Q[key] : null;
+    const row = !cat ? null : fr
+      ? searchCatalog(cat.rows, fr[0], 40).find((r) => fr[1].test(r[ROW.name]) && !fr[2].test(r[ROW.name])) ?? null
+      : CATALOGS[chain] && chain !== 'colruyt'
+        ? searchCatalog(cat.rows, def.name ?? def.q, 10).find((r) => !/soupe|repas|jus\b|smoothie|baby|sauce/i.test(r[ROW.name])) ?? null
+        : searchCatalog(cat.rows, def.q, 1)[0];
     out = { product: null, row, pack: packAmount, perUnit: def.ref / packAmount, name: def.name };
     if (row) {
       const [base, factor] = UNIT_BASE[unit];
@@ -1791,7 +1819,7 @@ function viewPlan() {
         const head = k === 0 || arr[k - 1].product.cat !== l.product.cat ? `<li class="aisle-head"><span class="eyebrow cat">${esc(CATEGORIES[l.product.cat] ?? 'Divers')}</span></li>` : '';
         return `${head}<li class="${item?.checked ? 'done' : ''}">
           <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
-          <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${l.packs ? `${l.packs} × ` : ''}${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
+          <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${l.packs ? `${l.packs} × ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
           <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
       }).join('')}</ul>
     </div>`;
@@ -1888,7 +1916,7 @@ function viewOrder(plan, stop) {
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
         <span class="name">${(l.packs ?? l.qty) > 1 ? `<b>${l.packs ?? l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
-          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
+          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
           : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
         <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy && l.link.kind !== 'product' ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy && l.link.kind !== 'product' ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
@@ -2148,7 +2176,7 @@ function viewPrices() {
       return `<div class="card"><h3>${esc(p.name)}</h3>${curve.length ? `<div class="curves">${curve.map(([c, svg]) => `<span class="small muted">${esc(CHAINS[c].name)}</span>${svg}`).join('')}<span class="tiny muted">60 derniers jours</span></div>` : ''}<div>${infos.sort((a, b) => a[1].price - b[1].price).map(([k, info]) => `
         <div class="price-row ${info.price === min ? 'best' : ''}">
           ${logo(k, 'sm')}
-          <span class="grow"><b>${esc(ch[k].name)}</b> ${KIND[info.kind] ?? ''}${info.article ? `<span class="tiny muted" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(info.article)}${info.until ? ` · jusqu'au ${dateFr(info.until)}` : ''}</span>` : ''}</span>
+          <span class="grow"><b>${esc(ch[k].name)}</b> ${KIND[info.kind] ?? ''}${info.article ? `<span class="tiny muted" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${info.eq ? 'équivalent : ' : ''}${esc(info.article)}${info.until ? ` · jusqu'au ${dateFr(info.until)}` : ''}</span>` : ''}</span>
           <input type="number" class="num ${info.kind === 'estimate' ? 'est' : ''}" step="0.01" min="0" data-action="price" data-id="${p.id}" data-chain="${k}" value="${info.price.toFixed(2)}" aria-label="Prix ${esc(ch[k].name)}">
           ${info.kind === 'user' ? `<button class="icon-btn" data-action="unprice" data-id="${p.id}" data-chain="${k}" aria-label="Revenir au prix automatique">${icon('undo')}</button>` : ''}
         </div>`).join('')}</div></div>`;

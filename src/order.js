@@ -97,7 +97,8 @@ export function orderLink(chain, line, templates = {}) {
     const url = info.url.startsWith('/') ? shop.origin + info.url : info.url;
     return { url: shop.product ? shop.product(url) : url, kind: 'product', query: info.article ?? line.product.name };
   }
-  const fromArticle = info.article && info.kind !== 'estimate' && shop.articleSearch !== false ? searchText(info.article) : '';
-  const query = fromArticle || RULES[line.product.id]?.q || line.product.name.replace(/\s*\(.*\)$/, '');
+  // Équivalent : son nom (en français) ; article d'une autre enseigne : son nom sans la marque maison ni le format.
+  const fromArticle = info.article && info.kind !== 'estimate' && (shop.articleSearch !== false || info.eq) ? searchText(info.article) : '';
+  const query = fromArticle || RULES[line.product.id]?.q || searchText(line.product.name.replace(/\s*\(.*\)$/, '')) || line.product.name;
   return { url: shop.search(query), kind: 'search', query };
 }

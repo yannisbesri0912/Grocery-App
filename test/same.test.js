@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sameProducts } from '../src/same.js';
+import { sameProducts, equivalentOf } from '../src/same.js';
 
 // [id, nom, contenu, prix, prix unitaire, unité, rayon, promo, au poids, nom fr]
 const col = [
@@ -21,4 +21,17 @@ const del = [
 test('sameProducts : même marque, même format, noms proches ; pas les marques de magasin', () => {
   const pairs = sameProducts(col, del).sort();
   assert.deepEqual(pairs, [['c1', 'd1'], ['c2', 'd2']]);
+});
+
+test('equivalentOf : marque du magasin → article équivalent (mêmes mots, même type de lait)', () => {
+  const cands = [
+    ['c6', 'BONI melk vol 1L', '', 1.09, 1.09, 'l', 2, 0, 0, 'BONI lait entier 1L'],
+    ['c4', 'BONI melk halfvol 1L', '', 0.99, 0.99, 'l', 2, 0, 0, 'BONI lait demi-écrémé 1L'],
+    ['c7', 'BONI melk halfvol 6x1L', '', 5.94, 0.99, 'l', 2, 0, 0, 'BONI lait demi-écrémé 6x1L'],
+  ];
+  assert.equal(equivalentOf(del[3], 'delhaize', cands, 'colruyt')?.[0], 'c4');
+  // Grande marque : jamais remplacée par une autre marque.
+  assert.equal(equivalentOf(del[0], 'delhaize', [['c8', 'BONI chocopasta 750g', '', 2.5, 3.3, 'kg', 4, 0, 0, 'BONI pâte à tartiner choco-noisettes 750g']], 'colruyt'), null);
+  // Colruyt → Delhaize : depuis le nom français.
+  assert.equal(equivalentOf(cands[1], 'colruyt', del, 'delhaize')?.[0], 'd4');
 });

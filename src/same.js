@@ -11,6 +11,9 @@ const STOP = new Set(['de', 'du', 'la', 'le', 'les', 'des', 'a', 'au', 'aux', 'e
 // Mots équivalents d'une enseigne à l'autre.
 const SYN = { regular: 'original', classic: 'original', classique: 'original', zero: 'zero', sugar: '', taste: '', light: 'light', pils: 'pils', blonde: '', biere: '', bier: '', chocopasta: 'tartiner', pate: '', choco: 'chocolat', chocolade: 'chocolat', hazelnoten: 'noisette', noisettes: 'noisette', hazeln: 'noisette', casier: 'caisse', bak: 'caisse' };
 
+// Caractéristiques qui changent l'article : elles doivent être les mêmes des deux côtés.
+const TRAITS = [/\bbio\b/, /non sal|ongezout|\bdoux\b/, /(?<!non )\bsalee?s?\b|\bzout\b|\bsel\b/, /demi|halfvol|1\/2/, /\bentier|\bvolle?\b/, /ecreme|\bmager|skim/, /\bzero\b|\blight\b|\bligh?t\b|sans sucre|zonder suiker/, /sans gluten|glutenvrij|gluten free/, /sans lactose|lactosevrij/, /complet|volkoren|integral/, /\bhalal\b/, /\bvege|vegan|plant/];
+const traitsOf = (r) => { const t = norm(`${r[ROW.name]} ${r[ROW.fr] ?? ''}`); return TRAITS.map((re) => (re.test(t) ? 1 : 0)).join(''); };
 const stem = (w) => (w.length > 3 ? w.replace(/(es|s|x)$/, '') : w);
 function tokens(text) {
   const out = new Set();
@@ -87,4 +90,42 @@ export function sameProducts(colruyt, delhaize) {
   const used = new Map();
   for (const [col, { del, s }] of best) if (!used.has(del) || used.get(del).s < s) used.set(del, { col, s });
   return [...used].map(([del, { col }]) => [col, del]);
+}
+
+/**
+ * Article équivalent dans une autre enseigne, quand ce n'est pas le même
+ * produit (marque du magasin, article absent) : mêmes mots, format proche
+ * (± 1/3), même nombre de pièces. Une grande marque reste une grande marque.
+ * cands : résultats de recherche dans le catalogue de `other`.
+ */
+export function equivalentOf(row, chain, cands, other) {
+  // Colruyt : on part de son nom français, comme les autres enseignes.
+  const fr = (r, c) => (c === 'colruyt' ? Object.assign([...r], { [ROW.name]: r[ROW.fr] || r[ROW.name] }) : r);
+  const src = describe(fr(row, chain), 'fr');
+  if (!src.words.size) return null;
+  const national = src.brand && !STORE_BRANDS.has(src.brand);
+  const traits = traitsOf(row);
+  let top = null;
+  for (const r of cands) {
+    if (r[ROW.cat] !== row[ROW.cat] || traitsOf(r) !== traits) continue;
+    const ratio = r[ROW.price] / row[ROW.price];
+    if (!(ratio > 0.33 && ratio < 3)) continue; // prix trop éloigné : pas le même genre d'article
+    const c = describe(r, other); // Colruyt : mots néerlandais + français
+    if (national && c.brand !== src.brand) continue;
+    if (src.size && c.size) {
+      if (src.size.unit !== c.size.unit) continue;
+      const k = c.size.amount / src.size.amount;
+      if (k < 0.67 || k > 1.5) continue;
+    } else if ((r[ROW.weight] === 1) !== (row[ROW.weight] === 1)) continue;
+    if (src.count && c.count && src.count !== c.count) continue;
+    // Tous les mots de l'article, et pas trop de mots en plus (variante : maltitol, praliné…).
+    let shared = 0;
+    for (const w of src.words) if (c.words.has(w)) shared++;
+    if (shared < src.words.size) continue;
+    const own = other === 'colruyt' ? describe(fr(r, other), 'fr').words : c.words;
+    const extra = [...own].filter((w) => !src.words.has(w)).length;
+    if (extra > 1) continue;
+    if (!top || extra < top.extra || (extra === top.extra && r[ROW.price] < top.r[ROW.price])) top = { r, extra };
+  }
+  return top?.r ?? null;
 }
