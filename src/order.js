@@ -10,7 +10,7 @@ export const SHOPS = {
     // Fiches lues en néerlandais : la même adresse en /fr/ s'ouvre en français.
     product: (url) => url.replace('/nl/shop/', '/fr/shop/'),
     search: (q) => `https://www.delhaize.be/fr/shop/search?text=${encodeURIComponent(q)}`,
-    cart: 'https://www.delhaize.be/fr/cart',
+    cart: 'https://www.delhaize.be/fr/checkout', // page « Mon panier » (vérifiée le 14 oct. 2026)
     cartLabel: 'Ouvrir mon panier Delhaize',
   },
   // Collect&Go (Colruyt) : sa recherche ne change pas l'adresse de la page, il
