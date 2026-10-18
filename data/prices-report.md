@@ -1,13 +1,8 @@
-# Prix réels — 2026-10-18 08:52 UTC
+# Prix réels — 2026-10-18 18:16 UTC
 
-- **colruyt** : 68 produits au 2026-10-17
-- **colruyt** : catalogue complet de 9557 articles
-- **delhaize** : 60 produits au 2026-10-18
-- **delhaize** : catalogue complet de 14380 articles
-- **aldi** : 53 produits au 2026-10-18
-- **aldi** : catalogue complet de 2277 articles
-- **promos** : 20 promotions utiles
-- **même produit** : 831 articles identiques Colruyt / Delhaize
+- **colruyt** : 68 produits au 2026-10-18
+- **colruyt** : catalogue complet de 9548 articles
+- **même produit** : 829 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
 
@@ -33,7 +28,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Baguette | 0.46 € — EVERYDAY 1/2 baguette blanc 4x150g | 0.46 € — DELHAIZE Baguette, blanc, 2 pièces 2 x 150 gr | 0.62 € — Baguette blanche Parisienne 400 g | — |
 | Pistolets (6) | — | — | — | — |
 | Corn flakes (500 g) | 0.89 € — EVERYDAY Cornflakes 750g | 0.92 € — DELHAIZE Céréales, corn flakes 2 x 375 gr | — | — |
-| Lait demi-écrémé (1 L) | 0.79 € 🏷️ — Boni Selection lait demi-écrémé PET 1L | 1.05 € — LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l | 0.85 € — MILSANI Lait demi-écrémé 1 l | — |
+| Lait demi-écrémé (1 L) | 0.85 € — EVERYDAY lait demi-écrémé brique 1L | 1.05 € — LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l | 0.85 € — MILSANI Lait demi-écrémé 1 l | — |
 | Œufs plein air (12) | 3.99 € — BONI œufs plein air 12st | 4.19 € — DELHAIZE oeufs au sol, mix calibre, 10pc 10 pc | 2.39 € — MAMIE POULE Œufs de poules élevées au sol 18 pcs | — |
 | Beurre (250 g) | 2.69 € — BONI beurre HV non salé 250g | 1.89 € — DELHAIZE Beurre de laiterie 250 gr | 1.89 € — MILSANI Beurre de laiterie 250 g | 2.99 € 🏷️ — DELUXE beurre avec Camarguezout 250 g |
 | Yaourts nature (8×125 g) | 1.19 € — EVERYDAY yaourt maigre 8x125g | 1.19 € — DELHAIZE Yaourt, maigre, nature 8 x 125 gr | 1.19 € — MILSANI Yaourt maigre 8 x 125 g | — |
@@ -71,18 +66,18 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Eau pétillante (6×1,5 L) | 1.92 € — EVERYDAY eau pétillante 1,5L | 6.29 € — SPA Eau Minérale, pétillante Intense 6 x 1,5 l | 1.92 € — ROCHEVAL Eau pétillante 1.5 l | — |
 | Jus d'orange (1 L) | 1.23 € — EVERYDAY jus d'orange brique 1L | 1.30 € — DELHAIZE Jus d'orange 10 x 20 cl | 1.23 € — RIO D'ORO Jus d'orange 1.5 l | — |
 | Coca-Cola (6×33 cl) | 2.96 € — COCA-COLA Regular Original Taste 2L | 4.32 € 🏷️ — Coca-Cola Original taste / en boîte 15 x 33 cl | 2.96 € — COCA-COLA Coca-Cola regular 2 l | — |
-| Bière Jupiler (24×25 cl) | 10.79 € 🏷️ — Jupiler pils 5,2% casier 24x33cl | 11.75 € 🏷️ — Jupiler Blond bière / pils / 5,2% alc. / Jumbo / casier 24 x 33 cl | 16.18 € — JUPILER Pils, 8 pcs 8 x 50 cl | 14.79 € 🏷️ — JUPILER Pils* 18 x 35,5 cl |
+| Bière Jupiler (24×25 cl) | 14.39 € 🏷️ — JUPILER pils 5,2% casier 24x33cl | 11.75 € 🏷️ — Jupiler Blond bière / pils / 5,2% alc. / Jumbo / casier 24 x 33 cl | 16.18 € — JUPILER Pils, 8 pcs 8 x 50 cl | 14.79 € 🏷️ — JUPILER Pils* 18 x 35,5 cl |
 | Vin rouge (75 cl) | — | — | — | — |
-| Papier toilette (12 rouleaux) | 3.70 € 🏷️ — Scottex papier toilette decor 2l 140v 24r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
+| Papier toilette (12 rouleaux) | 3.84 € — EVERYDAY papier toilette sterk 3l 180v 12r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
 | Essuie-tout (4 rouleaux) | 2.72 € — BONI essuie-tout classic 3l 64v 6r | 2.85 € — DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc | — | — |
 | Dentifrice | 0.35 € — BONI dentifrice coolmint 125ml | 1.25 € 🏷️ — Signal dentifrice / Crystal Gel / 75ml 7,5 cl | 0.35 € — DENTITEX Dentifrice 125 ml | — |
-| Gel douche (250 ml) | 0.60 € — BONI gel douche noir 500ml | 1.17 € 🏷️ — Sunlight gel douche / Nutritive care 40 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
+| Gel douche (250 ml) | 0.60 € — EVERYDAY gel douche Marine 300ml | 1.17 € 🏷️ — Sunlight gel douche / Nutritive care 40 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
 | Shampoing (300 ml) | 0.29 € — EVERYDAY shampoo oranjebloesem 500ml | 1.70 € 🏷️ — Syoss Shampoo / Color 44 cl | 0.30 € — LACURA Shampoing, 750 ml | — |
-| Déodorant | 0.90 € 🏷️ — Fa deo Pink Passion 150ml | 1.84 € 🏷️ — Axe Deodorant spray / Marine 15 cl | 1.19 € — LACURA Déodorant 200 ml | — |
+| Déodorant | 1.19 € — BONI deo Woman fris gevoel 200ml | 1.84 € 🏷️ — Axe Deodorant spray / Marine 15 cl | 1.19 € — LACURA Déodorant 200 ml | — |
 | Mouchoirs (boîte de 100) | 0.39 € — EVERYDAY mouchoirs box 2l 150st | 0.40 € — DELHAIZE Mouchoirs, boite, 2-plis 200 pc | 0.83 € — SUBLIMO Mouchoirs, 120 pcs par boîte | — |
 | Lessive liquide (40 lavages) | 3.19 € — EVERYDAY lessive white 45d 2,475L | — | 2.63 € — Lessive liquide 50 wasbeurten | — |
 | Liquide vaisselle (500 ml) | 0.43 € — ACTAE liquide vaisselle citron 1L | 0.89 € — DELHAIZE Liquide vaisselle, original 50 cl | 0.43 € — POWER FORCE Liquide vaisselle, 1L 1 l | — |
-| Tablettes lave-vaisselle (40) | 8.06 € 🏷️ — Finish Quantum vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | — |
+| Tablettes lave-vaisselle (40) | 16.12 € 🏷️ — FINISH QUANTUM vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | — |
 | Sacs poubelle blancs (20) | — | — | — | — |
 | Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.44 € — VILEDA Eponges à récurer, slalom Universal, 3+1 4 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
 | Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, boeuf 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
