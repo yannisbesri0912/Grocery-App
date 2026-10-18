@@ -1,8 +1,13 @@
-# Prix réels — 2026-10-17 17:55 UTC
+# Prix réels — 2026-10-18 08:52 UTC
 
 - **colruyt** : 68 produits au 2026-10-17
 - **colruyt** : catalogue complet de 9557 articles
-- **même produit** : 830 articles identiques Colruyt / Delhaize
+- **delhaize** : 60 produits au 2026-10-18
+- **delhaize** : catalogue complet de 14380 articles
+- **aldi** : 53 produits au 2026-10-18
+- **aldi** : catalogue complet de 2277 articles
+- **promos** : 20 promotions utiles
+- **même produit** : 831 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
 
@@ -10,36 +15,36 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 |---|---|---|---|---|
 | Bananes (1 kg) | 1.13 € — EVERYDAY bananes ±1kg | 1.29 € — DELHAIZE Bananes 1 kg | — | — |
 | Pommes Jonagold (1 kg) | 1.70 € — BONI pomme jonagold 6st | 1.39 € — DELHAIZE Pommes drôles, emballé 1,5 kg | — | — |
-| Oranges à jus (2 kg) | 2.49 € — EVERYDAY orange / à presser 4kg | 3.59 € — DELHAIZE Oranges, de table 2 kg | 2.50 € — Oranges 2 kg | — |
+| Oranges à jus (2 kg) | 2.49 € — EVERYDAY orange / à presser 4kg | 3.59 € — DELHAIZE Oranges, de table 2 kg | — | — |
 | Citrons (500 g) | 0.99 € — BONI citrons 1kg | 1.05 € — DELHAIZE Citrons 1 kg | — | 1.00 € 🏷️ — Citrons XXL 1 kg |
-| Tomates (1 kg) | 1.29 € — Tomates extra | 5.78 € — DELHAIZE Tomates, san Marzano 500 gr | — | — |
+| Tomates (1 kg) | 1.29 € — Tomates extra | 5.78 € — DELHAIZE Tomates, san Marzano 500 gr | 5.00 € — Tomates bonbons 500 g | — |
 | Concombre | 0.89 € — Concombre | 0.99 € — DELHAIZE Concombre 1 pc | — | — |
 | Salade (laitue) | 0.98 € — Salade uit serre 1st | 1.09 € — DELHAIZE Laitue pommée, racines 1 pc | — | — |
-| Carottes (1 kg) | 0.72 € — EVERYDAY carottes 2kg | 1.49 € — DELHAIZE Carottes 1 kg | 1.00 € — Carottes 1 kg | 0.89 € 🏷️ — Carottes 1 kg |
+| Carottes (1 kg) | 0.72 € — EVERYDAY carottes 2kg | 1.49 € — DELHAIZE Carottes 1 kg | 1.87 € — ALL SEASONS Petis pois et carottes 530 g | 0.89 € 🏷️ — Carottes 1 kg |
 | Oignons (1 kg) | 0.90 € — EVERYDAY oignons 2kg | 1.00 € — DELHAIZE Oignons, jaunes, filet 2 kg | — | — |
 | Ail (250 g) | 1.34 € — EVERYDAY ail 250g | 1.49 € — DELHAIZE Ail, filet 250 gr | — | — |
 | Pommes de terre (2,5 kg) | 2.44 € — EVERYDAY bloemige pommes de terre 5kg | 4.74 € — DELHAIZE Pommes de terre, farineuses, primeur 2 kg | — | — |
-| Courgettes (1 kg) | 3.49 € — Ronde Courgettes (los) | — | 1.99 € — Courgettes 1 kg | 1.39 € 🏷️ — Courgettes XXL 1 kg |
+| Courgettes (1 kg) | 3.49 € — Ronde Courgettes (los) | — | — | 1.39 € 🏷️ — Courgettes XXL 1 kg |
 | Poivrons (500 g) | 1.48 € — Poivron rouge | 2.79 € — DELHAIZE Poivrons, mix 500 gr | 1.43 € — Poivrons pointus 2 x 500 g | — |
 | Brocoli (500 g) | 1.29 € — Brocoli 1st 500g | — | 0.90 € — Brocoli 1 kg | — |
-| Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 1.89 € — DELHAIZE Champignons blancs, belges 500 gr | 3.82 € — DAYLICIOUS Champignons coupés 300 g | — |
-| Avocats (2 pièces) | 0.98 € — BONI hass avocat 5st | — | — | — |
+| Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 1.89 € — DELHAIZE Champignons blancs, belges 500 gr | 2.88 € — ALL SEASONS Champignons en tranches, pack de 3 3 x 115 g | — |
+| Avocats (2 pièces) | 0.98 € — BONI hass avocat 5st | — | 1.40 € — Avocats, 3 pcs 2 x 3 pcs, 3 pcs | — |
 | Pain gris tranché (800 g) | 0.99 € — EVERYDAY pain gris coupé 800g | 1.85 € — DELHAIZE Pain de campagne, gris, pré-emballé 800 gr | 0.99 € — DÉLIPAIN Pain gris 800 g | — |
-| Baguette | 0.46 € — EVERYDAY 1/2 baguette blanc 4x150g | 0.46 € — DELHAIZE Baguette, blanc, 2 pièces 2 x 150 gr | 0.62 € — Baguette blanche Parisienne 400 g | 0.98 € 🏷️ — Demi baguette blanc 2 x 125 g |
+| Baguette | 0.46 € — EVERYDAY 1/2 baguette blanc 4x150g | 0.46 € — DELHAIZE Baguette, blanc, 2 pièces 2 x 150 gr | 0.62 € — Baguette blanche Parisienne 400 g | — |
 | Pistolets (6) | — | — | — | — |
 | Corn flakes (500 g) | 0.89 € — EVERYDAY Cornflakes 750g | 0.92 € — DELHAIZE Céréales, corn flakes 2 x 375 gr | — | — |
-| Lait demi-écrémé (1 L) | 0.85 € — EVERYDAY lait demi-écrémé brique 1L | 1.05 € — LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l | 0.85 € — MILSANI Lait demi-écrémé 1 l | — |
+| Lait demi-écrémé (1 L) | 0.79 € 🏷️ — Boni Selection lait demi-écrémé PET 1L | 1.05 € — LAITERIE DES ARDENNES Lait, demi-écrémé 6 x 1 l | 0.85 € — MILSANI Lait demi-écrémé 1 l | — |
 | Œufs plein air (12) | 3.99 € — BONI œufs plein air 12st | 4.19 € — DELHAIZE oeufs au sol, mix calibre, 10pc 10 pc | 2.39 € — MAMIE POULE Œufs de poules élevées au sol 18 pcs | — |
 | Beurre (250 g) | 2.69 € — BONI beurre HV non salé 250g | 1.89 € — DELHAIZE Beurre de laiterie 250 gr | 1.89 € — MILSANI Beurre de laiterie 250 g | 2.99 € 🏷️ — DELUXE beurre avec Camarguezout 250 g |
 | Yaourts nature (8×125 g) | 1.19 € — EVERYDAY yaourt maigre 8x125g | 1.19 € — DELHAIZE Yaourt, maigre, nature 8 x 125 gr | 1.19 € — MILSANI Yaourt maigre 8 x 125 g | — |
 | Gouda tranché (300 g) | 2.65 € — EVERYDAY gouda jeune en tranches korst 500g | 1.91 € — DELHAIZE Fromage, gouda, jeune, tranches 500 gr | — | — |
-| Emmental râpé (200 g) | 1.64 € — EVERYDAY emmental râpé 500g | 2.14 € — DELHAIZE Emmental, râpé 500 gr | 1.67 € — MILSANI Emmental râpé 250 g | — |
+| Emmental râpé (200 g) | 1.64 € — EVERYDAY emmental râpé 500g | 1.64 € — DELHAIZE Emmental, râpé 200 gr | 1.67 € — MILSANI Emmental râpé 250 g | — |
 | Mozzarella (125 g) | 0.69 € — EVERYDAY mozzarella 125g | 0.69 € — DELHAIZE Mozzarella, boule 125 gr | 0.69 € — CUCINA Mozzarella 125 g | — |
 | Crème fraîche (20 cl) | 1.09 € — BONI crème aigre 15% vet 20cl | 1.08 € — DELHAIZE Crème fraîche 25 cl | 0.79 € — MILSANI Crème fraîche 200 ml | — |
 | Skyr / fromage blanc (500 g) | 1.39 € — BONI Skyr nature 500g | 1.40 € — DELHAIZE Skyr, nature, high Protein, 0%, FP 1 kg | 1.39 € — MILSANI Skyr nature 500 g | — |
-| Filet de poulet (1 kg) | 6.69 € — Filet de poulet 1kg | — | 6.24 € — Kippenborstfilet 2 x 600 g | 7.49 € 🏷️ — Kippenborsthaasjes XXL 1 kg |
+| Filet de poulet (1 kg) | 6.69 € — Filet de poulet 1kg | 15.76 € 🏷️ — Delhaize filet de poulet / coupé / Coqardenne +/- 500 gr | 12.48 € — Kippenborstfilet 600 g | 12.63 € 🏷️ — DULANO dinde- ou kippenborstfilet 2 x 150 g |
 | Haché bœuf-porc (500 g) | 3.75 € — Haché porc bœuf ±500g | — | — | — |
-| Jambon cuit (200 g) | 3.12 € — BONI jambon à l'os sans gluten 150g | 3.11 € — DELHAIZE Jambon cuit à l'os, artisanal, tranches 150 gr | 3.45 € — Jambon à l'os 150 g | 2.50 € 🏷️ — HERTA Hesp superieur 400 g |
+| Jambon cuit (200 g) | 3.12 € — BONI jambon à l'os sans gluten 150g | 2.71 € — DELHAIZE Jambon cuit, degraisse, MP 420 gr | 3.45 € — Jambon à l'os 150 g | 2.50 € 🏷️ — HERTA Hesp superieur 400 g |
 | Filet de saumon frais (250 g) | 5.99 € — BONI filet de saumon Atl. Graatls 2x125g | 5.30 € — DELHAIZE Filet de saumon, avec peau +/- 260 gr | 3.34 € — GOLDEN SEAFOOD Filet de saumon frais 2 x 200 g | — |
 | Thon en boîte (3×80 g) | 1.79 € — EVERYDAY thon zonnebloemolie MSC 200g | 1.80 € — DELHAIZE Thon, huile de tournesol 3 x 200 gr | 1.93 € — GOLDEN SEAFOOD Thon à l'huile 185 g | — |
 | Saucisses / merguez (6) | — | — | — | — |
@@ -48,7 +53,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Farine (1 kg) | 0.35 € — EVERYDAY farine froment 1kg | 0.35 € — DELHAIZE Farine, de blé 1 kg | 0.35 € — ALBONA Farine de blé 1 kg | — |
 | Sucre (1 kg) | 0.69 € — EVERYDAY sucre cristallisé fin 1kg | — | 0.69 € — MOUNTAIN Sucre cristallisé 1 kg | — |
 | Huile d'olive (1 L) | 5.99 € — EVERYDAY huile d'olive bakken & braden 1L | 5.99 € — DELHAIZE Huile d'Olive, culinaire 1 l | 5.99 € — BELLASAN Huile d'olive culinaire 1 l | — |
-| Sauce tomate / passata (700 g) | 0.83 € — EVERYDAY passata gezeefde tom. brique 500g | 1.49 € — DELHAIZE Passata 700 gr | 0.83 € — Passata 1 kg | — |
+| Sauce tomate / passata (700 g) | 0.83 € — EVERYDAY passata gezeefde tom. brique 500g | 1.49 € — DELHAIZE Passata 700 gr | 0.91 € — CUCINA Passata 500 g | — |
 | Café moulu (500 g) | 2.49 € — EVERYDAY café moulu Moka RFA 500g | 3.85 € — CAFFÈ GONDOLIERE Café, tradition, moulu 500 gr | 3.89 € — Café moulu dessert 500 g | — |
 | Thé noir (20 sachets) | 0.50 € — BONI Earl Grey thé noir 25st | — | — | — |
 | Confiture de fraises (450 g) | 0.86 € — EVERYDAY confiture fraise 50% 700g | 1.09 € — DELHAIZE Confiture, fraises 450 gr | 0.87 € — GRANDESSA Confiture aux fraises 700 g | — |
@@ -65,19 +70,19 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Eau plate (6×1,5 L) | 1.71 € — EVERYDAY eau plate 2L | 7.70 € — SPA Eau minérale naturelle, plate, 10 L 10 l | 2.69 € — ROCHEVAL Eau minérale naturelle, 12 pcs 12 x 50 cl | — |
 | Eau pétillante (6×1,5 L) | 1.92 € — EVERYDAY eau pétillante 1,5L | 6.29 € — SPA Eau Minérale, pétillante Intense 6 x 1,5 l | 1.92 € — ROCHEVAL Eau pétillante 1.5 l | — |
 | Jus d'orange (1 L) | 1.23 € — EVERYDAY jus d'orange brique 1L | 1.30 € — DELHAIZE Jus d'orange 10 x 20 cl | 1.23 € — RIO D'ORO Jus d'orange 1.5 l | — |
-| Coca-Cola (6×33 cl) | 2.96 € — COCA-COLA Regular Original Taste 2L | 4.32 € 🏷️ — Coca-Cola Original taste / en boîte 15 x 33 cl | 2.96 € — COCA-COLA Coca-Cola regular 2 l | 2.84 € 🏷️ — COCA-COLA soda 1,25 l |
-| Bière Jupiler (24×25 cl) | 14.39 € 🏷️ — JUPILER pils 5,2% casier 24x33cl | 11.75 € 🏷️ — Jupiler Blond bière / pils / 5,2% alc. / Jumbo / casier 24 x 33 cl | 16.18 € — JUPILER Pils, 8 pcs 8 x 50 cl | 14.79 € 🏷️ — JUPILER Pils* 18 x 35,5 cl |
+| Coca-Cola (6×33 cl) | 2.96 € — COCA-COLA Regular Original Taste 2L | 4.32 € 🏷️ — Coca-Cola Original taste / en boîte 15 x 33 cl | 2.96 € — COCA-COLA Coca-Cola regular 2 l | — |
+| Bière Jupiler (24×25 cl) | 10.79 € 🏷️ — Jupiler pils 5,2% casier 24x33cl | 11.75 € 🏷️ — Jupiler Blond bière / pils / 5,2% alc. / Jumbo / casier 24 x 33 cl | 16.18 € — JUPILER Pils, 8 pcs 8 x 50 cl | 14.79 € 🏷️ — JUPILER Pils* 18 x 35,5 cl |
 | Vin rouge (75 cl) | — | — | — | — |
-| Papier toilette (12 rouleaux) | 3.84 € — EVERYDAY papier toilette sterk 3l 180v 12r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
-| Essuie-tout (4 rouleaux) | 2.72 € — BONI essuie-tout classic 3l 64v 6r | 2.85 € — DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc | — | 2.25 € 🏷️ — FLORALYS essuie-tout 3-lagig XXL 8 pièces |
+| Papier toilette (12 rouleaux) | 3.70 € 🏷️ — Scottex papier toilette decor 2l 140v 24r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
+| Essuie-tout (4 rouleaux) | 2.72 € — BONI essuie-tout classic 3l 64v 6r | 2.85 € — DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc | — | — |
 | Dentifrice | 0.35 € — BONI dentifrice coolmint 125ml | 1.25 € 🏷️ — Signal dentifrice / Crystal Gel / 75ml 7,5 cl | 0.35 € — DENTITEX Dentifrice 125 ml | — |
 | Gel douche (250 ml) | 0.60 € — BONI gel douche noir 500ml | 1.17 € 🏷️ — Sunlight gel douche / Nutritive care 40 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
 | Shampoing (300 ml) | 0.29 € — EVERYDAY shampoo oranjebloesem 500ml | 1.70 € 🏷️ — Syoss Shampoo / Color 44 cl | 0.30 € — LACURA Shampoing, 750 ml | — |
-| Déodorant | 1.19 € — BONI deo Woman fris gevoel 200ml | 1.84 € 🏷️ — Axe Deodorant spray / Marine 15 cl | 1.19 € — LACURA Déodorant 200 ml | — |
+| Déodorant | 0.90 € 🏷️ — Fa deo Pink Passion 150ml | 1.84 € 🏷️ — Axe Deodorant spray / Marine 15 cl | 1.19 € — LACURA Déodorant 200 ml | — |
 | Mouchoirs (boîte de 100) | 0.39 € — EVERYDAY mouchoirs box 2l 150st | 0.40 € — DELHAIZE Mouchoirs, boite, 2-plis 200 pc | 0.83 € — SUBLIMO Mouchoirs, 120 pcs par boîte | — |
 | Lessive liquide (40 lavages) | 3.19 € — EVERYDAY lessive white 45d 2,475L | — | 2.63 € — Lessive liquide 50 wasbeurten | — |
 | Liquide vaisselle (500 ml) | 0.43 € — ACTAE liquide vaisselle citron 1L | 0.89 € — DELHAIZE Liquide vaisselle, original 50 cl | 0.43 € — POWER FORCE Liquide vaisselle, 1L 1 l | — |
-| Tablettes lave-vaisselle (40) | 16.12 € 🏷️ — FINISH QUANTUM vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | — |
+| Tablettes lave-vaisselle (40) | 8.06 € 🏷️ — Finish Quantum vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | — |
 | Sacs poubelle blancs (20) | — | — | — | — |
 | Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.44 € — VILEDA Eponges à récurer, slalom Universal, 3+1 4 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
 | Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, boeuf 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
