@@ -519,11 +519,14 @@ function mainKind(r) {
 const MEAL = new Set(['pates', 'riz', 'pdt', 'semoule', 'quinoa', 'nouilles', 'gnocchi', 'lasagne', 'pain', 'baguette', 'tortillas', 'pate-pizza', 'pate-brisee', 'pate-feuil', 'pizza', 'frites', 'patate-douce', 'pain-burger', 'pain-mie', 'pain-pita', 'poulet', 'hache', 'boeuf', 'steak', 'boeuf-ragout', 'steak-burger', 'dinde', 'porc', 'merguez', 'jambon', 'lardons', 'chorizo', 'saumon', 'thon', 'cabillaud', 'crevettes', 'moules', 'oeufs', 'lentilles', 'pois-chiches', 'haricots-rouges', 'tofu', 'falafel']);
 export const isMeal = (r) => r.ingredients.filter((i) => !i.pantry && MEAL.has(i.key)).length >= 1 && r.ingredients.filter((i) => !i.pantry).length >= 3;
 
-export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [] } = {}) {
+export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null } = {}) {
   if (n <= 0) return [];
+  // perServing : prix visé par portion (le budget le permet) ; sans lui, les moins chers.
+  // Au-dessus du prix visé, un plat est trois fois plus pénalisé qu'en dessous.
+  const gap = (c) => (perServing == null ? c : c <= perServing ? perServing - c : (c - perServing) * 3);
   const pool = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && !exclude.includes(r.id) && compatible(r, filters))
     .map((r) => ({ r, cost: costOf(r) }))
-    .sort((a, b) => a.cost - b.cost);
+    .sort((a, b) => gap(a.cost) - gap(b.cost));
   const share = { souvent: 0.5, parfois: 0.3, rarement: 0.15, jamais: 0 };
   const target = { viande: Math.round(n * share[meat]), poisson: Math.round(n * share[fish]) };
   target.vege = Math.max(0, n - target.viande - target.poisson);

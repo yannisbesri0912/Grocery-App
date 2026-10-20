@@ -102,3 +102,13 @@ test('régimes : le placard compte aussi (farine du placard = gluten)', async ()
   const bourgui = RECIPES.find((r) => /bourguignon/i.test(r.name) && r.ingredients.some((i) => i.key === 'farine'));
   if (bourgui) assert.equal(compatible(bourgui, { kitchen, allergies: ['g'] }), false);
 });
+
+test('pickDishes : un plus gros budget par portion donne d\'autres plats', async () => {
+  const { pickDishes } = await import('../src/recipes.js');
+  const kitchen = { four: true, plaques: true, micro: true };
+  const cost = (r) => r.ingredients.filter((i) => !i.pantry).reduce((t, i) => t + i.amount, 0) / 100; // coût fictif
+  const cheap = pickDishes(5, { kitchen }, cost);
+  const rich = pickDishes(5, { kitchen }, cost, { perServing: 6 });
+  assert.equal(cheap.length, 5);
+  assert.notDeepEqual(rich, cheap);
+});

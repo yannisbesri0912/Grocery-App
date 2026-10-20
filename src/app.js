@@ -1427,13 +1427,31 @@ function dishItems(chain = smartShop()) {
 }
 
 // Plats proposés d'après les réponses (ou remplacement d'un plat).
-function proposeDishes(profile, exclude = []) {
+// Prix visé par portion pour les plats : le budget, moins ta liste et les produits
+// de base, réparti sur les repas (8 € par portion au plus). « Le moins cher » : null.
+const MAX_PER_SERVING = 8;
+function dishTarget(pr) {
+  const sm = smartSettings();
+  if (sm.goal === 'cheap' || !(pr.dinners > 0)) return null;
+  const base = buildBasket(smartItems(), Infinity, 'cheap').total;
+  const free = sm.budget - base;
+  if (free <= 0) return null;
+  return Math.min(MAX_PER_SERVING, (free * 0.9) / (pr.dinners * servingsFor(pr)));
+}
+
+function proposeDishes(profile, exclude = [], target = dishTarget({ ...DEFAULT_PROFILE, ...profile })) {
   const pr = { ...DEFAULT_PROFILE, ...profile };
   const filters = recipeFilters({ maxTime: pr.time });
-  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude });
+  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target });
   const desserts = RECIPES.filter((r) => r.type === 'dessert' && !exclude.includes(r.id) && compatible(r, filters))
     .sort((a, b) => dishCost(a) - dishCost(b)).slice(0, Number(pr.dessert) || 0).map((r) => r.id);
   return [...ids, ...desserts].map((id) => ({ id, servings: recipeById(id).type === 'dessert' ? pr.people : servingsFor(pr) }));
+}
+
+// Nouveau budget : les plats proposés suivent (sauf ceux choisis à la main).
+function budgetChanged() {
+  const sm = smartSettings();
+  if (sm.profile && sm.dishesAuto !== false && sm.dishes.length) sm.dishes = proposeDishes(sm.profile);
 }
 
 // Produits et plats du panier malin pour un magasin, dans l'ordre de remplissage :
@@ -1470,6 +1488,9 @@ function viewSmart() {
   const res = buildBasket(items, sm.budget, sm.goal);
   const picked = new Map(res.lines.map((l) => [l.id, l]));
   const pct = Math.min(100, (res.total / Math.max(sm.budget, 1)) * 100);
+  // Beaucoup de budget restant alors que tout est déjà au mieux : on l'explique.
+  const maxed = res.lines.every((l) => { const it = items.find((x) => x.id === l.id); return it.pin != null || sm.goal === 'cheap' || l.option >= it.options.length - 1; });
+  const roomy = !res.over && maxed && res.left > Math.max(10, sm.budget * 0.2);
   const row = (it) => {
     const line = picked.get(it.id);
     const opt = line ? it.options[line.option] : it.options[0];
@@ -1531,6 +1552,9 @@ function viewSmart() {
         ? `Il manque ${eur(-res.left)} même au premier prix : décoche « Indispensable » sur un produit ou augmente le budget.`
         : `Il reste ${eur(res.left)}${res.skipped.length ? ` · ${res.skipped.length} proposition${res.skipped.length > 1 ? 's' : ''} hors budget` : ''}`}</span>
     </section>
+    ${roomy ? `<div class="banner">${icon('spark')}<span class="grow small"><b>Ton panier entier coûte ${eur(res.total)}</b>${sm.goal === 'cheap' ? ' au moins cher' : ', déjà en meilleure gamme'}.
+      Le budget est un plafond : l'app ne dépense pas pour dépenser. ${sm.profile ? 'Les plats suivent le budget (jusqu\'à 8 € par portion).' : ''} Pour utiliser le reste : ajoute des plats, des produits, ou fais des réserves sur les promos.</span>
+      <button class="btn soft small" data-action="smart-more-dish">+ 1 plat</button></div>` : ''}
     <p class="small muted">Touche une gamme pour l'imposer (retouche pour laisser l'app choisir). Les frais de retrait ne sont pas comptés.</p>
     <div><div class="searchbox">${icon('search')}<input type="search" id="search" placeholder="Ajouter un produit au panier…" value="${esc(search)}" autocomplete="off" enterkeyhint="done">
       <button class="sb-btn" data-action="voice" aria-label="Dicter">${icon('mic')}</button><button class="sb-btn" data-action="scan" aria-label="Scanner un code-barres">${icon('scan')}</button></div>
@@ -1618,6 +1642,7 @@ function finishQuiz() {
   state.settings.diet = a.diet;
   sm.removed = {};
   sm.dishes = proposeDishes(a);
+  sm.dishesAuto = true;
   save();
   render();
   window.scrollTo({ top: 0 });
@@ -2493,14 +2518,23 @@ document.addEventListener('click', async (e) => {
     const sm = smartSettings();
     const cur = sm.dishes.find((d) => d.id === id);
     const [next] = proposeDishes({ ...(sm.profile ?? {}), dinners: recipeById(id).type === 'plat' ? 1 : 0, dessert: recipeById(id).type === 'dessert' ? 1 : 0 },
-      [...sm.dishes.map((d) => d.id), ...(sm.swapped ?? [])]);
+      [...sm.dishes.map((d) => d.id), ...(sm.swapped ?? [])], dishTarget({ ...DEFAULT_PROFILE, ...(sm.profile ?? {}) }));
+    sm.dishesAuto = false; // choix à la main : un changement de budget ne les remplace plus
     sm.swapped = [...(sm.swapped ?? []), id].slice(-40);
     if (next && cur) Object.assign(cur, { id: next.id }); else toast('Pas d\'autre plat compatible');
+    save();
+    render();
+  } else if (a === 'smart-more-dish') {
+    const sm = smartSettings();
+    const pr = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}) };
+    const [next] = proposeDishes({ ...pr, dinners: 1, dessert: 0 }, [...sm.dishes.map((d) => d.id), ...(sm.swapped ?? [])], dishTarget(pr));
+    if (next) { sm.dishes.push(next); sm.dishesAuto = false; } else toast('Pas d\'autre plat compatible');
     save();
     render();
   } else if (a === 'dish-remove') {
     const sm = smartSettings();
     sm.dishes = sm.dishes.filter((d) => d.id !== id);
+    sm.dishesAuto = false;
     save();
     render();
   } else if (a === 'recipe-open') {
@@ -2561,6 +2595,7 @@ document.addEventListener('click', async (e) => {
     render();
   } else if (a === 'smart-budget') {
     smartSettings().budget = Number(b.dataset.val);
+    budgetChanged();
     save();
     render();
   } else if (a === 'promo-menu-add') {
@@ -2831,6 +2866,7 @@ view.addEventListener('change', (e) => {
   if (t.id === 'receipt-file' && t.files?.[0]) { readReceipt(t.files[0]); t.value = ''; return; }
   if (t.id === 'smart-budget') {
     smartSettings().budget = Math.max(1, Number(String(t.value).replace(',', '.')) || 1);
+    budgetChanged();
     save();
     deferRender();
     return;
