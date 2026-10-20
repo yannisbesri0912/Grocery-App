@@ -861,7 +861,7 @@ const icon = (name) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${
 
 // Logo de l'enseigne (icône officielle de son site ; initiale colorée en secours).
 // Icône introuvable : on la retire (écouteur global, la page n'autorise pas le code en ligne).
-document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageElement && e.target.closest('.logo')) e.target.remove(); }, true);
+document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageElement && e.target.closest('.logo, .dish-pic')) e.target.remove(); }, true);
 function logo(chain, size = '') {
   const c = CHAINS[chain] ?? { name: '?', color: '#888' };
   const img = c.domain ? `<img src="https://www.google.com/s2/favicons?domain=${c.domain}&sz=64" alt="" loading="lazy">` : '';
@@ -1441,6 +1441,7 @@ function dishTarget(pr) {
 
 function proposeDishes(profile, exclude = [], target = dishTarget({ ...DEFAULT_PROFILE, ...profile })) {
   const pr = { ...DEFAULT_PROFILE, ...profile };
+  exclude = [...exclude, ...(smartSettings().disliked ?? [])]; // plats écartés (« pas pour moi »)
   const filters = recipeFilters({ maxTime: pr.time });
   const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target });
   const desserts = RECIPES.filter((r) => r.type === 'dessert' && !exclude.includes(r.id) && compatible(r, filters))
@@ -1476,9 +1477,46 @@ function shopComparison() {
     ${gap > 0.005 ? `<span class="small"><b>${esc(CHAINS[rows[0].c].name)}</b> est moins cher de <b>${eur(gap)}</b>.</span>` : ''}</div>`;
 }
 
+// Remplacer un plat par un autre du même genre (viande, poisson, végé) : l'équilibre de la semaine reste.
+function sameKind(pr, r) {
+  const kind = r?.flags.has('f') ? 'f' : r?.flags.has('m') ? 'm' : 'v';
+  return { ...pr, meat: kind === 'm' ? 'souvent' : 'jamais', fish: kind === 'f' ? 'souvent' : 'jamais' };
+}
+
+// Après les questions : faire confiance au panier, ou passer les plats en revue.
+let smartStep = null; // null | 'choice' | 'review'
+
+function viewSmartChoice(sm) {
+  const n = sm.dishes.length;
+  return `<button class="btn ghost small" data-action="smart-step" data-val="">← Panier malin</button>
+    <section class="hero"><span class="eyebrow">Ton panier est prêt</span>
+      <span class="plan-name">${n} plat${n > 1 ? 's' : ''} pour ${sm.profile.people} pers. · budget ${eur(sm.budget)}</span>
+      <div class="pics-row">${sm.dishes.slice(0, 5).map((d) => recipeById(d.id)).filter(Boolean).map((r) => dishVisual(r)).join('')}</div></section>
+    <button class="choice" data-action="smart-step" data-val="">${icon('check')}<span class="grow"><b>Faire confiance au panier malin</b><span class="sub">Voir le panier tout de suite</span></span>${icon('arrow')}</button>
+    <button class="choice" data-action="smart-step" data-val="review">${icon('search')}<span class="grow"><b>Vérifier les plats</b><span class="sub">Écarte ce que tu n'aimes pas : l'app propose autre chose et s'en souvient</span></span>${icon('arrow')}</button>`;
+}
+
+function viewSmartReview(sm) {
+  const list = sm.dishes.map((d) => ({ d, r: recipeById(d.id) })).filter((x) => x.r);
+  const ings = (r) => r.ingredients.filter((i) => !i.pantry).map((i) => ingName(i.key)).slice(0, 5).join(', ');
+  return `<button class="btn ghost small" data-action="smart-step" data-val="choice">← Retour</button>
+    <h1>Tes plats</h1>
+    <p class="small muted">« Pas pour moi » : le plat est écarté pour de bon et remplacé par un autre dans ton budget.</p>
+    <div class="dish-cards">${list.map(({ d, r }) => `<div class="dish-card">
+      ${dishVisual(r, 'md')}
+      <div class="stack" style="gap:2px"><b>${esc(r.name)}</b><span class="small muted">${r.minutes} min · ${d.servings} portion${d.servings > 1 ? 's' : ''} · ≈ ${eur(dishCost(r))}/pers.</span>
+        <span class="small">${esc(ings(r))}</span></div>
+      <div class="row" style="gap:6px"><button class="btn soft small grow" data-action="dish-dislike" data-id="${esc(r.id)}">👎 Pas pour moi</button>
+        <button class="btn ghost small" data-action="dish-swap" data-id="${esc(r.id)}">Autre idée</button></div>
+    </div>`).join('')}</div>
+    <button class="btn primary lg block" data-action="smart-step" data-val="">${icon('check')} C'est bon, voir mon panier</button>`;
+}
+
 function viewSmart() {
   const sm = smartSettings();
   const shop = smartShop();
+  if (smartStep === 'choice' && sm.profile && sm.dishes.length) return viewSmartChoice(sm);
+  if (smartStep === 'review' && sm.dishes.length) return viewSmartReview(sm);
   if (!CATALOG || !CATALOGS[shop]) {
     loadCatalog().then(() => loadOtherCatalogs()).then(() => { if (smartOpen) render(); });
     return `<button class="btn ghost small" data-action="smart-close">← Ma liste</button><div class="empty"><span class="spin"></span><b>Je charge les prix ${esc(CHAINS[shop].name)}…</b></div>`;
@@ -1515,7 +1553,7 @@ function viewSmart() {
     const line = picked.get(it.id);
     return `<li class="smart-item ${line ? '' : 'out'}">
       <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
-        <span class="name">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
+        ${dishVisual(it.dish)}<span class="name grow">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
         <b class="num">${eur(it.options[0].price)}</b></div>
       <div class="row" style="gap:6px;justify-content:flex-end">
         <button class="btn soft small" data-action="dish-swap" data-id="${esc(it.dish.id)}">Changer</button>
@@ -1525,7 +1563,9 @@ function viewSmart() {
   const prof = sm.profile;
   const quizCard = `<div class="card">
       ${prof
-        ? `<div class="row" style="justify-content:space-between"><span class="small"><b>Tes réponses :</b> ${prof.people} pers. · ${prof.days} j · ${prof.dinners} repas · ${esc(DIETS[prof.diet]?.label ?? '')}</span></div>`
+        ? `<div class="row" style="justify-content:space-between"><span class="small"><b>Tes réponses :</b> ${prof.people} pers. · ${prof.days} j · ${prof.dinners} repas · ${esc(DIETS[prof.diet]?.label ?? '')}</span></div>
+          ${sm.dishes.length ? '<button class="btn ghost small" data-action="smart-step" data-val="review">Vérifier les plats</button>' : ''}
+          ${sm.disliked?.length ? `<span class="tiny muted">${sm.disliked.length} plat${sm.disliked.length > 1 ? 's' : ''} écarté${sm.disliked.length > 1 ? 's' : ''} · <button class="link" data-action="dislike-reset">tout remettre</button></span>` : ''}`
         : '<span class="small">Réponds à quelques questions : je compose un panier avec des plats adaptés à ta cuisine.</span>'}
       <div class="row" style="gap:8px"><button class="btn soft grow" data-action="quiz" data-val="simple">${prof ? 'Refaire · ' : ''}Simple · 5 questions</button>
         <button class="btn soft grow" data-action="quiz" data-val="complet">Complet · 20 questions</button></div></div>`;
@@ -1643,6 +1683,7 @@ function finishQuiz() {
   sm.removed = {};
   sm.dishes = proposeDishes(a);
   sm.dishesAuto = true;
+  smartStep = sm.dishes.length ? 'choice' : null; // faire confiance, ou vérifier les plats
   save();
   render();
   window.scrollTo({ top: 0 });
@@ -1728,7 +1769,7 @@ function promoMenuCard() {
     <div class="section-head"><h2>🏷️ Menu de la semaine en promo</h2></div>
     <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${esc(c)}" aria-pressed="${chain === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
     <p class="small muted">${menu.length} plats dont des ingrédients sont en promo cette semaine chez ${esc(CHAINS[chain].name)}${chain === 'delhaize' && !hasCard('delhaize') ? ' (sans les promos carte Plus : coche-la dans Réglages si tu l\'as)' : ''}.</p>
-    <ul class="items">${menu.map((x) => `<li><span class="name"><button class="link-plain" data-action="recipe-open" data-id="${esc(x.r.id)}">${esc(x.r.name)}</button>
+    <ul class="items">${menu.map((x) => `<li>${dishVisual(x.r)}<span class="name"><button class="link-plain" data-action="recipe-open" data-id="${esc(x.r.id)}">${esc(x.r.name)}</button>
       <span class="sub deal">${esc(x.promos.slice(0, 3).join(' · '))}</span></span><span class="num">≈ ${eur(x.cost)}<span class="sub">/ pers.</span></span></li>`).join('')}</ul>
     <button class="btn primary block" data-action="promo-menu-add">${icon('cart')} Ajouter ce menu (${people} pers.) · ≈ ${eur(total)}${saved >= 0.5 ? `, dont −${eur(saved)} de promos` : ''}</button>
   </div>`;
@@ -1758,10 +1799,45 @@ function placardCard() {
   </details>`;
 }
 
+// ---------- Visuels des plats ----------
+// Photo libre de Wikimedia Commons quand on en a une (data/recipe-images.json,
+// prices/recipe-images.mjs), chargée à la demande ; sinon une icône du plat.
+let PHOTOS = null;
+let photosLoading = null;
+function loadPhotos() {
+  photosLoading ??= fetch('data/recipe-images.json', { cache: 'no-cache' })
+    .then((res) => (res.ok ? res.json() : {})).then((d) => { PHOTOS = d; render(); })
+    .catch(() => { photosLoading = null; });
+}
+const DISH_EMOJI = [
+  [/soupe|velout|potage|minestrone|gaspacho|chorba|harira/i, '🍲'], [/salade/i, '🥗'], [/curry|\bdal\b|dahl|tikka|masala/i, '🍛'],
+  [/pizza/i, '🍕'], [/burger/i, '🍔'], [/taco|wrap|burrito|quesadilla|fajita|enchilada/i, '🌮'], [/sandwich|croque|tartine|toast|panini/i, '🥪'],
+  [/cr[eê]pe|pancake|gaufre/i, '🥞'], [/g[aâ]teau|cake|brownie|muffin|tarte|cheesecake|clafoutis|fondant/i, '🍰'], [/cookie|biscuit|sabl[ée]/i, '🍪'],
+  [/omelette|œufs?|oeufs?|frittata/i, '🍳'], [/nouille|ramen|wok|pad thai|udon/i, '🍜'], [/riz|risotto|paella|paëlla|biryani/i, '🍚'],
+  [/p[aâ]tes|spaghetti|lasagne|penne|tagliatelle|macaroni|gnocchi|ravioli|carbonara/i, '🍝'], [/chocolat/i, '🍫'],
+  [/saumon|poisson|cabillaud|thon|kedgeree|waterzooi|truite|maquereau/i, '🐟'], [/crevette|scampi|gambas/i, '🦐'], [/moule/i, '🦪'],
+  [/poulet|dinde|volaille/i, '🍗'], [/b(oe|œ)uf|steak|boulet|carbonnade|hach[ée]|agneau|kefta|bolognaise/i, '🥩'],
+  [/frites|pommes? de terre|pur[ée]e|gratin|stoemp|rösti/i, '🥔'], [/pain|brioche/i, '🍞'],
+];
+function dishEmoji(r) {
+  for (const [re, e] of DISH_EMOJI) if (re.test(r.name)) return e;
+  return r.type === 'dessert' ? '🍰' : r.flags.has('f') ? '🐟' : r.flags.has('m') ? '🍗' : '🥗';
+}
+/** Photo (ou icône) d'un plat. size : sm (liste), md (carte), lg (page de la recette). */
+function dishVisual(r, size = 'sm') {
+  if (!PHOTOS) loadPhotos();
+  const ph = PHOTOS?.[r.id];
+  return `<span class="dish-pic ${size}" aria-hidden="true"><span>${dishEmoji(r)}</span>${ph ? `<img src="${esc(ph[0])}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</span>`;
+}
+function photoCredit(r) {
+  const ph = PHOTOS?.[r.id];
+  return ph ? `<p class="tiny muted">Photo d'illustration : ${esc(ph[1])}, ${esc(ph[2])}, <a href="${esc(ph[3])}" target="_blank" rel="noopener">Wikimedia Commons</a>.</p>` : '';
+}
+
 function recipeCard(r) {
   const cost = dishCost(r);
   return `<button class="recipe" data-action="recipe-open" data-id="${esc(r.id)}">
-    <span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}</span></span>
+    ${dishVisual(r)}<span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}</span></span>
     <span class="num price">≈ ${eur(cost)}<span class="sub">/ pers.</span></span></button>`;
 }
 
@@ -1823,6 +1899,7 @@ function viewRecipe(r) {
   const missing = r.tools.filter((g) => !g.some((t) => k[t])).map((g) => g.map((t) => TOOLS[t]).join(' ou '));
   return `
     <button class="btn ghost small" data-action="recipe-back">← Plats</button>
+    ${dishVisual(r, 'lg')}
     <h1>${esc(r.name)}</h1>
     <p class="small muted">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'} · ≈ ${proteinOf(r)} g de protéines par personne</p>
     ${missing.length ? `<div class="banner warn-banner">⚠️<span class="small">Il te faut : ${esc(missing.join(', '))}.</span></div>` : ''}
@@ -1834,6 +1911,7 @@ function viewRecipe(r) {
       ${pantry.length ? `<span class="eyebrow">Placard</span><ul class="items checklist">${pantry.map((i) => ingRow(i, n, false)).join('')}</ul>` : ''}
     </div>
     <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
+      ${photoCredit(r)}
       ${r.src ? `<p class="tiny muted">Recette adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a> (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
     ${dishShops(r, n)}
     ${(() => {
@@ -2419,7 +2497,7 @@ function viewSettings() {
         <label class="btn">Importer<input type="file" id="import" accept="application/json" hidden></label>
         <button class="btn danger" data-action="reset">Tout effacer</button>
       </div>
-      <p class="tiny muted">Liste, adresse et prix saisis sont enregistrés seulement sur ce téléphone (l'app n'a pas de serveur). Services utilisés : OpenStreetMap pour l'adresse et les magasins, Google Maps pour les itinéraires, Open Food Facts pour les codes-barres.</p>
+      <p class="tiny muted">Liste, adresse et prix saisis sont enregistrés seulement sur ce téléphone (l'app n'a pas de serveur). Services utilisés : OpenStreetMap pour l'adresse et les magasins, Google Maps pour les itinéraires, Open Food Facts pour les codes-barres, Wikimedia pour les photos des plats.</p>
     </div>
     <p class="foot">${priceSourcesNote()}</p>`;
 }
@@ -2517,11 +2595,29 @@ document.addEventListener('click', async (e) => {
   } else if (a === 'dish-swap') {
     const sm = smartSettings();
     const cur = sm.dishes.find((d) => d.id === id);
-    const [next] = proposeDishes({ ...(sm.profile ?? {}), dinners: recipeById(id).type === 'plat' ? 1 : 0, dessert: recipeById(id).type === 'dessert' ? 1 : 0 },
+    const [next] = proposeDishes(sameKind({ ...(sm.profile ?? {}), dinners: recipeById(id).type === 'plat' ? 1 : 0, dessert: recipeById(id).type === 'dessert' ? 1 : 0 }, recipeById(id)),
       [...sm.dishes.map((d) => d.id), ...(sm.swapped ?? [])], dishTarget({ ...DEFAULT_PROFILE, ...(sm.profile ?? {}) }));
     sm.dishesAuto = false; // choix à la main : un changement de budget ne les remplace plus
     sm.swapped = [...(sm.swapped ?? []), id].slice(-40);
     if (next && cur) Object.assign(cur, { id: next.id }); else toast('Pas d\'autre plat compatible');
+    save();
+    render();
+  } else if (a === 'smart-step') {
+    smartStep = b.dataset.val || null;
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'dish-dislike') {
+    const sm = smartSettings();
+    const cur = sm.dishes.find((d) => d.id === id);
+    sm.disliked = [...new Set([...(sm.disliked ?? []), id])].slice(-200);
+    const r = recipeById(id);
+    const [next] = cur ? proposeDishes(sameKind({ ...(sm.profile ?? {}), dinners: r?.type === 'dessert' ? 0 : 1, dessert: r?.type === 'dessert' ? 1 : 0 }, r),
+      sm.dishes.map((d) => d.id), dishTarget({ ...DEFAULT_PROFILE, ...(sm.profile ?? {}) })) : [];
+    if (next && cur) { cur.id = next.id; toast(`Remplacé par « ${recipeById(next.id).name} »`); } else { sm.dishes = sm.dishes.filter((d) => d.id !== id); toast('Plat écarté'); }
+    save();
+    render();
+  } else if (a === 'dislike-reset') {
+    smartSettings().disliked = [];
     save();
     render();
   } else if (a === 'smart-more-dish') {

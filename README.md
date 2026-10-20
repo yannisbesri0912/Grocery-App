@@ -108,6 +108,16 @@ remplace la liste ; le plan choisit ensuite les magasins.
   paquet). Dans le panier malin, un plat compte le prix des paquets qu'il fait
   acheter.
 
+**Photos des plats** : 252 recettes ont une photo libre de Wikimedia Commons (image de la page
+Wikibooks de la recette, sinon de l'article Wikipédia du plat), avec auteur et licence affichés
+sur la recette (`data/recipe-images.json`, créé par `prices/recipe-images.mjs`). Les photos ne
+sont pas copiées dans le dépôt : l'app les charge depuis Wikimedia quand on les regarde. Les
+autres plats ont une icône.
+
+**Panier malin, à la fin des questions** : *Faire confiance au panier malin* (le panier tout de
+suite) ou *Vérifier les plats* : « Pas pour moi » écarte un plat pour de bon et le remplace par un
+autre du même genre (viande, poisson, végé) dans le budget.
+
 ## Panier assisté (Collect&Go, Delhaize Collect)
 
 Dans le plan, **Préparer ma commande** liste les articles avec un bouton par
