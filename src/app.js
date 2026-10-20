@@ -12,7 +12,8 @@ import { priceSignal, KEEPS } from './history.js';
 import { aisleKey, aisleOrder } from './aisles.js';
 import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
-import { isId, cleanProduct, cleanItem } from './validate.js';
+import { isId, cleanProduct, cleanItem, cleanReceipt } from './validate.js';
+import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q } from './recipes.js';
@@ -68,6 +69,7 @@ function migrate(saved) {
     .map((st) => ({ ...st, name: String(st.name ?? '').slice(0, 120), address: String(st.address ?? '').slice(0, 200) }));
   const h = saved.home;
   s.home = h && Number.isFinite(h.lat) && Number.isFinite(h.lng) ? { address: String(h.address ?? '').slice(0, 200), lat: h.lat, lng: h.lng } : null;
+  s.receipts = arr(saved.receipts).slice(0, 150).map(cleanReceipt).filter(Boolean);
   s.overrides = obj(saved.overrides);
   s.chainIndex = obj(saved.chainIndex);
   for (const k of ['valueOfTime', 'minutesPerStore', 'radiusKm', 'detour', 'servings']) {
@@ -811,6 +813,15 @@ function applyReceipt() {
     cats[key] = Math.round(((cats[key] ?? 0) + it.total) * 100) / 100;
   }
   state.history.unshift({ date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum, saving: 0, items: used.length, cats });
+  keepReceipt({
+    date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum,
+    lines: used.map((it) => {
+      const p = it.match?.id ? productById(it.match.id) : null;
+      const r = !p && it.match?.row ? rowById(it.match.chain, it.match.row) : null;
+      const prod = p ?? (r ? { name: rowName(r), cat: r[ROW.cat], nutri: r[ROW.nutri] || undefined } : { name: it.name, cat: undefined });
+      return receiptLine(prod, it.name, it.qty ?? 1, it.total, chain, CHAINS[chain]?.name, 'real');
+    }),
+  });
   receipt = null;
   save();
   render();
@@ -919,6 +930,7 @@ function toast(msg) {
 }
 
 function setTab(tab) {
+  if (tab !== state.tab) receiptOpen = null;
   state.tab = tab;
   save();
   render();
@@ -1638,7 +1650,8 @@ function applySmart() {
   sm.dishes = [];
   setSmartOpen(false);
   save();
-  toast(`Panier de ${eur(res.total)} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
+  const meatNote = halalOn() && butcherItems().length ? ` (dont ≈ ${eur(butcherItems().reduce((t, l) => t + butcherCost(l), 0))} de viande chez le boucher)` : '';
+  toast(`Panier de ${eur(res.total)}${meatNote} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
   setTab('plan');
 }
 
@@ -1965,6 +1978,7 @@ function viewPlan() {
   orderStop = null;
   const isBest = plan === lastPlans[0];
   const saving = nearest ? nearest.total - plan.total : 0;
+  const meatCost = butcherItems().reduce((t, l) => t + butcherCost(l), 0); // viande (halal) achetée hors du plan
   // Confiance : part des articles du plan payés à un vrai prix (relevé ou saisi), pas estimé.
   const planLines = plan.stops.flatMap((st) => st.lines);
   const realShare = planLines.length ? planLines.filter((l) => l.info?.kind && l.info.kind !== 'estimate').length / planLines.length : 1;
@@ -1994,7 +2008,7 @@ function viewPlan() {
         return `${head}<li class="${item?.checked ? 'done' : ''}">
           <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
           <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${l.packs ? `${l.packs} × ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
-          <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
+          <span class="price-col"><b class="num">${eur(l.total)}</b>${KIND[l.info?.kind] ?? ''}</span></li>`;
       }).join('')}</ul>
     </div>`;
   }).join('');
@@ -2008,6 +2022,7 @@ function viewPlan() {
         <div class="stack" style="gap:6px"><span class="eyebrow">${isBest ? (sure ? 'Le moins cher au total' : 'Le moins cher d\'après les prix connus') : 'Autre option'}${plan.mode === 'collect' ? ' · retrait' : plan.mode === 'mixed' ? ' · retrait + magasin' : plan.kind === 'delivery' ? ' · livraison' : ''}</span>
           <span class="plan-name">${esc(plan.label)}</span>
           <div class="total num">${eur(plan.total)}</div>
+          ${meatCost ? `<span class="small">+ ≈ ${eur(meatCost)} de viande chez le boucher halal · <b>≈ ${eur(plan.total + meatCost)} en tout</b></span>` : ''}
           ${isBest && saving > 0.01 ? `<span class="saving">−${eur(saving)} vs le magasin le plus proche</span>` : ''}
           ${isBest && allPlans[0] && allPlans[0].total < plan.total - 0.01 && state.settings.planMode !== 'all' ? `<span class="tiny">Toutes options confondues : ${eur(allPlans[0].total)} (${esc(allPlans[0].label)})</span>` : ''}
         </div>
@@ -2097,8 +2112,9 @@ function viewOrder(plan, stop) {
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
         <span class="name">${(l.packs ?? l.qty) > 1 ? `<b>${l.packs ?? l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
-          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
-          : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
+          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
+          : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''}`}</span></span>
+        <span class="price-col"><b class="num">${l.info?.kind === 'estimate' ? '≈ ' : ''}${eur(l.total)}</b>${l.info?.kind === 'estimate' ? '<span class="tiny muted">estimé</span>' : ''}</span>
         <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${esc(l.product.id)}"${shop?.copy && l.link.kind !== 'product' ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy && l.link.kind !== 'product' ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
     <a class="btn primary lg block" target="_blank" rel="noopener" href="${esc(shop?.cart ?? st.collect.url)}">${icon('cart')} ${esc(shop?.cartLabel ?? `Commander chez ${CHAINS[st.chain].name}`)}</a>
@@ -2112,9 +2128,9 @@ function butcherCard() {
   if (!meat.length) return '';
   return `<div class="card butcher-card">
     <div class="row"><span class="butcher-ico" aria-hidden="true">🥩</span><div class="grow"><b>Viande : chez le boucher halal</b>
-      <div class="small muted">${meat.length} produit${meat.length > 1 ? 's' : ''}, pas compté${meat.length > 1 ? 's' : ''} dans le plan supermarché</div></div></div>
+      <div class="small muted">${meat.length} produit${meat.length > 1 ? 's' : ''} · environ <b>${eur(meat.reduce((t, l) => t + butcherCost(l), 0))}</b> (estimé au prix du supermarché)</div></div></div>
     <ul class="items">${meat.map((l) => `<li class="${l.checked ? 'done' : ''}"><input type="checkbox" class="check" data-action="check" data-id="${esc(l.id)}" ${l.checked ? 'checked' : ''} aria-label="Acheté">
-      <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(butcherLabel(l.p))}</span></li>`).join('')}</ul>
+      <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(butcherLabel(l.p))}</span><span class="price-col"><b class="num">≈ ${eur(butcherCost(l))}</b><span class="tiny muted">estimé</span></span></li>`).join('')}</ul>
     <button class="btn primary block" data-action="butcher">Trouver un boucher halal ${icon('arrow')}</button></div>`;
 }
 
@@ -2254,7 +2270,7 @@ function planText(plan) {
 
 // Lignes du plan achetées : celles cochées, ou toutes si rien n'est coché.
 function boughtLines(plan) {
-  const lines = plan.stops.flatMap((s) => s.lines.map((l) => ({ ...l, chain: s.store.chain })));
+  const lines = plan.stops.flatMap((s) => s.lines.map((l) => ({ ...l, chain: s.store.chain, storeName: s.store.placeName ?? s.store.name })));
   const checked = lines.filter((l) => state.list.find((x) => x.id === l.product.id)?.checked);
   return checked.length ? checked : lines;
 }
@@ -2289,12 +2305,120 @@ function finishShopping(plan, paid = null) {
   for (const l of lines) cats[l.product.cat ?? 4] = Math.round(((cats[l.product.cat ?? 4] ?? 0) + l.total * k) * 100) / 100;
   state.history.unshift({ date: today, label: plan.label, total: estimate, ...(paid != null ? { paid } : {}), saving, items: bought.size, cats });
   state.history = state.history.slice(0, 50);
+  // Reçu conservé (Budget → Mes reçus) : chaque article, son prix, sa famille, son Nutri-Score.
+  const meat = butcherItems().filter((l) => l.checked);
+  for (const l of meat) bought.add(l.id);
+  keepReceipt({
+    date: today, label: plan.label, total: estimate, paid, fees: plan.fees || undefined,
+    lines: lines.map((l) => receiptLine(l.product, l.info?.article, l.packs ?? l.qty, l.total, l.chain, l.storeName, l.info?.kind, l.saving ? l.deal?.txt : undefined)),
+    butcher: meat.map((l) => ({ n: butcherLabel(l.p), q: l.qty, t: butcherCost(l), g: 'viande' })),
+  });
   state.list = state.list.filter((l) => !bought.has(l.id)).map((l) => ({ ...l, checked: false }));
   for (const id of bought) delete state.dishNeed?.[id];
   save();
   const left = state.list.length;
-  toast(left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍');
+  toast(`${left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍'} Reçu conservé (Budget → Mes reçus).`);
   setTab('list');
+}
+
+// ---------- Reçus conservés ----------
+// Nutri-Score de l'article acheté : produit du catalogue, sinon même nom dans le catalogue de l'enseigne.
+const nutriIndex = {};
+function nutriOf(product, article, chain) {
+  if (product?.nutri) return product.nutri;
+  const cat = CATALOGS[chain];
+  if (!article || !cat) return undefined;
+  if (!nutriIndex[chain]) {
+    nutriIndex[chain] = new Map();
+    for (const r of cat.rows) if (r[ROW.nutri]) { nutriIndex[chain].set(norm(rowName(r)), r[ROW.nutri]); nutriIndex[chain].set(norm(`${r[ROW.name]} ${r[ROW.content] ?? ''}`.trim()), r[ROW.nutri]); }
+  }
+  return nutriIndex[chain].get(norm(article));
+}
+function receiptLine(product, article, q, total, chain, store, kind, deal) {
+  const name = product?.name ?? article ?? '?';
+  return {
+    n: name, a: article && article !== name ? article : undefined, q, t: Math.round((total || 0) * 100) / 100, c: chain, s: store,
+    cat: product?.cat, g: spendGroup(article || name, product?.cat), ns: nutriOf(product, article, chain), k: kind, d: deal,
+  };
+}
+function keepReceipt(r) {
+  state.receipts = [{ id: `r${Date.now().toString(36)}`, ...r }, ...(state.receipts ?? [])].slice(0, 150);
+}
+// Viande chez le boucher halal : estimée au prix du supermarché (on n'a pas les prix des boucheries).
+function butcherCost(l) {
+  const info = priceInfo(l.p, 'colruyt', chains(), state.overrides, realPrices());
+  return Math.round((info?.price ?? l.p.ref ?? 0) * l.qty * 100) / 100;
+}
+
+const NUTRI_COLORS = { A: '#038141', B: '#85bb2f', C: '#fecb02', D: '#ee8100', E: '#e63e11' };
+let receiptOpen = null; // null | 'list' | id d'un reçu
+const PERIODS = { month: 'Ce mois', '3m': '3 mois', all: 'Tout' };
+function receiptsIn(period) {
+  const all = state.receipts ?? [];
+  if (period === 'all') return all;
+  const d = new Date();
+  const from = period === '3m' ? new Date(d.getFullYear(), d.getMonth() - 2, 1) : new Date(d.getFullYear(), d.getMonth(), 1);
+  const key = from.toISOString().slice(0, 10);
+  return all.filter((r) => r.date >= key);
+}
+
+// Diagrammes : dépenses par famille, et Nutri-Score des achats (en euros dépensés).
+function spendCharts() {
+  const period = PERIODS[state.settings.spendPeriod] ? state.settings.spendPeriod : 'month';
+  const list = receiptsIn(period);
+  const { groups, nutri, total } = summarize(list);
+  const chips = `<div class="seg" role="group" aria-label="Période">${Object.entries(PERIODS).map(([k, l]) => `<button data-action="set" data-key="spendPeriod" data-val="${esc(k)}" aria-pressed="${period === k}">${l}</button>`).join('')}</div>`;
+  if (!total) return `<div class="card"><h2>Où part ton argent</h2>${chips}<p class="small muted">Pas encore de reçu sur cette période : touche « Courses faites » après tes courses, ou scanne un ticket.</p></div>`;
+  const max = groups[0].v;
+  const known = total - nutri['?'];
+  const seg = Object.keys(NUTRI_COLORS).filter((k) => nutri[k] > 0);
+  return `<div class="card"><h2>Où part ton argent</h2>${chips}
+      <p class="small muted">${list.length} reçu${list.length > 1 ? 's' : ''} · ${eur(total)}</p>
+      <ul class="aisle-spend">${groups.map((g) => `<li title="${esc(`${g.label} : ${eur(g.v)}`)}"><span class="grow">${esc(g.label)}</span><b class="num">${eur(g.v)}</b><span class="num muted small" style="min-width:42px;text-align:right">${Math.round((g.v / total) * 100)} %</span>
+        <i style="width:${Math.max(2, (g.v / max) * 100)}%"></i></li>`).join('')}</ul></div>
+    <div class="card"><h2>Nutri-Score de tes achats</h2>
+      ${known > 0 ? `<div class="nutri-bar" role="img" aria-label="${esc(seg.map((k) => `${k} ${Math.round((nutri[k] / known) * 100)} %`).join(', '))}">${seg.map((k) => `<span style="flex:${nutri[k]};background:${NUTRI_COLORS[k]}" class="${k === 'C' ? 'dark' : ''}" title="${esc(`Nutri-Score ${k} : ${eur(nutri[k])}`)}">${nutri[k] / known >= 0.08 ? k : ''}</span>`).join('')}</div>
+        <ul class="nutri-legend">${seg.map((k) => `<li><i style="background:${NUTRI_COLORS[k]}"></i><b>${k}</b> ${eur(nutri[k])} · ${Math.round((nutri[k] / known) * 100)} %</li>`).join('')}</ul>` : ''}
+      <p class="tiny muted">${known > 0 ? `Calculé sur ${eur(known)} d'achats au Nutri-Score connu (A = le plus sain). ` : 'Aucun article de cette période n\'a de Nutri-Score connu. '}${nutri['?'] > 0 ? `${eur(nutri['?'])} sans Nutri-Score : fruits et légumes frais, boucher, et les articles Colruyt (Colruyt ne le publie pas encore ; Delhaize et Aldi oui).` : ''}</p></div>`;
+}
+
+function viewReceipts() {
+  const list = state.receipts ?? [];
+  const r = receiptOpen !== 'list' ? list.find((x) => x.id === receiptOpen) : null;
+  if (r) {
+    const byStore = new Map();
+    for (const l of r.lines) { const k = l.s ?? CHAINS[l.c]?.name ?? 'Magasin'; if (!byStore.has(k)) byStore.set(k, []); byStore.get(k).push(l); }
+    const line = (l) => `<li><span class="name">${l.q > 1 ? `${l.q} × ` : ''}${esc(l.n)}${nutriBadge(l.ns, 'sm')}<span class="sub">${l.a ? `${esc(l.a)} · ` : ''}${esc(GROUPS[l.g] ?? '')}${l.k === 'estimate' ? ' · prix estimé' : ''}${l.d ? ` · <span class="deal">${esc(l.d)}</span>` : ''}</span></span><b class="num price-col">${eur(l.t)}</b></li>`;
+    return `<button class="btn ghost small" data-action="receipt" data-id="list">← Mes reçus</button>
+      <section class="hero"><span class="eyebrow">${esc(dateFr(r.date))} · ${esc(r.label ?? '')}</span>
+        <div class="total num">${eur(r.paid ?? r.total)}</div>
+        <span class="small">${r.paid != null ? `Payé (estimé par l'app : ${eur(r.total)})` : 'Estimé par l\'app'} · ${r.lines.length + (r.butcher?.length ?? 0)} articles</span></section>
+      <div class="actions"><button class="btn" data-action="receipt-copy" data-id="${esc(r.id)}">${icon('copy')}Copier pour Claude</button>
+        <button class="btn" data-action="receipt-md" data-id="${esc(r.id)}">${icon('share')}Télécharger (.md)</button></div>
+      <p class="tiny muted">Le texte copié contient chaque article, son prix et d'où vient le prix : colle-le dans une conversation avec Claude pour vérifier un problème.</p>
+      ${[...byStore].map(([store, ls]) => `<div class="card"><div class="row"><b class="grow">${esc(store)}</b><b class="num">${eur(ls.reduce((t, l) => t + l.t, 0))}</b></div><ul class="items">${ls.map(line).join('')}</ul></div>`).join('')}
+      ${r.butcher?.length ? `<div class="card"><div class="row"><b class="grow">🥩 Boucher halal (estimé)</b><b class="num">${eur(r.butcher.reduce((t, l) => t + l.t, 0))}</b></div><ul class="items">${r.butcher.map(line).join('')}</ul></div>` : ''}
+      ${spendChartsFor([r])}
+      <button class="btn ghost danger block" data-action="receipt-delete" data-id="${esc(r.id)}">Supprimer ce reçu</button>`;
+  }
+  return `<button class="btn ghost small" data-action="receipt" data-id="">← Budget</button>
+    <h1>Mes reçus</h1>
+    ${list.length ? `<ul class="items receipts">${list.map((x) => `<li><button class="row-btn" data-action="receipt" data-id="${esc(x.id)}">
+        <span class="name"><b>${esc(dateFr(x.date))}</b> · ${esc(x.label ?? '')}<span class="sub">${x.lines.length + (x.butcher?.length ?? 0)} articles${x.paid != null ? ' · montant payé' : ' · estimé'}</span></span>
+        <b class="num price-col">${eur(x.paid ?? x.total)}</b>${icon('arrow')}</button></li>`).join('')}</ul>`
+      : '<div class="empty">🧾<b>Pas encore de reçu</b><span>Après tes courses, touche « Courses faites » dans le plan, ou scanne ton ticket de caisse : le reçu est gardé ici.</span></div>'}
+    ${spendCharts()}`;
+}
+// Diagrammes d'un seul reçu (même rendu, sans choix de période).
+function spendChartsFor(list) {
+  const keep = state.receipts;
+  state.receipts = list;
+  const saved = state.settings.spendPeriod;
+  state.settings.spendPeriod = 'all';
+  const html = spendCharts().replace(/<div class="seg" role="group" aria-label="Période">[\s\S]*?<\/div>/, '');
+  state.receipts = keep;
+  state.settings.spendPeriod = saved;
+  return html;
 }
 
 // ---------- Habitudes ----------
@@ -2327,7 +2451,8 @@ function budgetCard() {
       <div class="bars" role="img" aria-label="Dépenses des 6 derniers mois">${months.map((m) => `<div class="bar"><span class="num tiny">${m.total ? `${Math.round(m.total)} €` : ''}</span><i style="height:${(m.total / max) * 75}%" class="${budget && m.total > budget ? 'over' : ''}"></i><span class="tiny muted">${esc(m.label)}</span></div>`).join('')}</div>
       <p class="tiny muted">Chaque « Courses faites » compte le montant payé (ou l'estimation). Économie = les mêmes articles au magasin le plus proche, moins le prix du plan.</p>
     </div>
-    ${spendingByAisle(cur.key)}`;
+    <button class="banner" data-action="receipt" data-id="list">🧾<span class="grow"><b>Mes reçus</b><br><span class="small muted">${(state.receipts ?? []).length} reçu${(state.receipts ?? []).length > 1 ? 's' : ''} : le détail de chaque course, à copier pour Claude</span></span>${icon('arrow')}</button>
+    ${(state.receipts ?? []).length ? spendCharts() : spendingByAisle(cur.key)}`;
 }
 
 // Dépenses du mois par rayon (courses faites et tickets).
@@ -2349,6 +2474,7 @@ function spendingByAisle(month) {
 }
 
 function viewRecurring() {
+  if (receiptOpen) return viewReceipts();
   const now = Date.now();
   const rows = state.recurring
     .map((r) => ({ ...r, p: productById(r.id), next: r.last ? new Date(r.last).getTime() + r.every * DAY : now }))
@@ -2600,6 +2726,24 @@ document.addEventListener('click', async (e) => {
     sm.dishesAuto = false; // choix à la main : un changement de budget ne les remplace plus
     sm.swapped = [...(sm.swapped ?? []), id].slice(-40);
     if (next && cur) Object.assign(cur, { id: next.id }); else toast('Pas d\'autre plat compatible');
+    save();
+    render();
+  } else if (a === 'receipt') {
+    receiptOpen = id || null;
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'receipt-copy' || a === 'receipt-md') {
+    const r = (state.receipts ?? []).find((x) => x.id === id);
+    if (!r) return;
+    const md = receiptMarkdown(r, (c) => CHAINS[c]?.name ?? c);
+    if (a === 'receipt-md') download(`courses-${r.date}.md`, md, 'text/markdown');
+    else {
+      try { await navigator.clipboard.writeText(md); toast('Copié : colle-le dans Claude'); } catch { await ask('Copie ce texte :', { text: md, ok: 'Fermer', cancel: null }); }
+    }
+  } else if (a === 'receipt-delete') {
+    if (!(await ask('Supprimer ce reçu ? (le total du mois reste compté)', { ok: 'Supprimer' }))) return;
+    state.receipts = (state.receipts ?? []).filter((x) => x.id !== id);
+    receiptOpen = 'list';
     save();
     render();
   } else if (a === 'smart-step') {

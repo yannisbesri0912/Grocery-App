@@ -467,8 +467,9 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 
 /* Dépenses par rayon */
 .aisle-spend { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.aisle-spend li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
-.aisle-spend i { flex-basis: 100%; display: block; height: 8px; border-radius: 99px; background: var(--accent); max-width: 100%; }
+.aisle-spend li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 4px 10px; }
+/* Barre : longueur proportionnelle à la plus grosse dépense (la largeur vient du style en ligne). */
+.aisle-spend i { grid-column: 1 / -1; justify-self: start; display: block; height: 8px; border-radius: 4px; background: var(--accent); max-width: 100%; }
 
 /* Partage de liste */
 .share-box .qr { display: grid; place-items: center; min-height: 120px; background: #fff; border-radius: 14px; padding: 10px; }
@@ -510,3 +511,19 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 .choice .sub { display: block; font-size: .8rem; color: var(--muted); font-weight: 500; margin-top: 2px; }
 .dish-cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
 .dish-card { display: grid; gap: 10px; padding: 12px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+
+/* Prix bien visibles dans les listes à cocher */
+.price-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none; min-width: 64px; text-align: right; }
+.price-col .num, b.price-col { font-size: 1.02rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
+.items.order li { align-items: center; }
+
+/* Reçus et diagrammes */
+.items.receipts li { padding: 0; }
+.row-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.row-btn .name { flex: 1; min-width: 0; }
+.nutri-bar { display: flex; gap: 2px; height: 30px; border-radius: 8px; overflow: hidden; margin: 6px 0 10px; }
+.nutri-bar span { display: grid; place-items: center; min-width: 4px; color: #fff; font-weight: 800; font-size: .85rem; }
+.nutri-bar span.dark { color: #1a1a1a; }
+.nutri-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--ink); }
+.nutri-legend li { display: flex; align-items: center; gap: 6px; }
+.nutri-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }

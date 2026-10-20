@@ -118,6 +118,15 @@ autres plats ont une icône.
 suite) ou *Vérifier les plats* : « Pas pour moi » écarte un plat pour de bon et le remplace par un
 autre du même genre (viande, poisson, végé) dans le budget.
 
+## Reçus et dépenses
+
+Chaque « Courses faites » (et chaque ticket scanné) garde un **reçu** : Budget → **Mes reçus**.
+Pour chaque article : produit demandé, article acheté, quantité, prix (réel, promo ou estimé),
+famille (viande, biscuits et sucreries, produits ménagers…) et Nutri-Score quand il est connu
+(Delhaize, Aldi). Un reçu se copie en Markdown (« Copier pour Claude ») ou se télécharge en `.md`,
+pour vérifier un problème. Les diagrammes montrent où part l'argent (par famille) et le
+Nutri-Score des achats, sur le mois, 3 mois ou tout (`src/spend.js`).
+
 ## Panier assisté (Collect&Go, Delhaize Collect)
 
 Dans le plan, **Préparer ma commande** liste les articles avec un bouton par
