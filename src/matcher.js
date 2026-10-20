@@ -93,6 +93,9 @@ export function pickBest(rule, candidates, globalNot = []) {
   return best ?? null;
 }
 
+// Mélange de plusieurs produits dans un nom (« pois et carottes », « courgette & poivron »).
+const MIXTURE = /\s(et|and|met|avec)\s|\s?[&+]\s?/;
+
 /**
  * Tous les articles qui correspondent, du moins cher au plus cher au prix
  * unitaire (au plus `limit`). Même format que pickBest.
@@ -104,6 +107,11 @@ export function rankMatches(rule, candidates, globalNot = [], limit = Infinity) 
   for (const c of candidates) {
     if (!(c.price > 0) || !nameMatches(rule, c.name, globalNot)) continue;
     if (c.kind === 'baby' || (c.kind === 'pet' && !rule.pets)) continue;
+    // Légume ou fruit frais : pas d'article du rayon épicerie (conserves, bocaux).
+    // Les rayons des enseignes ne suivent pas les nôtres : on ne compare que ce cas sûr.
+    if (rule.cat === 0 && c.cat === 4) continue;
+    // Fruits et légumes frais : pas de mélange (« pois et carottes », « courgette & poivron »).
+    if (rule.cat === 0 && MIXTURE.test(norm(c.name))) continue;
     if (rule.frozen !== 'any' && Boolean(rule.frozen) !== isFrozen(c)) continue;
     const sizes = c.size ? [c.size] : parseSizes(c.content ? `${c.name} ${c.content}` : c.name);
     let size = sizes.find((x) => x.unit === unit);

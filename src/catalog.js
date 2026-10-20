@@ -77,7 +77,10 @@ export function queryTerms(query) {
 }
 
 // Lignes du catalogue : [id, nom (nl), contenu, prix, prix unitaire, unité, rayon, promo, au poids, nom (fr)]
-export const ROW = { id: 0, name: 1, content: 2, price: 3, unitPrice: 4, unit: 5, cat: 6, promo: 7, weight: 8, fr: 9 };
+// Mêmes colonnes pour toutes les enseignes ; url et nutri (Delhaize, Aldi), deal : promo
+// selon la quantité (src/deals.js), walk : ordre de passage en magasin, art / tech :
+// numéros d'article (Colruyt).
+export const ROW = { id: 0, name: 1, content: 2, price: 3, unitPrice: 4, unit: 5, cat: 6, promo: 7, weight: 8, fr: 9, url: 10, nutri: 11, deal: 12, walk: 13, art: 14, tech: 15 };
 
 /** Nom affiché : français s'il existe. */
 export const rowName = (r) => r[ROW.fr] || r[ROW.name];
@@ -99,7 +102,7 @@ const CAT_HINT = {
   8: 'lessive adoucissant vaisselle eponge nettoyant javel',
 };
 const HINT = new Map(Object.entries(CAT_HINT).flatMap(([c, words]) => words.split(' ').map((w) => [w, Number(c)])));
-const BRAND = /^([A-ZÀ-Ý0-9&'.\-+]{2,}\s+)+/;
+export const BRAND = /^([A-ZÀ-Ý0-9&'.\-+]{2,}\s+)+/;
 
 /**
  * Cherche dans le catalogue. Le produit « général » passe avant les produits
@@ -116,13 +119,14 @@ export function searchCatalog(rows, query, limit = 12) {
     const fr = r[ROW.fr] || r[ROW.name];
     const head = norm(fr.replace(BRAND, ''));
     const nl = norm(r[ROW.name].replace(BRAND, ''));
+    const brand = norm(r[ROW.name].match(BRAND)?.[0] ?? ''); // « NUTELLA », « CÔTE D'OR »
     let found = 0;
     let points = 0;
     let first = false;
     for (const [k, alts] of terms.entries()) {
       let best = 0;
       for (const a of alts) {
-        for (const [text, base] of [[head, 4], [nl, 1]]) {
+        for (const [text, base] of [[head, 4], [nl, 1], [brand, 2]]) {
           const i = a.length <= 2 ? text.split(/[^a-z0-9]+/).indexOf(a) : text.indexOf(a);
           if (i < 0) continue;
           const startsWord = i === 0 || /[^a-z0-9]/.test(text[i - 1]);

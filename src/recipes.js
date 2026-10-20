@@ -16,7 +16,7 @@ export const TOOLS = {
 // Ingrédients. p : produit de l'app ; q : recherche dans le catalogue Colruyt.
 // pack : contenance d'un paquet [quantité, unité] ; ref : prix indicatif d'un
 // paquet (si le catalogue n'est pas chargé).
-// flags : m viande, p porc, f poisson, d lait, e œuf, g gluten, n fruits à coque.
+// flags : m viande, p porc, f poisson, d lait, e œuf, g gluten, n fruits à coque, a alcool.
 // pantry : ingrédient de placard (pas acheté pour une recette).
 const P = (p, amount, unit, flags = '') => ({ p, pack: [amount, unit], flags });
 const Q = (q, name, amount, unit, ref, flags = '') => ({ q, name, pack: [amount, unit], ref, flags });
@@ -37,7 +37,7 @@ export const ING = {
   sucre: P('sucre', 1000, 'g'), 'tomates-conc': P('tomates-conc', 700, 'g'), chocolat: P('chocolat', 200, 'g'),
   'pois-chiches': P('pois-chiches', 400, 'g'), mayonnaise: P('mayonnaise', 500, 'ml', 'e'),
   'legumes-surg': P('legumes-surg', 1000, 'g'), frites: P('frites', 1000, 'g'), pizza: P('pizza', 1, 'pc', 'gd'),
-  biere: P('biere', 24, 'pc'),
+  biere: P('biere', 24, 'pc', 'a'),
   // Catalogue Colruyt
   boeuf: Q('rundergehakt', 'Haché pur bœuf', 500, 'g', 5.5, 'm'),
   steak: Q('steak cat', 'Steak de bœuf', 300, 'g', 6.5, 'm'),
@@ -90,6 +90,14 @@ export const ING = {
   tofu: Q('tofu', 'Tofu', 200, 'g', 2.2),
   falafel: Q('falafels', 'Falafels', 200, 'g', 2.5, 'g'),
   houmous: Q('houmous', 'Houmous', 200, 'g', 1.8),
+  'raisins-secs': Q('raisins secs', 'Raisins secs', 500, 'g', 2),
+  noix: Q('walnoten', 'Noix', 600, 'g', 8, 'n'),
+  amandes: Q('amandelen', 'Amandes', 250, 'g', 5, 'n'),
+  cacao: Q('cacaopoeder', 'Cacao en poudre', 250, 'g', 4),
+  'fromage-frais': Q('roomkaas', 'Fromage frais', 200, 'g', 1.5, 'd'),
+  cacahuete: Q('pindakaas', 'Beurre de cacahuète', 350, 'g', 1.6, 'n'),
+  porc: Q('varkenskotelet', 'Côtelettes de porc', 1000, 'g', 6.2, 'mp'),
+  fraises: Q('BONI fraises', 'Fraises', 1000, 'g', 4),
   // Placard : supposé à la maison, listé à part
   huile: { p: 'huile', pack: [1000, 'ml'], pantry: true, name: 'Huile' },
   epices: { p: 'sel-poivre', pack: [1, 'pc'], pantry: true, name: 'Sel, poivre, épices' },
@@ -216,6 +224,109 @@ const R = [
   ['Cookies au chocolat', 'dessert', 25, 'four|airfryer', 'farine:45g beurre:25g sucre:25g chocolat:25g oeufs:0.25pc', "Mélanger beurre mou et sucre, ajouter l'œuf, la farine et le chocolat en morceaux. Former des boules, cuire 10 à 12 min à 180 °C."],
 ];
 
+// Ingrédients de placard des recettes importées (« ~sel:0.25cc ») : nom affiché.
+export const PANTRY_LABELS = {
+  'ail-en-poudre': "ail en poudre",
+  'aneth': "aneth",
+  'ase-fetide': "ase fétide",
+  'assaisonnement': "assaisonnement",
+  'basilic': "basilic",
+  'beurre': "beurre",
+  'bicarbonate': "bicarbonate",
+  'bouillon': "bouillon",
+  'cacao': "cacao",
+  'cannelle': "cannelle",
+  'cardamome': "cardamome",
+  'cassonade': "cassonade",
+  'cerises-confites': "cerises confites",
+  'ciboulette': "ciboulette",
+  'cinq-epices': "cinq-épices",
+  'clous-de-girofle': "clous de girofle",
+  'coriandre': "coriandre",
+  'coriandre-fraiche': "coriandre fraîche",
+  'creme': "crème",
+  'creme-de-tartre': "crème de tartre",
+  'cube-de-bouillon': "cube de bouillon",
+  'cumin': "cumin",
+  'curcuma': "curcuma",
+  'curry': "curry",
+  'dattes': "dattes",
+  'eau': "eau",
+  'ecrevisses-sechees': "écrevisses séchées",
+  'edulcorant': "édulcorant",
+  'epices-cajun': "épices cajun",
+  'epinards': "épinards",
+  'estragon': "estragon",
+  'farine': "farine",
+  'farine-levante': "farine levante",
+  'fecule-de-mais': "fécule de maïs",
+  'garam-masala': "garam masala",
+  'ghee': "ghee",
+  'gingembre': "gingembre",
+  'glacons': "glaçons",
+  'glutamate': "glutamate",
+  'graines-de-celeri': "graines de céleri",
+  'graines-de-fenouil': "graines de fenouil",
+  'graines-de-moutarde': "graines de moutarde",
+  'graines-de-pavot': "graines de pavot",
+  'graines-de-sesame': "graines de sésame",
+  'herbes': "herbes",
+  'herbes-italiennes': "herbes italiennes",
+  'huile': "huile",
+  'huile-d-olive': "huile d'olive",
+  'huile-de-sesame': "huile de sésame",
+  'jus-de-citron': "jus de citron",
+  'ketchup': "ketchup",
+  'lait': "lait",
+  'laurier': "laurier",
+  'levure-chimique': "levure chimique",
+  'levure-de-boulanger': "levure de boulanger",
+  'macis': "macis",
+  'marjolaine': "marjolaine",
+  'melange-d-epices': "mélange d'épices",
+  'menthe': "menthe",
+  'miel': "miel",
+  'moutarde': "moutarde",
+  'muscade': "muscade",
+  'oignon-en-poudre': "oignon en poudre",
+  'origan': "origan",
+  'paprika': "paprika",
+  'paprika-fume': "paprika fumé",
+  'pepites-de-chocolat': "pépites de chocolat",
+  'persil': "persil",
+  'petits-pains': "petits pains",
+  'piment': "piment",
+  'pistaches-ou-amandes': "pistaches ou amandes",
+  'poivre': "poivre",
+  'quatre-epices': "quatre-épices",
+  'raisins-secs': "raisins secs",
+  'rhum': "rhum",
+  'romarin': "romarin",
+  'safran': "safran",
+  'sarriette': "sarriette",
+  'sauce-pimentee': "sauce pimentée",
+  'sauce-piquante': "sauce piquante",
+  'sauce-poisson': "sauce poisson",
+  'sauce-soja': "sauce soja",
+  'sauce-worcestershire': "sauce Worcestershire",
+  'sauge': "sauge",
+  'sel': "sel",
+  'semoule-de-mais': "semoule de maïs",
+  'sucre': "sucre",
+  'sucre-glace': "sucre glace",
+  'thym': "thym",
+  'tofu': "tofu",
+  'vanille': "vanille",
+  'vin': "vin",
+  'vinaigre': "vinaigre",
+  'vinaigre-balsamique': "vinaigre balsamique",
+  'vinaigre-de-cidre': "vinaigre de cidre",
+  'vinaigre-de-vin': "vinaigre de vin",
+  'zeste': "zeste",
+  'zeste-d-orange': "zeste d'orange",
+  'zeste-de-citron': "zeste de citron",
+};
+
 export const TYPES = { plat: 'Plats', midi: 'Midi', petitdej: 'Petit-déj', dessert: 'Desserts' };
 
 const slug = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/œ/g, 'oe').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -224,42 +335,155 @@ function parseIngredients(text) {
   return text.split(/\s+/).filter(Boolean).map((tok) => {
     const pantry = tok.startsWith('~');
     const [key, amt] = tok.replace(/^~/, '').split(':');
-    const m = (amt ?? '').match(/^([\d.]+)(g|ml|pc)?$/);
+    const m = (amt ?? '').match(/^([\d.]+)(g|ml|pc|cc|cs)?$/);
     return { key, amount: m ? Number(m[1]) : 0, unit: m?.[2] ?? null, pantry: pantry || Boolean(ING[key]?.pantry) };
   });
 }
 
-export const RECIPES = R.map(([name, type, minutes, tools, ingredients, steps]) => {
+// Ce que contiennent les ingrédients de placard qui ne sont pas dans ING.
+const PANTRY_FLAGS = {
+  lait: 'd', ghee: 'd', 'pepites-de-chocolat': 'd', 'farine-levante': 'g', 'petits-pains': 'g', 'sauce-soja': 'g',
+  'sauce-poisson': 'f', 'sauce-worcestershire': 'f', 'ecrevisses-sechees': 'f', 'pistaches-ou-amandes': 'n', vin: 'a', rhum: 'a',
+};
+// Ingrédients avec du porc qui existent en version halal chez le boucher.
+const HALAL_SWAP = new Set(['hache', 'jambon', 'lardons', 'chorizo', 'steak-burger']);
+
+/** [nom, type, minutes, ustensiles, ingrédients, étapes, source?] → recette. */
+export function makeRecipe([name, type, minutes, tools, ingredients, steps, src], prefix = '') {
   const ings = parseIngredients(ingredients);
-  const flags = new Set(ings.filter((i) => !i.pantry).flatMap((i) => [...(ING[i.key]?.flags ?? '')]));
+  // Régimes et allergies : tous les ingrédients comptent, placard compris
+  // (« pantry » ne change que ce qu'on achète, pas ce que contient le plat).
+  const flags = new Set(ings.flatMap((i) => [...(ING[i.key]?.flags ?? PANTRY_FLAGS[i.key] ?? '')]));
+  // Porc qu'un boucher halal remplace (haché, lardons, chorizo de bœuf ou de dinde) : noté à part.
+  if (flags.has('p') && ings.every((i) => i.pantry || !ING[i.key]?.flags?.includes('p') || HALAL_SWAP.has(i.key))) flags.add('h');
   return {
-    id: slug(name), name, type, minutes, steps,
+    id: prefix + slug(name), name, type, minutes, steps,
     tools: tools ? tools.split(/\s+/).map((g) => g.split('|')) : [],
     ingredients: ings,
     flags,
+    ...(src ? { src } : {}),
   };
-});
+}
+
+export const RECIPES = R.map((r) => makeRecipe(r));
+
+/**
+ * Ajoute des recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) :
+ * ingrédients inconnus écartés, identifiants uniques.
+ */
+export function addRecipes(rows, prefix = 'wb-') {
+  const ids = new Set(RECIPES.map((r) => r.id));
+  let added = 0;
+  for (const row of rows) {
+    const r = makeRecipe(row, prefix);
+    if (ids.has(r.id) || r.ingredients.some((i) => !ING[i.key] && !(i.pantry && PANTRY_LABELS[i.key]))) continue;
+    ids.add(r.id);
+    RECIPES.push(r);
+    added++;
+  }
+  return added;
+}
 
 // ---------- Filtres ----------
 export const DIETS = {
   tout: { label: 'Je mange de tout', not: '' },
-  'sans-porc': { label: 'Sans porc / halal', not: 'p' },
+  'sans-porc': { label: 'Sans porc', not: 'p' },
+  // Halal : ni porc ni alcool ; la viande s'achète chez un boucher halal (voir src/halal.js).
+  halal: { label: 'Halal', not: 'a', halal: true },
   vegetarien: { label: 'Végétarien', not: 'mpf' },
   vegan: { label: 'Vegan', not: 'mpfde' },
 };
 export const ALLERGIES = { d: 'Sans lactose', g: 'Sans gluten', e: 'Sans œufs', n: 'Sans fruits à coque' };
+
+// Ingrédients des recettes dans les catalogues en français (Delhaize, Aldi) :
+// [recherche, mots exigés, mots exclus (plats préparés, soupes, jus…)].
+// Les recherches q ci-dessus visent le catalogue Colruyt (noms néerlandais).
+export const FR_Q = {
+  boeuf: ['haché', /b(oe|œ)uf/i, /veau|vegan|v[ée]g[ée]tal|burger|poulet|porc|[ée]pic|agneau|merguez|boulette/i],
+  steak: ['steak pelé boeuf', /steak|biefstuk/i, /moulu|bio|poivre|cerf|suisse|hach/i],
+  'boeuf-ragout': ['carbonnades boeuf', /carbonnade|braiser|stoofvlees/i, /bio|cuit|sauce/i],
+  'steak-burger': ['hamburger', /hamburger|burger/i, /compote|pur[ée]e|vegan|poulet|v[ée]g/i],
+  dinde: ['filet de dinde', /dinde/i, /tranche|fum|cuit|chorizo/i],
+  crevettes: ['crevettes décortiquées', /crevette|scampi/i, /sauce|curry|cocktail|ail/i],
+  cabillaud: ['filet de cabillaud', /cabillaud/i, /pan[ée]|sauce|fum/i],
+  moules: ['moules fraîches', /moules/i, /vinaigre|sauce|cuit/i],
+  parmesan: ['parmigiano reggiano', /parmigiano|parmesan/i, /romanesco|sauce|chips/i],
+  feta: ['feta', /feta/i, /olive|herbe|pesto|salade/i],
+  'lait-coco': ['lait de coco', /lait de coco|coconut milk|lait coco/i, /frais|boisson|yaourt|sp[ée]cialit/i],
+  'patate-douce': ['patate douce', /patate/i, /soupe|repas|pur[ée]e|chili|nouilles|frites|chips/i],
+  'chou-fleur': ['chou fleur', /chou.?fleur/i, /b[ée]chamel|riz|gratin|soupe/i],
+  chicons: ['chicon', /chicon/i, /brais|jambon|gastronom|gratin/i],
+  epinards: ['épinards', /[ée]pinard/i, /cr[eè]me|soupe|feuillet/i],
+  poireaux: ['poireaux', /poireau/i, /soupe|blanc/i],
+  noix: ['cerneaux de noix', /noix/i, /raisin|pecan|cajou|coco|muscade/i],
+  amandes: ['amandes nature', /amande/i, /sal[ée]|grill|chocolat|boisson|lait/i],
+  'fromage-frais': ['fromage frais nature', /fromage frais/i, /boursin|fondu|ail|herbe/i],
+  cacahuete: ['beurre de cacahuète', /beurre de cacahu/i, /snack|prot[ée]in/i],
+  porc: ['porc côtes', /porc/i, /grill[ée]|r[oô]ti|cuit|ib[ée]rico|hach|saucisse/i],
+  fraises: ['fraises', /fraise/i, /jus|smoothie|confiture|yaourt|glace|biscuit|barquette|gâteau|gateau|sirop|bonbon|lait|celsius|fruit-tella|\bcl\b|boisson/i],
+  lasagne: ['feuilles lasagne', /lasagne/i, /bolognaise|potiron|saumon|l[ée]gumes|v[ée]g/i],
+  nouilles: ['nouilles', /nouille|noodle/i, /wet|soupe|instant|poulet|b[oœ]uf|crevette/i],
+  'haricots-rouges': ['haricots rouges', /haricots?,? rouges/i, /chili|sauce|2 x 60/i],
+  mais: ['maïs doux', /ma[iï]s/i, /repas|baby|crispy|soupe|pop/i],
+  cacao: ['cacao poudre', /cacao/i, /nesquik|gaufre|truffe|chocolat en poudre|biscuit|chips/i],
+  chorizo: ['chorizo', /chorizo/i, /pizza|chips/i],
+  lardons: ['lardons', /lardon/i, /v[ée]g/i],
+};
+
+// ---------- Envies : filtres de style ----------
+// Protéines (g pour 100 g / 100 ml, ou par pièce pour les œufs) des ingrédients achetés.
+const PROTEIN = {
+  poulet: 23, dinde: 24, boeuf: 26, steak: 26, 'steak-burger': 17, hache: 18, 'boeuf-ragout': 20, porc: 20, jambon: 18, lardons: 14,
+  chorizo: 24, merguez: 15, saumon: 20, thon: 25, cabillaud: 18, crevettes: 20, moules: 12, oeufs: 6, lentilles: 24, 'pois-chiches': 8,
+  'haricots-rouges': 8, tofu: 13, skyr: 11, 'fromage-frais': 8, gouda: 25, emmental: 28, mozzarella: 18, parmesan: 33, feta: 14,
+  cheddar: 25, reblochon: 20, quinoa: 14, yaourts: 4, lait: 3.4, houmous: 8, falafel: 13, pates: 12, riz: 7, semoule: 12, nouilles: 10,
+  cacahuete: 25, amandes: 21, noix: 15, lasagne: 12, gnocchi: 4,
+};
+const VEG = { tomates: 1, concombre: 1, carottes: 1, oignons: 1, courgettes: 1, poivrons: 1, brocoli: 1, champignons: 1, epinards: 1,
+  poireaux: 1, aubergine: 1, 'chou-fleur': 1, chicons: 1, courge: 1, 'haricots-verts': 1, 'legumes-surg': 1, 'patate-douce': 1,
+  'tomates-conc': 1, mais: 1, salade: 100, avocats: 150 }; // pièce → grammes
+const bought = (r) => r.ingredients.filter((i) => !i.pantry);
+const grams = (r, keys) => bought(r).filter((i) => keys[i.key]).reduce((t, i) => t + (i.unit === 'pc' ? i.amount * (keys[i.key] > 1 ? keys[i.key] : 0) : i.amount), 0);
+
+/** Protéines par portion (g), approximatives. */
+export function proteinOf(r) {
+  return Math.round(bought(r).reduce((t, i) => t + (PROTEIN[i.key] ? (i.unit === 'pc' ? i.amount * PROTEIN[i.key] : (i.amount / 100) * PROTEIN[i.key]) : 0), 0));
+}
+/** Légumes par portion (g). */
+export const vegOf = (r) => Math.round(grams(r, VEG));
+
+export const STYLES = {
+  rapide: { label: 'Ultra rapide', hint: '≤ 15 min', test: (r) => r.minutes <= 15 },
+  pates: { label: 'Pâtes', test: (r) => bought(r).some((i) => ['pates', 'lasagne', 'gnocchi', 'nouilles'].includes(i.key)) },
+  veggie: { label: 'Veggie', test: (r) => !r.flags.has('m') && !r.flags.has('f') },
+  proteine: { label: 'Protéiné', hint: '≥ 25 g de protéines', test: (r) => proteinOf(r) >= 25 },
+  healthy: {
+    label: 'Healthy',
+    test: (r) => r.type !== 'dessert' && vegOf(r) >= 150
+      && !bought(r).some((i) => ['frites', 'pizza', 'pate-feuil', 'bouchees', 'chocolat', 'sirop'].includes(i.key))
+      && bought(r).filter((i) => i.key === 'sucre').reduce((t, i) => t + i.amount, 0) <= 15
+      && bought(r).filter((i) => ['creme', 'beurre'].includes(i.key)).reduce((t, i) => t + i.amount, 0) <= 30
+      && bought(r).filter((i) => ['gouda', 'emmental', 'mozzarella', 'parmesan', 'cheddar', 'reblochon', 'feta'].includes(i.key)).reduce((t, i) => t + i.amount, 0) <= 40,
+  },
+};
 
 /** La recette est-elle faisable avec ces ustensiles et ce régime ? */
 export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], maxTime = Infinity } = {}) {
   if (r.minutes > maxTime) return false;
   if (!r.tools.every((group) => group.some((t) => kitchen[t]))) return false;
   const banned = (DIETS[diet]?.not ?? '') + allergies.join('');
+  if (DIETS[diet]?.halal && r.flags.has('p') && !r.flags.has('h')) return false;
   return ![...banned].some((f) => r.flags.has(f));
 }
 
 /** Quantité affichée : « 250 g », « 1,5 L », « 2 ». */
+const FRACTIONS = { 0.125: '⅛', 0.25: '¼', 0.375: '⅜', 0.5: '½', 0.625: '⅝', 0.75: '¾', 0.875: '⅞' };
+const spoon = (x) => { const whole = Math.floor(x); const f = FRACTIONS[Math.round((x - whole) * 8) / 8]; return `${whole || ''}${f ?? ''}` || '¼'; };
+
 export function formatAmount(amount, unit) {
   const r = (x) => (x >= 10 ? Math.round(x / 5) * 5 : Math.round(x * 10) / 10).toLocaleString('fr-BE');
+  if (unit === 'cc') return `${spoon(amount)} c. à café`;
+  if (unit === 'cs') return `${spoon(amount)} c. à soupe`;
   if (unit === 'g') return amount >= 1000 ? `${(Math.round(amount / 100) / 10).toLocaleString('fr-BE')} kg` : `${r(amount)} g`;
   if (unit === 'ml') return amount >= 1000 ? `${(Math.round(amount / 100) / 10).toLocaleString('fr-BE')} L` : `${r(amount)} ml`;
   return r(amount);
@@ -291,11 +515,18 @@ function mainKind(r) {
  * selon la place voulue pour la viande et le poisson.
  * prefs.meat / prefs.fish : 'souvent' | 'parfois' | 'rarement' | 'jamais'
  */
-export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [] } = {}) {
+// Un vrai repas : un féculent, une protéine (viande, poisson, œufs) ou des légumineuses.
+const MEAL = new Set(['pates', 'riz', 'pdt', 'semoule', 'quinoa', 'nouilles', 'gnocchi', 'lasagne', 'pain', 'baguette', 'tortillas', 'pate-pizza', 'pate-brisee', 'pate-feuil', 'pizza', 'frites', 'patate-douce', 'pain-burger', 'pain-mie', 'pain-pita', 'poulet', 'hache', 'boeuf', 'steak', 'boeuf-ragout', 'steak-burger', 'dinde', 'porc', 'merguez', 'jambon', 'lardons', 'chorizo', 'saumon', 'thon', 'cabillaud', 'crevettes', 'moules', 'oeufs', 'lentilles', 'pois-chiches', 'haricots-rouges', 'tofu', 'falafel']);
+export const isMeal = (r) => r.ingredients.filter((i) => !i.pantry && MEAL.has(i.key)).length >= 1 && r.ingredients.filter((i) => !i.pantry).length >= 3;
+
+export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null } = {}) {
   if (n <= 0) return [];
-  const pool = RECIPES.filter((r) => r.type === 'plat' && !exclude.includes(r.id) && compatible(r, filters))
+  // perServing : prix visé par portion (le budget le permet) ; sans lui, les moins chers.
+  // Au-dessus du prix visé, un plat est trois fois plus pénalisé qu'en dessous.
+  const gap = (c) => (perServing == null ? c : c <= perServing ? perServing - c : (c - perServing) * 3);
+  const pool = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && !exclude.includes(r.id) && compatible(r, filters))
     .map((r) => ({ r, cost: costOf(r) }))
-    .sort((a, b) => a.cost - b.cost);
+    .sort((a, b) => gap(a.cost) - gap(b.cost));
   const share = { souvent: 0.5, parfois: 0.3, rarement: 0.15, jamais: 0 };
   const target = { viande: Math.round(n * share[meat]), poisson: Math.round(n * share[fish]) };
   target.vege = Math.max(0, n - target.viande - target.poisson);

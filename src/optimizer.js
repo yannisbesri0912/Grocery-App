@@ -1,6 +1,7 @@
 // Moteur d'optimisation : pour une liste de courses, trouve la combinaison de
 // magasins (et l'ordre de passage) qui minimise prix + coût du déplacement.
 // Aucune dépendance au DOM : testé avec `node --test`.
+import { dealTotal } from './deals.js';
 
 export const MODES = {
   walk: { label: 'À pied', speed: 4.8, perKm: 0, gmaps: 'walking' },
@@ -37,11 +38,13 @@ export function haversineKm(a, b) {
  * L'estimation part du vrai prix Colruyt quand on l'a (sinon du prix de
  * référence) × l'indice de prix de l'enseigne.
  */
-export function priceInfo(product, chainId, chains, overrides = {}, real = {}) {
+export function priceInfo(product, chainId, chains, overrides = {}, real = {}, today = new Date().toISOString().slice(0, 10)) {
   const own = overrides[product.id]?.[chainId];
   if (typeof own === 'number') return { price: own, kind: 'user' };
-  const r = real[product.id]?.[chainId];
-  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until };
+  let r = real[product.id]?.[chainId];
+  // Promo terminée (prix d'hier, app hors ligne) : prix normal s'il est connu, sinon pas de vrai prix.
+  if (r?.promo && r.until && r.until < today) r = r.regular ?? null;
+  if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal, ref: r.ref, pack: r.pack, alts: r.alts, eq: r.eq };
   if (product.notIn?.includes(chainId)) return null;
   const chain = chains[chainId];
   if (!chain) return null;
@@ -111,24 +114,73 @@ function combinations(arr, k) {
   return out;
 }
 
-// Affecte chaque article au magasin le moins cher de l'ensemble.
-function assign(lines, sellers, chains, overrides, real) {
+/**
+ * Promo utilisable pour cette enseigne : pas expirée, et carte du magasin
+ * cochée dans les réglages si la promo la demande (settings.cards).
+ */
+export function usableDeal(deal, chainId, settings = {}, now = new Date()) {
+  if (!deal || !(deal.d > 0)) return null;
+  if (deal.m && !settings.cards?.[chainId]) return null;
+  if (deal.end && deal.end < now.toISOString().slice(0, 10)) return null;
+  return deal;
+}
+
+/**
+ * Paquets entiers à acheter pour qty unités de la liste. price : prix ramené au
+ * format de la liste (arrondi au centime), pack : prix du paquet vendu.
+ * On ne manque jamais de plus de 5 % d'un paquet : 960 g pour « 1 kg » compte
+ * pour 1 paquet (c'est l'achat normal), 2 kg en paquets de 960 g = 3 paquets.
+ * → nombre de paquets, ou null si l'article a le format de la liste.
+ */
+export function packsFor(price, qty, pack) {
+  const ratio = pack > 0 && price > 0 ? price / pack : 1; // paquets par unité de la liste
+  if (Math.abs(ratio - 1) < 0.02) return null;
+  const need = qty * ratio;
+  const rounding = need * (0.005 / price); // erreur due à l'arrondi de price (6 × 1 L à 6,29 € → 1,05 € le litre)
+  return Math.max(1, Math.ceil(need - rounding - 0.05));
+}
+
+/**
+ * Ce que coûte vraiment une ligne : on achète des paquets entiers (voir packsFor).
+ * Ex. liste « 500 g » à 0,92 €, paquet de 750 g à 1,38 € : 1 paquet = 1,38 €.
+ * → { total, packs } (packs absent si l'article a le format de la liste)
+ */
+export function lineCost(price, qty, pack, deal) {
+  const packs = packsFor(price, qty, pack);
+  return packs == null ? { total: dealTotal(price, qty, deal) } : { total: dealTotal(pack, packs, deal), packs };
+}
+
+// Affecte chaque article au magasin le moins cher de l'ensemble (prix de la
+// quantité voulue, promos comprises : « 2e à -50 % » compte si on en prend 2).
+function assign(lines, sellers, chains, overrides, real, settings = {}, now = new Date()) {
   const byStore = Object.fromEntries(sellers.map((s) => [s.id, []]));
   const missing = [];
   let goods = 0;
   for (const { product, qty } of lines) {
     let best = null;
     for (const s of sellers) {
-      const info = priceInfo(product, s.chain, chains, overrides, real);
-      if (info && (!best || info.price < best.price)) best = { store: s, price: info.price, info };
+      const info = priceInfo(product, s.chain, chains, overrides, real, now.toISOString().slice(0, 10));
+      if (!info) continue;
+      // Article retenu, ou un format plus petit s'il revient moins cher pour cette quantité.
+      // Chaque format est un article à part : son prix, son lien, sa promo à lui (jamais celle de l'article retenu).
+      const formats = info.kind === 'user' || info.kind === 'estimate' ? [info]
+        : [info, ...(info.alts ?? []).map((a) => ({ kind: 'real', price: a.price, pack: a.pack, article: a.article, url: a.url, ref: a.ref, deal: a.deal ?? null }))];
+      for (const f of formats) {
+        const deal = f.kind === 'user' ? null : usableDeal(f.deal, s.chain, settings, now);
+        // Prix estimé ou saisi : pas de paquet connu, prix au format de la liste.
+        const { total, packs } = lineCost(f.price, qty, f.kind === 'user' || f.kind === 'estimate' ? null : f.pack, deal);
+        if (!best || total < best.total) best = { store: s, total, info: f, deal, packs };
+      }
     }
     if (!best) {
       missing.push(product);
       continue;
     }
-    const total = round2(best.price * qty);
+    const { total, info } = best;
     goods += total;
-    byStore[best.store.id].push({ product, qty, unit: best.price, total, info: best.info });
+    const full = best.packs ? round2(best.packs * info.pack) : round2(info.price * qty);
+    const saving = round2(full - total);
+    byStore[best.store.id].push({ product, qty, unit: round2(total / qty), total, info, ...(best.packs ? { packs: best.packs } : {}), ...(saving > 0 ? { saving, deal: best.deal } : {}) });
   }
   return { byStore, missing, goods: round2(goods) };
 }
@@ -179,7 +231,7 @@ export function optimize({
   const maxK = Math.min(settings.maxStores, usable.length, 4);
   for (let k = 1; k <= maxK; k++) {
     for (const subset of combinations(usable, k)) {
-      const a = assign(lines, subset, chains, overrides, real);
+      const a = assign(lines, subset, chains, overrides, real, settings, now);
       if (a.missing.length) continue;
       // Un magasin sans article n'a rien à faire dans la tournée.
       const visited = subset.filter((s) => a.byStore[s.id].length);
@@ -215,7 +267,7 @@ export function optimize({
   for (const d of delivery) {
     if (excluded.has(d.id)) continue;
     const seller = { id: d.id, chain: d.chain };
-    const a = assign(lines, [seller], chains, overrides, real);
+    const a = assign(lines, [seller], chains, overrides, real, settings, now);
     if (a.missing.length || a.goods < (d.minOrder ?? 0)) continue;
     let travel = travelCost(0, 0, settings);
     let pickup = null;
