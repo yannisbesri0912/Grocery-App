@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSize, parseSizes, nameMatches, pickBest } from '../src/matcher.js';
+import { parseSize, parseSizes, nameMatches, pickBest, rankMatches } from '../src/matcher.js';
 import { RULES, PET_BABY } from '../src/match-rules.js';
 import { PRODUCTS } from '../src/data.js';
 import { productsFromJson } from '../prices/browser.mjs';
@@ -85,4 +85,17 @@ test('productsFromJson va chercher le format dans un autre champ', () => {
 test('chaque règle vise un produit du catalogue', () => {
   const ids = new Set(PRODUCTS.map((p) => p.id));
   for (const id of Object.keys(RULES)) assert.ok(ids.has(id), id);
+});
+
+test('rankMatches : pas de conserve ni de mélange pour un légume frais', async () => {
+  const { RULES } = await import('../src/match-rules.js');
+  const rule = { ...RULES.carottes, cat: 0 };
+  const cands = [
+    { name: 'ALL SEASONS Petis pois et carottes 530 g', price: 0.99, cat: 4 },
+    { name: 'Mélange carottes & panais 1 kg', price: 0.8 },
+    { name: 'Carottes 1 kg', price: 1.25, cat: 0 },
+  ];
+  assert.deepEqual(rankMatches(rule, cands).map((c) => c.name), ['Carottes 1 kg']);
+  const court = rankMatches({ ...RULES.courgettes, cat: 0 }, [{ name: 'Delhaize courgette fourré +/- 400 gr', price: 6.8 }, { name: 'Courgettes 1 kg', price: 1.39 }]);
+  assert.deepEqual(court.map((c) => c.name), ['Courgettes 1 kg']);
 });

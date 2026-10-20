@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <!-- Seuls les scripts de l'app et de cdn.jsdelivr.net (scan, OCR, QR) peuvent s'exécuter : pas de code en ligne. -->
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net blob: 'unsafe-eval' 'wasm-unsafe-eval'; object-src 'none'; base-uri 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Grocery Opti</title>
   <meta name="description" content="Tes courses au coût total le plus bas : liste, meilleur magasin et itinéraire, avec les vrais prix Colruyt, Delhaize et Aldi.">

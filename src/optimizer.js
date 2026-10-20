@@ -38,10 +38,12 @@ export function haversineKm(a, b) {
  * L'estimation part du vrai prix Colruyt quand on l'a (sinon du prix de
  * référence) × l'indice de prix de l'enseigne.
  */
-export function priceInfo(product, chainId, chains, overrides = {}, real = {}) {
+export function priceInfo(product, chainId, chains, overrides = {}, real = {}, today = new Date().toISOString().slice(0, 10)) {
   const own = overrides[product.id]?.[chainId];
   if (typeof own === 'number') return { price: own, kind: 'user' };
-  const r = real[product.id]?.[chainId];
+  let r = real[product.id]?.[chainId];
+  // Promo terminée (prix d'hier, app hors ligne) : prix normal s'il est connu, sinon pas de vrai prix.
+  if (r?.promo && r.until && r.until < today) r = r.regular ?? null;
   if (r) return { price: r.price, kind: r.promo ? 'promo' : 'real', article: r.article, url: r.url, promo: r.promo, until: r.until, deal: r.deal, ref: r.ref, pack: r.pack, alts: r.alts, eq: r.eq };
   if (product.notIn?.includes(chainId)) return null;
   const chain = chains[chainId];
@@ -124,17 +126,28 @@ export function usableDeal(deal, chainId, settings = {}, now = new Date()) {
 }
 
 /**
- * Ce que coûte vraiment une ligne : on achète des paquets entiers. price est le
- * prix ramené au format de la liste, pack le prix du paquet réellement vendu
- * (ex. liste « 500 g » à 0,92 €, paquet de 750 g à 1,38 € : 1 paquet = 1,38 €).
+ * Paquets entiers à acheter pour qty unités de la liste. price : prix ramené au
+ * format de la liste (arrondi au centime), pack : prix du paquet vendu.
+ * On ne manque jamais de plus de 5 % d'un paquet : 960 g pour « 1 kg » compte
+ * pour 1 paquet (c'est l'achat normal), 2 kg en paquets de 960 g = 3 paquets.
+ * → nombre de paquets, ou null si l'article a le format de la liste.
+ */
+export function packsFor(price, qty, pack) {
+  const ratio = pack > 0 && price > 0 ? price / pack : 1; // paquets par unité de la liste
+  if (Math.abs(ratio - 1) < 0.02) return null;
+  const need = qty * ratio;
+  const rounding = need * (0.005 / price); // erreur due à l'arrondi de price (6 × 1 L à 6,29 € → 1,05 € le litre)
+  return Math.max(1, Math.ceil(need - rounding - 0.05));
+}
+
+/**
+ * Ce que coûte vraiment une ligne : on achète des paquets entiers (voir packsFor).
+ * Ex. liste « 500 g » à 0,92 €, paquet de 750 g à 1,38 € : 1 paquet = 1,38 €.
  * → { total, packs } (packs absent si l'article a le format de la liste)
  */
 export function lineCost(price, qty, pack, deal) {
-  const ratio = pack > 0 && price > 0 ? price / pack : 1; // paquets par unité de la liste
-  if (Math.abs(ratio - 1) < 0.02) return { total: dealTotal(price, qty, deal) };
-  // Marge de 5 % : le prix au format de la liste est arrondi (6 × 1 L à 6,29 € → 1,05 € le litre).
-  const packs = Math.max(1, Math.ceil(qty * ratio - 0.05));
-  return { total: dealTotal(pack, packs, deal), packs };
+  const packs = packsFor(price, qty, pack);
+  return packs == null ? { total: dealTotal(price, qty, deal) } : { total: dealTotal(pack, packs, deal), packs };
 }
 
 // Affecte chaque article au magasin le moins cher de l'ensemble (prix de la
@@ -146,10 +159,12 @@ function assign(lines, sellers, chains, overrides, real, settings = {}, now = ne
   for (const { product, qty } of lines) {
     let best = null;
     for (const s of sellers) {
-      const info = priceInfo(product, s.chain, chains, overrides, real);
+      const info = priceInfo(product, s.chain, chains, overrides, real, now.toISOString().slice(0, 10));
       if (!info) continue;
       // Article retenu, ou un format plus petit s'il revient moins cher pour cette quantité.
-      const formats = info.kind === 'user' || info.kind === 'estimate' ? [info] : [info, ...(info.alts ?? []).map((a) => ({ ...info, ...a, alts: undefined }))];
+      // Chaque format est un article à part : son prix, son lien, sa promo à lui (jamais celle de l'article retenu).
+      const formats = info.kind === 'user' || info.kind === 'estimate' ? [info]
+        : [info, ...(info.alts ?? []).map((a) => ({ kind: 'real', price: a.price, pack: a.pack, article: a.article, url: a.url, ref: a.ref, deal: a.deal ?? null }))];
       for (const f of formats) {
         const deal = f.kind === 'user' ? null : usableDeal(f.deal, s.chain, settings, now);
         // Prix estimé ou saisi : pas de paquet connu, prix au format de la liste.

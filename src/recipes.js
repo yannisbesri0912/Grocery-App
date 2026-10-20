@@ -340,15 +340,20 @@ function parseIngredients(text) {
   });
 }
 
-const ALCOHOL_PANTRY = new Set(['vin', 'rhum', 'biere']);
+// Ce que contiennent les ingrédients de placard qui ne sont pas dans ING.
+const PANTRY_FLAGS = {
+  lait: 'd', ghee: 'd', 'pepites-de-chocolat': 'd', 'farine-levante': 'g', 'petits-pains': 'g', 'sauce-soja': 'g',
+  'sauce-poisson': 'f', 'sauce-worcestershire': 'f', 'ecrevisses-sechees': 'f', 'pistaches-ou-amandes': 'n', vin: 'a', rhum: 'a',
+};
 // Ingrédients avec du porc qui existent en version halal chez le boucher.
 const HALAL_SWAP = new Set(['hache', 'jambon', 'lardons', 'chorizo', 'steak-burger']);
 
 /** [nom, type, minutes, ustensiles, ingrédients, étapes, source?] → recette. */
 export function makeRecipe([name, type, minutes, tools, ingredients, steps, src], prefix = '') {
   const ings = parseIngredients(ingredients);
-  const flags = new Set(ings.filter((i) => !i.pantry).flatMap((i) => [...(ING[i.key]?.flags ?? '')]));
-  if (ings.some((i) => ALCOHOL_PANTRY.has(i.key))) flags.add('a'); // vin, rhum du placard
+  // Régimes et allergies : tous les ingrédients comptent, placard compris
+  // (« pantry » ne change que ce qu'on achète, pas ce que contient le plat).
+  const flags = new Set(ings.flatMap((i) => [...(ING[i.key]?.flags ?? PANTRY_FLAGS[i.key] ?? '')]));
   // Porc qu'un boucher halal remplace (haché, lardons, chorizo de bœuf ou de dinde) : noté à part.
   if (flags.has('p') && ings.every((i) => i.pantry || !ING[i.key]?.flags?.includes('p') || HALAL_SWAP.has(i.key))) flags.add('h');
   return {

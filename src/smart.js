@@ -4,6 +4,7 @@
 import { rankMatches, norm } from './matcher.js';
 import { RULES, PET_BABY } from './match-rules.js';
 import { ROW, rowName } from './catalog.js';
+import { packsFor } from './optimizer.js';
 
 // Gammes, de la moins chère à la plus qualitative.
 export const TIERS = [
@@ -86,11 +87,11 @@ export function productOptions(productId, candidates, chain = 'colruyt') {
  * rentrent, puis montée en gamme (le plus petit supplément d'abord).
  */
 export function buildBasket(items, budget, goal = 'best') {
-  // Paquets entiers (voir lineCost dans optimizer.js) : 500 g voulus, paquet de 750 g → 1 paquet.
+  // Paquets entiers, même calcul que le plan (packsFor) : 500 g voulus, paquet de 750 g → 1 paquet.
   const cost = (it, i) => {
     const o = it.options[i];
-    const ratio = o.pack > 0 && o.price > 0 ? o.price / o.pack : 1;
-    return Math.abs(ratio - 1) < 0.02 ? o.price * it.qty : Math.max(1, Math.ceil(it.qty * ratio - 0.05)) * o.pack;
+    const packs = packsFor(o.price, it.qty, o.pack);
+    return packs == null ? o.price * it.qty : packs * o.pack;
   };
   const picked = new Map(); // id → index d'option
   let total = 0;

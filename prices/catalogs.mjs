@@ -242,6 +242,7 @@ export async function fetchAldiCatalog({ log = console.log } = {}) {
 export const toCandidate = (r) => ({
   name: r.content && !r.name.includes(r.content) ? `${r.name} ${r.content}` : r.name,
   price: r.price,
+  cat: r.cat,
   frozen: r.frozen,
   kind: r.kind,
   url: r.url,

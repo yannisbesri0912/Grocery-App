@@ -1,6 +1,8 @@
 // Liste partagée sans compte ni serveur : la liste voyage dans le lien, après
 // le « # » (cette partie n'est jamais envoyée au serveur). Pas d'adresse dedans.
 //   payload : { v: 1, l: [[id, qty], …], c: [produits perso utiles] }
+// Un lien peut être fabriqué par n'importe qui : tout est revérifié (src/validate.js).
+import { isId, cleanProduct } from './validate.js';
 
 const b64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const unb64 = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
@@ -28,9 +30,9 @@ export function readShared(hash) {
   try {
     const p = JSON.parse(unb64(m[1]));
     if (p?.v !== 1 || !Array.isArray(p.l)) return null;
-    const items = p.l.filter((x) => Array.isArray(x) && typeof x[0] === 'string' && x[1] > 0).map(([id, qty]) => ({ id, qty: Math.min(99, Math.round(qty)) }));
-    const custom = (Array.isArray(p.c) ? p.c : []).filter((x) => x && typeof x.id === 'string' && typeof x.name === 'string')
-      .map((x) => ({ ...x, name: x.name.slice(0, 120), custom: true }));
+    const items = p.l.slice(0, 200).filter((x) => Array.isArray(x) && isId(x[0]) && typeof x[1] === 'number' && x[1] > 0)
+      .map(([id, qty]) => ({ id, qty: Math.min(99, Math.max(1, Math.round(qty))) }));
+    const custom = (Array.isArray(p.c) ? p.c : []).slice(0, 200).map(cleanProduct).filter(Boolean);
     return items.length ? { items, custom } : null;
   } catch {
     return null;

@@ -16,7 +16,7 @@ function steps({ icon, logo, nutri }) {
     },
     {
       title: '1. Ton adresse',
-      text: 'Touche « Choisir mon adresse » en haut. L\'app trouve les supermarchés autour de chez toi. Ton adresse reste uniquement sur ton téléphone.',
+      text: 'Touche « Choisir mon adresse » en haut. L\'app trouve les supermarchés autour de chez toi. Ton adresse est enregistrée seulement sur ton téléphone (elle passe par OpenStreetMap pour trouver les magasins).',
       art: `<div class="tp-top"><b>Grocery Opti</b><span class="tp-pill">${icon('pin')} Choisir mon adresse${tap}</span></div>
         <div class="tp-map">${icon('pin')}<span class="m1">${logo('colruyt', 'sm')}</span><span class="m2">${logo('aldi', 'sm')}</span><span class="m3">${logo('delhaize', 'sm')}</span></div>`,
     },

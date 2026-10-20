@@ -68,7 +68,8 @@ function match(candidates, source, lang) {
   const dutch = DUTCH.has(source) && lang !== 'fr';
   const items = {};
   for (const p of PRODUCTS) {
-    const rule = RULES[p.id];
+    // Rayon du produit : un article d'un autre rayon (conserve, plat préparé) n'est pas retenu.
+    const rule = RULES[p.id] && { ...RULES[p.id], cat: p.cat };
     if (!rule) continue;
     const best = pickBest(rule, candidates, PET_BABY);
     if (best) {
@@ -111,6 +112,7 @@ const result = {
   items: structuredClone(previous.items ?? {}),
 };
 const log = [];
+const warnings = []; // signalés dans GitHub Actions (le relevé continue avec les bonnes données)
 
 for (const [chain, fetcher] of Object.entries(SOURCES)) {
   if (!runs(chain)) continue;
@@ -120,11 +122,18 @@ for (const [chain, fetcher] of Object.entries(SOURCES)) {
     const items = match(candidates.map(withUnitText), chain, lang);
     const count = Object.keys(items).length;
     if (!count) throw new Error('aucun produit reconnu');
+    // Couverture anormalement basse (site changé, réponse partielle) : on garde les prix d'avant.
+    const before = previous.sources?.[chain]?.ok ? previous.sources[chain].matched : 0;
+    if (before && count < before * 0.6) throw new Error(`seulement ${count} produits reconnus (${before} la dernière fois)`);
     for (const [pid, it] of Object.entries(result.items)) if (it[chain] && !it[chain].promoOnly) delete it[chain];
     for (const [pid, it] of Object.entries(items)) (result.items[pid] ??= {})[chain] = it;
     result.sources[chain] = { date, matched: count, ok: true, ...(note ? { note } : {}) };
     log.push(`- **${chain}** : ${count} produits au ${date}`);
-    if (catalog?.length) {
+    const oldRows = existsSync(CATALOG(chain)) ? readFileSync(CATALOG(chain), 'utf8').split('\n').length - 3 : 0;
+    if (catalog?.length && catalog.length < oldRows * 0.6) {
+      log.push(`- **${chain}** : catalogue incomplet (${catalog.length} articles contre ${oldRows}) — ancien catalogue gardé`);
+      warnings.push(`${chain} : catalogue incomplet (${catalog.length} / ${oldRows})`);
+    } else if (catalog?.length) {
       // Catalogue complet cherchable dans l'app (une ligne par article).
       writeFileSync(CATALOG(chain), `{"chain":"${chain}","date":"${date}","rows":[\n${catalog.map((r) => JSON.stringify(r)).join(',\n')}\n]}\n`);
       log.push(`- **${chain}** : catalogue complet de ${catalog.length} articles`);
@@ -134,6 +143,7 @@ for (const [chain, fetcher] of Object.entries(SOURCES)) {
     console.log(`  ÉCHEC : ${e.message}`);
     result.sources[chain] = { ...(previous.sources?.[chain] ?? {}), ok: false, error: e.message, failedAt: result.updatedAt };
     log.push(`- **${chain}** : échec (${e.message}) — prix précédents conservés`);
+    warnings.push(`${chain} : ${e.message}`);
   }
 }
 
@@ -166,6 +176,7 @@ if (runs('promos')) {
     console.log(`  ÉCHEC : ${e.message}`);
     result.sources.promos = { ...(previous.sources?.promos ?? {}), ok: false, error: e.message };
     log.push(`- **promos** : échec (${e.message})`);
+    warnings.push(`promos : ${e.message}`);
   }
 }
 
@@ -207,3 +218,5 @@ writeFileSync(REPORT, [
   `| Produit | ${chains.join(' | ')} |`, `|---|${chains.map(() => '---').join('|')}|`, ...rows, '',
 ].join('\n'));
 console.log(`\n${log.join('\n')}\nÉcrit : data/prices.json, data/prices-report.md`);
+// Sources en panne ou incomplètes : visibles dans l'onglet Actions de GitHub.
+for (const w of warnings) console.log(`::warning title=Prix réels::${w}`);

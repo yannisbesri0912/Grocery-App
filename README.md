@@ -14,7 +14,10 @@ l'ordre de passage, puis donne le meilleur plan, la liste par magasin et l'itin�
 ton téléphone (onglet Réglages → Exporter pour la sauvegarder).
 
 Au premier lancement, l'app demande ton adresse (ou ta position) et cherche les supermarchés
-autour via OpenStreetMap. L'adresse reste sur ton téléphone, jamais dans ce dépôt.
+autour via OpenStreetMap. L'adresse est **enregistrée seulement sur ton téléphone**, jamais dans
+ce dépôt ni sur un serveur de l'app (il n'y en a pas). Pour fonctionner, elle est envoyée aux
+services qui en ont besoin : Nominatim (adresse → carte), Overpass (magasins et boucheries
+proches), Google Maps quand tu ouvres un itinéraire. Les codes-barres passent par Open Food Facts.
 
 ## D'où viennent les prix
 
@@ -23,33 +26,35 @@ Chaque nuit, le workflow **Prix réels** (`.github/workflows/prices.yml`) met à
 
 | Enseigne | Source | Ce qu'on obtient |
 |---|---|---|
-| **Colruyt** | Catalogue complet publié chaque jour par le projet open source [colruyt-products-scraper](https://github.com/BelgianNoise/colruyt-products-scraper) | Prix réels de ~16 000 articles, sans toucher au site de Colruyt |
-| **Delhaize** | Robot navigateur (`prices/browser.mjs`) : une recherche par produit sur delhaize.be | Prix affichés sur le site |
-| **Aldi** | Même robot sur aldi.be | Prix affichés sur le site |
+| **Colruyt** | Copie publique du catalogue publiée chaque jour par le projet open source [colruyt-products-scraper](https://github.com/BelgianNoise/colruyt-products-scraper), relue deux fois par jour | ~9 500 articles à leur vrai prix, sans toucher au site de Colruyt |
+| **Delhaize** | Catalogue complet lu chaque nuit (`prices/catalogs.mjs`), rayon par rayon | ~14 000 articles, promos et prix carte Plus, Nutri-Score |
+| **Aldi** | Catalogue complet lu chaque nuit (`prices/catalogs.mjs`) | ~2 300 articles |
 | **Promotions** (Colruyt, Delhaize, Aldi, Lidl) | API publique [PrijsProfeet](https://www.prijsprofeet.be) | Promotions de la semaine |
 | **Lidl, Carrefour Express** | Estimation | Prix Colruyt × indice de prix de l'enseigne (+ promos Lidl) |
 
+Une recherche sur le site (`prices/browser.mjs`) ne sert plus qu'en secours, pour les rares
+produits absents d'un catalogue.
+
 Pour chaque produit de la liste, `src/match-rules.js` décrit ce qu'on cherche (mots-clés FR/NL,
 exclusions, format). `src/matcher.js` retient l'article **le moins cher au kilo/litre/pièce**
-dans un format proche, puis ramène son prix au format de la liste. Le rapport
-`data/prices-report.md` montre l'article retenu pour chaque produit et chaque enseigne.
+dans un format proche (jamais une conserve ni un mélange pour un fruit ou légume frais), et
+garde aussi les autres formats. Le rapport `data/prices-report.md` montre l'article retenu
+pour chaque produit et chaque enseigne.
 
-Une source en panne (site changé, blocage) garde ses prix de la veille ; l'app indique la date
-des prix et marque les estimations.
+Dans le plan, l'app paie des **paquets entiers** (750 g vendus pour 500 g voulus = 1 paquet ;
+on ne manque jamais de plus de 5 % d'un paquet) et choisit le format le moins cher pour la
+quantité voulue. Chaque format garde sa propre promo ; une promo terminée revient au prix normal.
 
-### Blocages et NordVPN
+Une source en panne, ou qui reconnaît beaucoup moins de produits que d'habitude, garde ses prix
+de la veille et laisse un avertissement dans l'onglet Actions. L'app indique la date des prix,
+marque les estimations (« approx. ») et affiche la part de vrais prix dans chaque plan.
 
-Colruyt ne demande aucun accès à son site. Pour Delhaize et Aldi, le robot fait environ 75
-recherches espacées par nuit, depuis les serveurs de GitHub. Si un site bloque ces serveurs, on
-peut faire passer le robot par **NordVPN** :
+### VPN (optionnel)
 
-1. Sur nordaccount.com → NordVPN → **Configuration manuelle** → copie les *identifiants de
-   service* (ce ne sont pas ton e-mail et ton mot de passe).
-2. Dans ce dépôt : **Settings → Secrets and variables → Actions → New repository secret** :
-   `NORDVPN_USER` et `NORDVPN_PASS`.
-
-Le workflow se connecte alors à un serveur belge avant de lancer le robot. Les adresses de VPN
-sont parfois elles-mêmes bloquées : c'est un essai, pas une garantie.
+Les catalogues Delhaize et Aldi sont lus une fois par nuit, avec peu de requêtes et sans compte.
+Si un jour un site bloquait les serveurs de GitHub, le workflow peut passer par NordVPN
+(secrets `NORDVPN_USER` et `NORDVPN_PASS`, identifiants de *service* NordVPN). Sans ces
+secrets, l'étape est simplement sautée.
 
 Une clé PrijsProfeet gratuite (secret `PRIJSPROFEET_KEY`) relève leur limite de requêtes ;
 elle n'est pas nécessaire.
@@ -64,17 +69,14 @@ elle n'est pas nécessaire.
 | 💶 **Prix** | Prix de chaque enseigne avec leur source (réel, promo, estimation) et l'article retenu. Tu peux corriger avec ton ticket. |
 | ⚙️ **Réglages** | Adresse exacte (gardée sur ton appareil), magasins à inclure, sauvegarde. |
 
-## Catalogue complet Colruyt
+## Recherche dans les catalogues
 
-La recherche fouille aussi **tout le catalogue Colruyt** (~9 500 articles, vrais
-prix mis à jour chaque nuit dans `data/catalog-colruyt.json`). Les noms Colruyt
-sont en néerlandais : le robot les traduit en français (`src/translate.js`,
-dictionnaire alimentaire, mots remis dans l'ordre français). On tape en
-français (« œufs », « cinnamon rolls », « éclairs au chocolat ») ; le produit
-général (comparé dans tous les magasins) passe d'abord, puis les articles
-précis, en privilégiant ceux dont c'est le produit principal (« œufs » avant
-« mayonnaise aux œufs »). Pour les autres enseignes, ces articles ont un prix
-estimé d'après Colruyt (« approx. »).
+La recherche fouille **les catalogues complets Colruyt, Delhaize et Aldi** (vrais prix mis à
+jour chaque nuit dans `data/catalog-*.json`). Les noms Colruyt sont en néerlandais : l'app les
+traduit en français (`src/translate.js`). Le produit général (comparé dans tous les magasins)
+passe d'abord, puis les articles précis de chaque enseigne. Un article vendu dans les deux
+enseignes est comparé automatiquement (`data/same.json`) ; sinon l'app propose un
+**équivalent** (même type, format proche, bio/sans gluten/demi-écrémé respectés).
 
 ## Panier malin
 
@@ -109,18 +111,36 @@ remplace la liste ; le plan choisit ensuite les magasins.
 ## Panier assisté (Collect&Go, Delhaize Collect)
 
 Dans le plan, **Préparer ma commande** liste les articles avec un bouton par
-produit qui l'ouvre sur le site du magasin : fiche produit Delhaize quand le
-robot l'a trouvée, sinon une recherche. On l'ajoute au panier sur le site, on
+produit qui l'ouvre sur le site du magasin : fiche produit Delhaize, sinon une
+recherche (sans la marque d'une autre enseigne). On l'ajoute au panier sur le site, on
 revient, la case est cochée. Le créneau et le paiement se font sur le site.
 L'app ne demande aucun identifiant et ne touche pas au compte.
 
 Collect&Go (Colruyt) n'a pas d'adresse de recherche directe : le bouton copie
-le nom du produit et ouvre le site, il suffit de le coller dans la recherche.
+le nom du produit et ouvre le site, il suffit de le coller dans la recherche. Si
+tu colles une fois l'adresse d'une fiche produit, l'app en déduit des liens
+directs pour tous les produits (aucun robot ne visite le site).
+
+## Halal
+
+Réglages → Mon alimentation → **Halal** : recettes sans porc ni alcool, viande
+mise sur la liste du **boucher halal** (avec les boucheries proches, d'après
+OpenStreetMap) au lieu du plan supermarché ; seuls les articles marqués « halal »
+restent achetables en magasin. Porc, alcool et plats avec viande sont signalés
+dans la recherche et la liste (`src/halal.js`). C'est une aide, pas une garantie.
+
+## Sécurité et vie privée
+
+- Pas de compte, pas de serveur : tout est enregistré dans le navigateur du téléphone.
+- Une liste partagée par lien, une sauvegarde importée ou les données enregistrées sont
+  revérifiées champ par champ (`src/validate.js`) ; tout ce qui est affiché est échappé, et la
+  page interdit le code en ligne (Content-Security-Policy).
+- Le rapport « Signaler un problème » n'inclut pas ton adresse.
 
 ## Lancer en local
 
 ```bash
-npm install
+npm ci
 npm start               # http://localhost:5173
 npm test                # tests
 npm run prices          # met à jour data/prices.json (toutes les sources)
@@ -131,8 +151,9 @@ node prices/run.mjs colruyt promos   # seulement certaines sources
 
 - Les prix Colruyt viennent du magasin choisi par le projet source, pas forcément du tien
   (les écarts entre magasins Colruyt sont faibles).
-- Le rapprochement produit ↔ article se fait par mots-clés : vérifie le rapport, et corrige une
-  règle dans `src/match-rules.js` si un article retenu ne convient pas.
+- Le rapprochement produit ↔ article se fait par mots-clés, rayon et format : vérifie le
+  rapport, et corrige une règle dans `src/match-rules.js` si un article retenu ne convient pas.
+- Lidl et Carrefour Express : prix estimés (pas de catalogue public fiable).
 - Horaires : ceux renseignés dans OpenStreetMap (absents pour certains magasins). Frais Collect&Go
   et livraison Delhaize : valeurs indicatives (`src/data.js`).
 - L'app ne passe pas commande à ta place.

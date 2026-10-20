@@ -12,6 +12,7 @@ import { priceSignal, KEEPS } from './history.js';
 import { aisleKey, aisleOrder } from './aisles.js';
 import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
+import { isId, cleanProduct, cleanItem } from './validate.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q } from './recipes.js';
@@ -54,12 +55,30 @@ function defaults() {
 // On les efface pour repartir de l'adresse choisie par l'utilisateur.
 function migrate(saved) {
   const d = defaults();
-  const s = { ...d, ...saved, settings: { ...d.settings, ...saved.settings } };
-  s.settings.collect = { ...d.settings.collect, ...(saved.settings?.collect ?? {}) };
+  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) throw new Error('format');
+  const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  const arr = (v) => (Array.isArray(v) ? v : []);
+  const s = { ...d, ...saved, settings: { ...d.settings, ...obj(saved.settings) } };
+  // Sauvegarde importée ou stockage abîmé : seulement des champs connus, du bon type.
+  s.list = arr(saved.list).map((x) => cleanItem(x)).filter(Boolean);
+  s.custom = arr(saved.custom).map(cleanProduct).filter(Boolean);
+  s.recurring = arr(saved.recurring).filter((r) => r && isId(r.id))
+    .map((r) => ({ id: r.id, every: Number(r.every) > 0 ? Math.min(365, Number(r.every)) : 7, ...(typeof r.last === 'string' ? { last: r.last.slice(0, 25) } : {}) }));
+  s.stores = arr(saved.stores).filter((st) => st && isId(st.id) && Object.hasOwn(CHAINS, st.chain) && Number.isFinite(st.lat) && Number.isFinite(st.lng))
+    .map((st) => ({ ...st, name: String(st.name ?? '').slice(0, 120), address: String(st.address ?? '').slice(0, 200) }));
+  const h = saved.home;
+  s.home = h && Number.isFinite(h.lat) && Number.isFinite(h.lng) ? { address: String(h.address ?? '').slice(0, 200), lat: h.lat, lng: h.lng } : null;
+  s.overrides = obj(saved.overrides);
+  s.chainIndex = obj(saved.chainIndex);
+  for (const k of ['valueOfTime', 'minutesPerStore', 'radiusKm', 'detour', 'servings']) {
+    if (k in s.settings && !(Number(s.settings[k]) >= 0)) s.settings[k] = d.settings[k];
+    else if (k in s.settings && s.settings[k] != null) s.settings[k] = Number(s.settings[k]);
+  }
+  s.settings.collect = { ...d.settings.collect, ...obj(saved.settings?.collect) };
   const legacy = !Array.isArray(saved.stores); // les anciennes versions n'avaient pas de magasins trouvés
   if (legacy) { s.home = null; s.stores = []; }
   delete s.coords; delete s.geocoded; delete s.geocodeTried;
-  s.settings.excluded = (s.settings.excluded ?? []).filter((id) => !/^(colruyt-|carrefourx-|aldi-|delhaize-|lidl-)/.test(id));
+  s.settings.excluded = arr(s.settings.excluded).filter((id) => typeof id === 'string' && !/^(colruyt-|carrefourx-|aldi-|delhaize-|lidl-)/.test(id));
   return s;
 }
 
@@ -72,8 +91,12 @@ function load() {
 }
 
 let state = load();
+let saveWarned = false;
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignore */ }
+  try { localStorage.setItem(KEY, JSON.stringify(state)); saveWarned = false; } catch {
+    // Mémoire pleine ou stockage bloqué (navigation privée) : on prévient une fois.
+    if (!saveWarned) { saveWarned = true; setTimeout(() => toast('Impossible d\'enregistrer sur ce téléphone (mémoire pleine ou navigation privée)'), 0); }
+  }
 }
 
 // ---------- Vrais prix (data/prices.json, mis à jour chaque nuit) ----------
@@ -132,7 +155,7 @@ function goodMomentCard() {
       ${logo(low.chain, 'sm')}
       <span class="name">${esc(p.name)}<span class="sub">${eur(low.price)} · −${Math.round(low.sig.below * 100)} % vs moyenne (${eur(low.sig.avg)})${KEEPS.has(p.cat) ? ' · <b>fais du stock</b>' : ''}</span></span>
       ${sparkline(p.id, low.chain, 70, 24)}
-      ${state.list.some((l) => l.id === p.id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-action="add" data-id="${p.id}" aria-label="Ajouter ${esc(p.name)}">${icon('plus')}</button>`}
+      ${state.list.some((l) => l.id === p.id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-action="add" data-id="${esc(p.id)}" aria-label="Ajouter ${esc(p.name)}">${icon('plus')}</button>`}
     </li>`).join('')}</ul></div>`;
 }
 
@@ -712,9 +735,9 @@ function receiptView() {
   const sum = receipt.items.reduce((t, i) => t + i.total, 0);
   wrap.innerHTML = `<div class="modal-box receipt-box" role="dialog" aria-modal="true">
     <p><b>Vérifie ton ticket</b></p>
-    <label class="field"><span>Magasin</span><select id="receipt-chain">${Object.entries(CHAINS).map(([k, c]) => `<option value="${k}" ${k === receipt.chain ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
+    <label class="field"><span>Magasin</span><select id="receipt-chain">${Object.entries(CHAINS).map(([k, c]) => `<option value="${esc(k)}" ${k === receipt.chain ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
     <ul class="items">${receipt.items.map((it, i) => `<li>
-      <input type="checkbox" class="check" data-ri="${i}" ${it.use ? 'checked' : ''} aria-label="Garder">
+      <input type="checkbox" class="check" data-ri="${esc(i)}" ${it.use ? 'checked' : ''} aria-label="Garder">
       <span class="name">${it.qty > 1 ? `${it.qty} × ` : ''}${esc(it.name)}<span class="sub">${it.match ? `→ ${esc(it.match.label)}` : 'pas reconnu (compté dans le total seulement)'}</span></span>
       <span class="num">${eur(it.total)}</span></li>`).join('')}</ul>
     <p class="small">Total lu : <b>${eur(receipt.total ?? sum)}</b>${receipt.total && Math.abs(receipt.total - sum) > 0.05 ? ` (articles : ${eur(sum)})` : ''}</p>
@@ -837,9 +860,11 @@ const ICONS = {
 const icon = (name) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 
 // Logo de l'enseigne (icône officielle de son site ; initiale colorée en secours).
+// Icône introuvable : on la retire (écouteur global, la page n'autorise pas le code en ligne).
+document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageElement && e.target.closest('.logo')) e.target.remove(); }, true);
 function logo(chain, size = '') {
   const c = CHAINS[chain] ?? { name: '?', color: '#888' };
-  const img = c.domain ? `<img src="https://www.google.com/s2/favicons?domain=${c.domain}&sz=64" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const img = c.domain ? `<img src="https://www.google.com/s2/favicons?domain=${c.domain}&sz=64" alt="" loading="lazy">` : '';
   return `<span class="logo ${size}" style="--c:${c.color}" title="${esc(c.name)}">${esc(c.name[0])}${img}</span>`;
 }
 
@@ -944,7 +969,7 @@ let busy = null; // action en cours (recherche d'adresse…)
 function render() {
   const n = state.list.reduce((a, l) => a + l.qty, 0);
   document.getElementById('tabs').innerHTML = TABS.map(([id, ic, label]) => `
-    <button data-tab="${id}" aria-selected="${state.tab === id}">${icon(ic)}${id === 'list' && n ? `<span class="badge">${n}</span>` : ''}${label}</button>`).join('');
+    <button data-tab="${esc(id)}" aria-selected="${state.tab === id}">${icon(ic)}${id === 'list' && n ? `<span class="badge">${n}</span>` : ''}${label}</button>`).join('');
   const loc = document.getElementById('loc');
   loc.innerHTML = `${icon('pin')}<span>${esc(state.home?.address ?? 'Choisir mon adresse')}</span>`;
   const showSetup = !state.home && !['prices', 'recurring', 'plats'].includes(state.tab);
@@ -976,7 +1001,7 @@ function storeRow(s) {
     ${logo(s.chain)}
     <div class="grow"><b>${esc(s.name)}</b><div class="small muted">${esc(s.address || CHAINS[s.chain]?.name)}${h ? ` · ${esc(h)}` : ''}</div></div>
     ${km != null ? `<span class="small muted num">${km.toFixed(1)} km</span>` : ''}
-    <input type="checkbox" class="switch" data-action="toggle-store" data-id="${s.id}" ${off ? '' : 'checked'} aria-label="Utiliser ${esc(s.name)}">
+    <input type="checkbox" class="switch" data-action="toggle-store" data-id="${esc(s.id)}" ${off ? '' : 'checked'} aria-label="Utiliser ${esc(s.name)}">
   </div>`;
 }
 
@@ -987,7 +1012,7 @@ function addressForm() {
       <button class="btn primary" data-action="set-address" ${busy ? 'disabled' : ''}>${busy === 'address' ? '<span class="spin"></span>' : icon('search')} Chercher</button>
       <button class="btn soft" data-action="use-gps" ${busy ? 'disabled' : ''}>${busy === 'gps' ? '<span class="spin"></span>' : icon('gps')} Ma position</button>
     </div>
-    <p class="tiny muted">Ton adresse reste sur ce téléphone. Elle sert seulement à trouver les supermarchés proches (OpenStreetMap).</p>
+    <p class="tiny muted">Ton adresse est enregistrée seulement sur ce téléphone. Pour la trouver sur la carte et chercher les magasins proches, elle est envoyée aux services d'OpenStreetMap (Nominatim, Overpass) ; un itinéraire l'envoie à Google Maps. Aucun serveur de l'app ne la reçoit.</p>
   </div>`;
 }
 
@@ -1024,7 +1049,7 @@ const dealOn = (deal, chain) => deal && (!deal.m || hasCard(chain)) && (!deal.en
 function dealPill(deal, chain) {
   if (!deal) return '';
   const card = deal.m ? (hasCard(chain) ? ' · carte' : ' · avec carte Plus') : '';
-  return ` <span class="pill promo${dealOn(deal, chain) ? '' : ' off'}" title="${deal.end ? `jusqu'au ${dateFr(deal.end)}` : ''}">${esc(deal.txt)}${card}</span>`;
+  return ` <span class="pill promo${dealOn(deal, chain) ? '' : ' off'}" title="${esc(deal.end ? `jusqu'au ${dateFr(deal.end)}` : '')}">${esc(deal.txt)}${card}</span>`;
 }
 // Promos du produit dans chaque enseigne (article précis, son jumeau, ou article retenu la nuit).
 function dealsFor(p) {
@@ -1048,7 +1073,7 @@ function dealLine(p, qty) {
     : needCard
       ? `${where} : ${esc(deal.txt)}${card} · −${eur(adv.saving || Math.round(x.price * qty * deal.d * 100) / 100)} avec la carte`
       : `${where} : ${esc(deal.txt)} · ${adv.saving > 0 ? `−${eur(adv.saving)}` : 'comptée'}`;
-  return `<span class="sub deal">${text}${adv.add > 0 ? ` <button class="link" data-action="qty" data-id="${esc(p.id)}" data-d="${adv.add}">+${adv.add}</button>` : ''}</span>`;
+  return `<span class="sub deal">${text}${adv.add > 0 ? ` <button class="link" data-action="qty" data-id="${esc(p.id)}" data-d="${esc(adv.add)}">+${adv.add}</button>` : ''}</span>`;
 }
 
 // ---------- Promos sur tes produits habituels ----------
@@ -1095,7 +1120,7 @@ function cheaperLine(p) {
   const row = chain && rowById(chain, id);
   if (!row) return '';
   const { swap, bigger } = cheaperOptions(row, CATALOGS[chain].rows, chain);
-  const btn = (r, label) => `<button class="link" data-action="swap" data-id="${esc(p.id)}" data-chain="${chain}" data-row="${esc(r[ROW.id])}">${label}</button>`;
+  const btn = (r, label) => `<button class="link" data-action="swap" data-id="${esc(p.id)}" data-chain="${esc(chain)}" data-row="${esc(r[ROW.id])}">${label}</button>`;
   const name = (r) => esc(`${rowName(r)}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` ${r[ROW.content]}` : ''}`);
   if (swap) return `<span class="sub tip">💡 ${name(swap.r)} : ${eur(swap.r[ROW.price])}, −${eur(swap.saving)} à quantité égale ${btn(swap.r, 'Remplacer')}</span>`;
   if (bigger) return `<span class="sub tip">💡 Grand format ${name(bigger.r)} : ${eur(bigger.r[ROW.price])}, −${Math.round(bigger.pct * 100)} % au kilo ${btn(bigger.r, 'Prendre')}</span>`;
@@ -1136,10 +1161,10 @@ function searchResults() {
   const unit = (r) => (r[ROW.unitPrice] && r[ROW.unit] && r[ROW.weight] !== 1 ? `${eur(r[ROW.unitPrice])}/${r[ROW.unit] === 'pc' ? 'pièce' : r[ROW.unit]}` : '');
   const shops = CATALOG_CHAINS.filter((c) => CATALOGS[c]).map((c) => CHAINS[c].name).join(', ');
   return (hits.length && cat.length ? '<div class="results-head">Produit général · meilleur prix tous magasins</div>' : '') +
-    hits.map((p) => `<button data-action="add" data-id="${p.id}"><span>${esc(p.name)}${halalPill(p.name, p.cat)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
+    hits.map((p) => `<button data-action="add" data-id="${esc(p.id)}"><span>${esc(p.name)}${halalPill(p.name, p.cat)}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (cat.length ? `<div class="results-head"><span class="grow">Article précis · vrais prix ${esc(shops)}</span>
       <button class="chip ${healthy ? 'on' : ''}" data-action="healthy" aria-pressed="${Boolean(healthy)}">Santé d'abord</button></div>` : '') +
-    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${chain}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.deal] ? dealPill(r[ROW.deal], chain) : r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}${halalPill(rowName(r), r[ROW.cat])}
+    cat.map(({ chain, r }) => `<button data-action="add-cat" data-chain="${esc(chain)}" data-id="${esc(r[ROW.id])}">${logo(chain, 'sm')}<span class="grow">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}${r[ROW.deal] ? dealPill(r[ROW.deal], chain) : r[ROW.promo] ? ' <span class="pill promo">promo</span>' : ''}${nutriBadge(r[ROW.nutri], 'sm')}${halalPill(rowName(r), r[ROW.cat])}
         <span class="sub">${unit(r)}${twinLine(chain, r)}</span></span>
         <span class="price num">${eur(r[ROW.price])}${r[ROW.weight] === 1 ? '/kg' : ''}</span><span class="plus">${icon('plus')}</span></button>`).join('') +
     (!CATALOG && catalogLoading ? '<div class="results-head muted">Recherche dans tous les catalogues…</div>' : '') +
@@ -1152,7 +1177,7 @@ function quickChips() {
     .filter((id) => !inList.has(id)).slice(0, 14);
   if (!fav.length) return '';
   return `<div class="stack"><span class="eyebrow">Ajout rapide</span><div class="chips">
-    ${fav.map((id) => `<button class="chip" data-action="add" data-id="${id}"><span class="plus">+</span>${esc(productById(id)?.name.replace(/\s*\(.*\)$/, ''))}</button>`).join('')}
+    ${fav.map((id) => `<button class="chip" data-action="add" data-id="${esc(id)}"><span class="plus">+</span>${esc(productById(id)?.name.replace(/\s*\(.*\)$/, ''))}</button>`).join('')}
   </div></div>`;
 }
 
@@ -1175,9 +1200,9 @@ function viewList() {
     .map(([cat, ls]) => `<div class="stack"><span class="eyebrow cat">${esc(cat)}</span><ul class="items">${ls.map((l) => `
       <li><span class="name">${l.p.shop ? `${logo(l.p.shop.chain, 'sm')} ` : ''}${esc(l.p.name)}${nutriBadge(l.p.nutri, 'sm')}${halalOf(l.p) === 'butcher' ? halalLine(l.p) : `${compareLine(l.p)}${dealLine(l.p, l.qty)}${lowLine(l.p)}${cheaperLine(l.p)}${homeLine(l.p)}${halalLine(l.p)}`}</span>
         <span class="stepper">
-          <button data-action="qty" data-id="${l.id}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
+          <button data-action="qty" data-id="${esc(l.id)}" data-d="-1" aria-label="Moins">${icon(l.qty > 1 ? 'minus' : 'x')}</button>
           <b class="num">${l.qty}</b>
-          <button data-action="qty" data-id="${l.id}" data-d="1" aria-label="Plus">${icon('plus')}</button>
+          <button data-action="qty" data-id="${esc(l.id)}" data-d="1" aria-label="Plus">${icon('plus')}</button>
         </span></li>`).join('')}</ul></div>`).join('');
   return `
     <div class="section-head"><h1>Ma liste</h1>${state.list.length ? `<span class="row" style="gap:4px"><button class="btn ghost small" data-action="share-list">${icon('share')} Partager</button><button class="btn ghost danger small" data-action="clear">Vider</button></span>` : ''}</div>
@@ -1188,7 +1213,7 @@ function viewList() {
       <button class="sb-btn" data-action="voice" aria-label="Dicter">${icon('mic')}</button><button class="sb-btn" data-action="scan" aria-label="Scanner un code-barres">${icon('scan')}</button></div>
       <div class="results" id="results">${searchResults()}</div></div>
     ${quickChips()}
-    ${state.list.length > 1 ? `<div class="seg list-order" role="group" aria-label="Ordre de la liste">${[['', 'Rayons'], ['colruyt', 'Parcours Colruyt'], ['delhaize', 'Parcours Delhaize']].map(([v, t]) => `<button data-action="list-order" data-val="${v}" aria-pressed="${(order ?? '') === v}">${t}</button>`).join('')}</div>` : ''}
+    ${state.list.length > 1 ? `<div class="seg list-order" role="group" aria-label="Ordre de la liste">${[['', 'Rayons'], ['colruyt', 'Parcours Colruyt'], ['delhaize', 'Parcours Delhaize']].map(([v, t]) => `<button data-action="list-order" data-val="${esc(v)}" aria-pressed="${(order ?? '') === v}">${t}</button>`).join('')}</div>` : ''}
     ${state.list.length ? `<div class="card">${listHtml}</div>` : `<div class="empty">${icon('cart')}<b>Ta liste est vide</b><span>Cherche un produit ou touche un ajout rapide.</span></div>`}`;
 }
 
@@ -1429,7 +1454,7 @@ function shopComparison() {
   rows.sort((a, b) => a.total - b.total);
   const gap = rows[1].total - rows[0].total;
   return `<div class="shop-compare"><span class="small muted">Ta liste${smartSettings().dishes.length ? ' et tes plats' : ''} au moins cher :</span>
-    <div class="row" style="gap:8px">${rows.map((r, i) => `<button class="chip ${i === 0 && gap > 0.005 ? 'on' : ''}" data-action="smart-shop" data-val="${r.c}">${logo(r.c, 'sm')} ${esc(CHAINS[r.c].name)} <b class="num">${eur(r.total)}</b></button>`).join('')}</div>
+    <div class="row" style="gap:8px">${rows.map((r, i) => `<button class="chip ${i === 0 && gap > 0.005 ? 'on' : ''}" data-action="smart-shop" data-val="${esc(r.c)}">${logo(r.c, 'sm')} ${esc(CHAINS[r.c].name)} <b class="num">${eur(r.total)}</b></button>`).join('')}</div>
     ${gap > 0.005 ? `<span class="small"><b>${esc(CHAINS[rows[0].c].name)}</b> est moins cher de <b>${eur(gap)}</b>.</span>` : ''}</div>`;
 }
 
@@ -1454,11 +1479,11 @@ function viewSmart() {
         <b class="num">${line ? eur(line.price) : '—'}</b>
       </div>
       ${it.options.length > 1 ? `<div class="tiers" role="group" aria-label="Gamme">${it.options.map((o, i) => `
-        <button data-action="smart-pin" data-id="${it.id}" data-i="${i}" aria-pressed="${line?.option === i}" class="${it.pin === i ? 'pinned' : ''}">${esc(o.label)}<span class="num">${eur(o.price * it.qty)}</span></button>`).join('')}</div>` : ''}
+        <button data-action="smart-pin" data-id="${esc(it.id)}" data-i="${esc(i)}" aria-pressed="${line?.option === i}" class="${it.pin === i ? 'pinned' : ''}">${esc(o.label)}<span class="num">${eur(o.price * it.qty)}</span></button>`).join('')}</div>` : ''}
       <div class="row" style="justify-content:space-between">
         ${it.inList
-          ? `<label class="tiny row" style="gap:6px"><input type="checkbox" class="switch sm" data-action="smart-must" data-id="${it.id}" ${it.must ? 'checked' : ''}> Indispensable</label>`
-          : `<span class="tiny muted">Proposé${line ? ' · rentre dans le budget' : ' · pas assez de budget'}</span><button class="icon-btn" data-action="smart-remove" data-id="${it.id}" aria-label="Ne pas proposer">${icon('x')}</button>`}
+          ? `<label class="tiny row" style="gap:6px"><input type="checkbox" class="switch sm" data-action="smart-must" data-id="${esc(it.id)}" ${it.must ? 'checked' : ''}> Indispensable</label>`
+          : `<span class="tiny muted">Proposé${line ? ' · rentre dans le budget' : ' · pas assez de budget'}</span><button class="icon-btn" data-action="smart-remove" data-id="${esc(it.id)}" aria-label="Ne pas proposer">${icon('x')}</button>`}
         ${it.pin != null ? '<span class="tiny muted">ton choix</span>' : ''}
       </div></li>`;
   };
@@ -1472,9 +1497,9 @@ function viewSmart() {
         <span class="name">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
         <b class="num">${eur(it.options[0].price)}</b></div>
       <div class="row" style="gap:6px;justify-content:flex-end">
-        <button class="btn soft small" data-action="dish-swap" data-id="${it.dish.id}">Changer</button>
-        <button class="btn ghost small" data-action="recipe-open" data-id="${it.dish.id}">Recette</button>
-        <button class="icon-btn" data-action="dish-remove" data-id="${it.dish.id}" aria-label="Retirer">${icon('x')}</button></div></li>`;
+        <button class="btn soft small" data-action="dish-swap" data-id="${esc(it.dish.id)}">Changer</button>
+        <button class="btn ghost small" data-action="recipe-open" data-id="${esc(it.dish.id)}">Recette</button>
+        <button class="icon-btn" data-action="dish-remove" data-id="${esc(it.dish.id)}" aria-label="Retirer">${icon('x')}</button></div></li>`;
   };
   const prof = sm.profile;
   const quizCard = `<div class="card">
@@ -1486,13 +1511,13 @@ function viewSmart() {
   return `
     <button class="btn ghost small" data-action="smart-close">← Ma liste</button>
     <h1>Panier malin</h1>
-    <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${c}" aria-pressed="${shop === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${esc(c)}" aria-pressed="${shop === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
     ${shopComparison()}
     ${quizCard}
     <div class="card">
       <label class="field"><span>Mon budget pour les courses</span>
-        <div class="row"><input type="number" id="smart-budget" min="1" step="1" inputmode="decimal" value="${sm.budget}" style="max-width:120px"> <b>€</b>
-          <div class="chips">${[30, 50, 80, 120].map((b) => `<button class="chip" data-action="smart-budget" data-val="${b}">${b} €</button>`).join('')}</div></div></label>
+        <div class="row"><input type="number" id="smart-budget" min="1" step="1" inputmode="decimal" value="${esc(sm.budget)}" style="max-width:120px"> <b>€</b>
+          <div class="chips">${[30, 50, 80, 120].map((b) => `<button class="chip" data-action="smart-budget" data-val="${esc(b)}">${b} €</button>`).join('')}</div></div></label>
       <div class="seg" role="group" aria-label="Objectif">
         <button data-action="smart-goal" data-val="best" aria-pressed="${sm.goal === 'best'}">Le meilleur dans mon budget</button>
         <button data-action="smart-goal" data-val="cheap" aria-pressed="${sm.goal === 'cheap'}">Le moins cher</button>
@@ -1676,9 +1701,9 @@ function promoMenuCard() {
   const saved = menu.reduce((t, x) => t + x.saving, 0) * people;
   return `<div class="card promo-menu">
     <div class="section-head"><h2>🏷️ Menu de la semaine en promo</h2></div>
-    <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${c}" aria-pressed="${chain === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${esc(c)}" aria-pressed="${chain === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
     <p class="small muted">${menu.length} plats dont des ingrédients sont en promo cette semaine chez ${esc(CHAINS[chain].name)}${chain === 'delhaize' && !hasCard('delhaize') ? ' (sans les promos carte Plus : coche-la dans Réglages si tu l\'as)' : ''}.</p>
-    <ul class="items">${menu.map((x) => `<li><span class="name"><button class="link-plain" data-action="recipe-open" data-id="${x.r.id}">${esc(x.r.name)}</button>
+    <ul class="items">${menu.map((x) => `<li><span class="name"><button class="link-plain" data-action="recipe-open" data-id="${esc(x.r.id)}">${esc(x.r.name)}</button>
       <span class="sub deal">${esc(x.promos.slice(0, 3).join(' · '))}</span></span><span class="num">≈ ${eur(x.cost)}<span class="sub">/ pers.</span></span></li>`).join('')}</ul>
     <button class="btn primary block" data-action="promo-menu-add">${icon('cart')} Ajouter ce menu (${people} pers.) · ≈ ${eur(total)}${saved >= 0.5 ? `, dont −${eur(saved)} de promos` : ''}</button>
   </div>`;
@@ -1704,13 +1729,13 @@ function placardCard() {
       <span class="name">${esc(ingName(k))}<span class="sub">depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}${until[k] ? ` · à consommer avant le ${dateFr(until[k])}` : ''}</span></span>
       <input type="date" class="placard-date" data-until="${esc(k)}" value="${esc(until[k] ?? '')}" aria-label="Date limite ${esc(ingName(k))}">
       <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
-    ${ideas.length ? `<p class="small"><b>À finir vite :</b> ${esc(soon.map(ingName).join(', '))}. Idées :</p><div class="chips wrap">${ideas.map(({ r }) => `<button class="chip" data-action="recipe-open" data-id="${r.id}">${esc(r.name)}</button>`).join('')}</div>` : ''}
+    ${ideas.length ? `<p class="small"><b>À finir vite :</b> ${esc(soon.map(ingName).join(', '))}. Idées :</p><div class="chips wrap">${ideas.map(({ r }) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div>` : ''}
   </details>`;
 }
 
 function recipeCard(r) {
   const cost = dishCost(r);
-  return `<button class="recipe" data-action="recipe-open" data-id="${r.id}">
+  return `<button class="recipe" data-action="recipe-open" data-id="${esc(r.id)}">
     <span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}</span></span>
     <span class="num price">≈ ${eur(cost)}<span class="sub">/ pers.</span></span></button>`;
 }
@@ -1732,17 +1757,17 @@ function viewPlats() {
     ${placardCard()}
     ${promoMenuCard()}
     ${menu.length ? `<div class="card"><div class="section-head"><span class="eyebrow">Ajoutés à ta liste</span><button class="btn ghost small" data-action="menu-clear">Effacer</button></div>
-      <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${r.id}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
+      <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
     <div class="card">
       <span class="eyebrow">Ma cuisine</span>
-      <div class="chips wrap">${Object.entries(TOOLS).map(([t, label]) => `<button class="chip" data-action="kitchen" data-val="${t}" aria-pressed="${Boolean(k[t])}">${k[t] ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
+      <div class="chips wrap">${Object.entries(TOOLS).map(([t, label]) => `<button class="chip" data-action="kitchen" data-val="${esc(t)}" aria-pressed="${Boolean(k[t])}">${k[t] ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
       <span class="eyebrow">Alimentation</span>
-      <div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${d}" aria-pressed="${(state.settings.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
+      <div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(state.settings.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
     </div>
-    <div class="seg" role="group" aria-label="Type">${Object.entries(TYPES).map(([t, l]) => `<button data-action="recipe-type" data-val="${t}" aria-pressed="${recipeType === t}">${l}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Type">${Object.entries(TYPES).map(([t, l]) => `<button data-action="recipe-type" data-val="${esc(t)}" aria-pressed="${recipeType === t}">${l}</button>`).join('')}</div>
     <div class="row" style="gap:8px"><div class="searchbox grow">${icon('search')}<input type="search" id="recipe-search" placeholder="Plat ou ingrédient…" value="${esc(recipeSearch)}" autocomplete="off"></div>
       <button class="chip" data-action="recipe-quick" aria-pressed="${recipeQuick}">≤ 20 min</button></div>
-    <div class="chips wrap" role="group" aria-label="Envies">${[...Object.entries(STYLES).map(([k, st]) => [k, st.label, st.hint]), ['pascher', 'Pas cher', '≤ 2 € par personne']].map(([k, label, hint]) => `<button class="chip" data-action="recipe-style" data-val="${k}" aria-pressed="${styles.includes(k)}" ${hint ? `title="${esc(hint)}"` : ''}>${styles.includes(k) ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
+    <div class="chips wrap" role="group" aria-label="Envies">${[...Object.entries(STYLES).map(([k, st]) => [k, st.label, st.hint]), ['pascher', 'Pas cher', '≤ 2 € par personne']].map(([k, label, hint]) => `<button class="chip" data-action="recipe-style" data-val="${esc(k)}" aria-pressed="${styles.includes(k)}" ${hint ? `title="${esc(hint)}"` : ''}>${styles.includes(k) ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
     <p class="small muted">${ok.length} recette${ok.length > 1 ? 's' : ''} faisable${ok.length > 1 ? 's' : ''} avec ta cuisine${all.length > ok.length ? ` (${all.length - ok.length} autre${all.length - ok.length > 1 ? 's' : ''} demandent un autre appareil ou un autre régime)` : ''} · prix par personne, vrais prix Colruyt.</p>
     <div class="recipes">${ok.map(recipeCard).join('') || '<div class="empty"><b>Aucune recette</b><span>Coche d\'autres appareils ou change de filtre.</span></div>'}</div>`;
 }
@@ -1759,7 +1784,7 @@ function dishShops(r, n) {
 function ingRow(i, n, priced) {
   const have = haveIng(i);
   const amount = i.amount ? formatAmount(i.amount * (i.unit === 'cc' || i.unit === 'cs' ? n : n), i.unit) : '';
-  return `<li class="${have ? 'done' : ''}"><button class="have" data-action="have" data-key="${esc(i.key)}" data-pantry="${i.pantry ? 1 : 0}" aria-pressed="${have}" aria-label="J'ai déjà ${esc(ingName(i.key))}">${have ? icon('check') : ''}</button>
+  return `<li class="${have ? 'done' : ''}"><button class="have" data-action="have" data-key="${esc(i.key)}" data-pantry="${esc(i.pantry ? 1 : 0)}" aria-pressed="${have}" aria-label="J'ai déjà ${esc(ingName(i.key))}">${have ? icon('check') : ''}</button>
     <span class="name">${esc(ingName(i.key))}${halalMeat(i.key) ? ' <span class="pill halal">boucher halal</span>' : ''}</span><span class="num">${amount}</span>
     ${priced ? `<span class="num muted small" style="min-width:56px;text-align:right">${have ? 'j\'ai' : eur(i.amount * n * resolveIng(i.key).perUnit)}</span>` : ''}</li>`;
 }
@@ -1790,7 +1815,7 @@ function viewRecipe(r) {
       const need = r.ingredients.filter((i) => !haveIng(i));
       const cost = need.filter((i) => !i.pantry).reduce((t, i) => t + i.amount * n * resolveIng(i.key).perUnit, 0);
       return need.length
-        ? `<button class="btn primary lg block" data-action="recipe-add" data-id="${r.id}">${icon('cart')} Ajouter ce qui manque (${need.length}) · ≈ ${eur(cost)}</button>`
+        ? `<button class="btn primary lg block" data-action="recipe-add" data-id="${esc(r.id)}">${icon('cart')} Ajouter ce qui manque (${need.length}) · ≈ ${eur(cost)}</button>`
         : '<div class="banner">✓ <span class="grow">Tu as tout ce qu\'il faut</span></div>';
     })()}
     <p class="foot">Prix estimé avec la quantité utilisée ; en magasin on achète des paquets entiers (le reste servira pour d'autres plats).</p>`;
@@ -1810,9 +1835,9 @@ const modeOk = (p, m) => m === 'all' || p.mode === m;
 function prefsBar() {
   const s = state.settings;
   return `<div class="stack">
-    <div class="seg" role="group" aria-label="Façon de faire les courses">${PLAN_MODES.map(([k, l]) => `<button data-action="set" data-key="planMode" data-val="${k}" aria-pressed="${s.planMode === k}">${l}</button>`).join('')}</div>
-    <div class="seg" role="group" aria-label="Déplacement">${Object.entries(MODES).map(([k, m]) => `<button data-action="set" data-key="mode" data-val="${k}" aria-pressed="${s.mode === k}">${m.label}</button>`).join('')}</div>
-    <div class="seg" role="group" aria-label="Nombre de magasins au maximum">${[1, 2, 3].map((n) => `<button data-action="set" data-key="maxStores" data-val="${n}" data-num aria-pressed="${s.maxStores === n}">${n} magasin${n > 1 ? 's' : ''}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Façon de faire les courses">${PLAN_MODES.map(([k, l]) => `<button data-action="set" data-key="planMode" data-val="${esc(k)}" aria-pressed="${s.planMode === k}">${l}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Déplacement">${Object.entries(MODES).map(([k, m]) => `<button data-action="set" data-key="mode" data-val="${esc(k)}" aria-pressed="${s.mode === k}">${m.label}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Nombre de magasins au maximum">${[1, 2, 3].map((n) => `<button data-action="set" data-key="maxStores" data-val="${esc(n)}" data-num aria-pressed="${s.maxStores === n}">${n} magasin${n > 1 ? 's' : ''}</button>`).join('')}</div>
   </div>`;
 }
 
@@ -1837,6 +1862,13 @@ function viewPlan() {
   orderStop = null;
   const isBest = plan === lastPlans[0];
   const saving = nearest ? nearest.total - plan.total : 0;
+  // Confiance : part des articles du plan payés à un vrai prix (relevé ou saisi), pas estimé.
+  const planLines = plan.stops.flatMap((st) => st.lines);
+  const realShare = planLines.length ? planLines.filter((l) => l.info?.kind && l.info.kind !== 'estimate').length / planLines.length : 1;
+  const sure = realShare >= 0.8;
+  // Panier le moins cher en euros (sans compter trajet ni temps) : pas toujours le meilleur plan.
+  const cheapest = lastPlans.reduce((a, p) => (p.goods < a.goods ? p : a), lastPlans[0]);
+  const cheaperGoods = cheapest !== plan && cheapest.goods < plan.goods - 0.5 ? cheapest : null;
 
   const stops = plan.stops.map((s, i) => {
     const st = s.store;
@@ -1857,7 +1889,7 @@ function viewPlan() {
         const item = state.list.find((x) => x.id === l.product.id);
         const head = k === 0 || arr[k - 1].product.cat !== l.product.cat ? `<li class="aisle-head"><span class="eyebrow cat">${esc(CATEGORIES[l.product.cat] ?? 'Divers')}</span></li>` : '';
         return `${head}<li class="${item?.checked ? 'done' : ''}">
-          <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
+          <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
           <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${l.packs ? `${l.packs} × ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
           <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
       }).join('')}</ul>
@@ -1870,7 +1902,7 @@ function viewPlan() {
     ${prefsBar()}
     <section class="hero">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div class="stack" style="gap:6px"><span class="eyebrow">${isBest ? 'Le moins cher au total' : 'Autre option'}${plan.mode === 'collect' ? ' · retrait' : plan.mode === 'mixed' ? ' · retrait + magasin' : plan.kind === 'delivery' ? ' · livraison' : ''}</span>
+        <div class="stack" style="gap:6px"><span class="eyebrow">${isBest ? (sure ? 'Le moins cher au total' : 'Le moins cher d\'après les prix connus') : 'Autre option'}${plan.mode === 'collect' ? ' · retrait' : plan.mode === 'mixed' ? ' · retrait + magasin' : plan.kind === 'delivery' ? ' · livraison' : ''}</span>
           <span class="plan-name">${esc(plan.label)}</span>
           <div class="total num">${eur(plan.total)}</div>
           ${isBest && saving > 0.01 ? `<span class="saving">−${eur(saving)} vs le magasin le plus proche</span>` : ''}
@@ -1884,6 +1916,12 @@ function viewPlan() {
         <div><b class="num">${eur(plan.travel.cost + plan.fees)}</b><span>${plan.fees ? `dont ${eur(plan.fees)} de frais` : 'ton temps'}</span></div>
       </div>
     </section>
+    <div class="card plan-facts small">
+      <div class="row"><span class="grow">Vrais prix dans ce plan</span><b class="num ${sure ? 'good-text' : 'warn-text'}">${Math.round(realShare * 100)} %</b></div>
+      ${cheaperGoods ? `<div class="row"><span class="grow">Courses les moins chères (sans compter trajet ni temps) : <b class="num">${eur(cheaperGoods.goods)}</b> · ${esc(cheaperGoods.label)}, ${cheaperGoods.travel.minutes} min</span>
+        <button class="btn ghost small" data-action="show-plan" data-plan="${esc(cheaperGoods.id)}">Voir</button></div>`
+        : '<div class="tiny muted">C\'est aussi le panier le moins cher en euros, trajet et temps mis à part.</div>'}
+    </div>
     ${planWarnings(plan)}
     ${meat}
     <div class="actions">
@@ -1891,12 +1929,12 @@ function viewPlan() {
         ? `<a class="btn" target="_blank" rel="noopener" href="${esc(mapsUrl(state.home, plan, state.settings.mode))}">${icon('map')}Itinéraire</a>`
         : `<a class="btn" target="_blank" rel="noopener" href="${esc(plan.delivery?.url ?? '#')}">${icon('cart')}Commander</a>`}
       <a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(planText(plan))}">${icon('share')}WhatsApp</a>
-      <button class="btn" data-action="copy" data-plan="${plan.id}">${icon('copy')}Copier</button>
+      <button class="btn" data-action="copy" data-plan="${esc(plan.id)}">${icon('copy')}Copier</button>
     </div>
     ${stops}
-    <button class="btn primary lg block" data-action="done" data-plan="${plan.id}">${icon('check')} Courses faites</button>
+    <button class="btn primary lg block" data-action="done" data-plan="${esc(plan.id)}">${icon('check')} Courses faites</button>
     ${others.length ? `<div class="card"><span class="eyebrow">Autres options</span>${others.map((p) => `
-      <button class="alt" data-action="show-plan" data-plan="${p.id}">
+      <button class="alt" data-action="show-plan" data-plan="${esc(p.id)}">
         ${routeLogos(p)}
         <span class="grow small">${esc(p.label)}${p.short ? `<br><span class="warn-text tiny">minimum ${eur(p.short[0].min)} : il manque ${eur(p.short[0].missing)}</span>` : ''}</span>
         <span style="text-align:right"><b class="num">${eur(p.total)}</b><br><span class="diff num">${p.total >= lastPlans[0].total ? '+' : '−'}${eur(Math.abs(p.total - lastPlans[0].total))}</span></span>
@@ -1954,11 +1992,11 @@ function viewOrder(plan, stop) {
       <p class="tiny muted">Aucun robot : l'app ne visite jamais le site, c'est toi qui ouvres les pages, comme d'habitude.</p></div>` : ''}
     ${direct ? '<p class="small muted">Liens directs Collect&amp;Go activés. <button class="link" data-action="forget-link" data-chain="colruyt">Oublier</button></p>' : ''}
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
-        <input type="checkbox" class="check" data-action="check" data-id="${l.product.id}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
+        <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
         <span class="name">${(l.packs ?? l.qty) > 1 ? `<b>${l.packs ?? l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
           ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
           : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
-        <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${l.product.id}"${shop?.copy && l.link.kind !== 'product' ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy && l.link.kind !== 'product' ? 'Copier et ouvrir' : 'Ouvrir'}</a>
+        <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${esc(l.product.id)}"${shop?.copy && l.link.kind !== 'product' ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy && l.link.kind !== 'product' ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
     <a class="btn primary lg block" target="_blank" rel="noopener" href="${esc(shop?.cart ?? st.collect.url)}">${icon('cart')} ${esc(shop?.cartLabel ?? `Commander chez ${CHAINS[st.chain].name}`)}</a>
     <p class="foot">Les quantités (« 2 × ») sont à régler sur le site. L'app ne voit pas ton compte : elle coche l'article quand tu l'ouvres, décoche-le s'il n'était pas disponible.</p>`;
@@ -2020,7 +2058,7 @@ function openButcher() {
       ${labelled.length ? `<div class="stack"><span class="eyebrow">Au supermarché : seulement les articles marqués halal</span><ul class="items">${labelled.map(({ c, r }) => {
         const id = c === 'colruyt' ? `col-${r[ROW.id]}` : `${c}-${r[ROW.id]}`;
         return `<li>${logo(c, 'sm')}<span class="name">${esc(rowName(r))}${r[ROW.content] && !rowName(r).includes(r[ROW.content]) ? ` <span class="muted">${esc(r[ROW.content])}</span>` : ''}</span>
-          <span class="num">${eur(r[ROW.price])}</span>${inList.has(id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-b="add" data-chain="${c}" data-id="${esc(r[ROW.id])}" aria-label="Ajouter">${icon('plus')}</button>`}</li>`;
+          <span class="num">${eur(r[ROW.price])}</span>${inList.has(id) ? `<span class="pill good">${icon('check')}</span>` : `<button class="icon-btn" data-b="add" data-chain="${esc(c)}" data-id="${esc(r[ROW.id])}" aria-label="Ajouter">${icon('plus')}</button>`}</li>`;
       }).join('')}</ul></div>` : ''}
       <button class="btn primary block" data-b="close">OK</button>
     </div>`;
@@ -2182,7 +2220,7 @@ function budgetCard() {
     </section>
     <div class="card">
       <label class="btn soft block" style="cursor:pointer">${icon('scan')} Scanner un ticket de caisse<input type="file" id="receipt-file" accept="image/*" capture="environment" hidden></label>
-      <label class="field"><span>Mon budget courses par mois</span><div class="row"><input type="number" min="0" step="10" inputmode="decimal" data-setting="monthBudget" data-num value="${budget || ''}" placeholder="ex. 300" style="max-width:140px"> <b>€</b></div></label>
+      <label class="field"><span>Mon budget courses par mois</span><div class="row"><input type="number" min="0" step="10" inputmode="decimal" data-setting="monthBudget" data-num value="${esc(budget || '')}" placeholder="ex. 300" style="max-width:140px"> <b>€</b></div></label>
       <div class="bars" role="img" aria-label="Dépenses des 6 derniers mois">${months.map((m) => `<div class="bar"><span class="num tiny">${m.total ? `${Math.round(m.total)} €` : ''}</span><i style="height:${(m.total / max) * 75}%" class="${budget && m.total > budget ? 'over' : ''}"></i><span class="tiny muted">${esc(m.label)}</span></div>`).join('')}</div>
       <p class="tiny muted">Chaque « Courses faites » compte le montant payé (ou l'estimation). Économie = les mêmes articles au magasin le plus proche, moins le prix du plan.</p>
     </div>
@@ -2227,26 +2265,26 @@ function viewRecurring() {
         const days = Math.ceil((r.next - now) / DAY);
         return `<li><span class="name">${esc(r.p.name)}<span class="sub">${days <= 0 ? 'à racheter maintenant' : `dans ${days} jour${days > 1 ? 's' : ''}`}</span></span>
           <span class="small muted">tous les</span>
-          <input type="number" min="1" style="width:64px;min-height:38px;text-align:right" data-action="every" data-id="${r.id}" value="${r.every}" aria-label="Jours">
+          <input type="number" min="1" style="width:64px;min-height:38px;text-align:right" data-action="every" data-id="${esc(r.id)}" value="${esc(r.every)}" aria-label="Jours">
           <span class="small muted">j</span>
-          <button class="icon-btn" data-action="unrec" data-id="${r.id}" aria-label="Retirer">${icon('x')}</button></li>`;
+          <button class="icon-btn" data-action="unrec" data-id="${esc(r.id)}" aria-label="Retirer">${icon('x')}</button></li>`;
       }).join('')}</ul>` : '<p class="muted small">Aucun pour l\'instant : choisis-en ci-dessous.</p>'}
     </div>
     ${suggestions.length ? `<div class="stack"><span class="eyebrow">Suggestions</span><div class="chips" style="flex-wrap:wrap">
-      ${suggestions.map((p) => `<button class="chip" data-action="rec" data-id="${p.id}"><span class="plus">+</span>${esc(p.name.replace(/\s*\(.*\)$/, ''))}<span class="muted tiny">${p.every} j</span></button>`).join('')}
+      ${suggestions.map((p) => `<button class="chip" data-action="rec" data-id="${esc(p.id)}"><span class="plus">+</span>${esc(p.name.replace(/\s*\(.*\)$/, ''))}<span class="muted tiny">${p.every} j</span></button>`).join('')}
     </div></div>` : ''}
     <div class="card">
       <h2>Rappel dans ton agenda</h2>
       <div class="grid2">
-        <label class="field">Jour<select data-setting="reminderDay" data-num>${['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'].map((d, i) => `<option value="${i}" ${s.reminderDay === i ? 'selected' : ''}>${d}</option>`).join('')}</select></label>
+        <label class="field">Jour<select data-setting="reminderDay" data-num>${['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'].map((d, i) => `<option value="${esc(i)}" ${s.reminderDay === i ? 'selected' : ''}>${d}</option>`).join('')}</select></label>
         <label class="field">Heure<input type="time" data-setting="reminderTime" value="${esc(s.reminderTime)}"></label>
       </div>
       <button class="btn" data-action="ics">${icon('repeat')} Ajouter le rappel hebdomadaire</button>
     </div>
     ${state.history.length ? `<div class="card"><h2>Historique</h2><ul class="items">
       ${state.history.slice(0, 15).map((h, i) => `<li><span class="name small">${esc(dateFr(h.date))} · ${esc(h.label)}<span class="sub">${h.paid != null ? `payé ${eur(h.paid)} (estimé ${eur(h.total)})` : 'estimation'}${h.saving ? ` · −${eur(h.saving)} économisés` : ''}</span></span>
-        <button class="btn ghost small num" data-action="hist-edit" data-i="${i}">${eur(spent(h))}</button>
-        <button class="icon-btn" data-action="hist-del" data-i="${i}" aria-label="Supprimer">${icon('x')}</button></li>`).join('')}
+        <button class="btn ghost small num" data-action="hist-edit" data-i="${esc(i)}">${eur(spent(h))}</button>
+        <button class="icon-btn" data-action="hist-del" data-i="${esc(i)}" aria-label="Supprimer">${icon('x')}</button></li>`).join('')}
     </ul></div>` : ''}`;
 }
 
@@ -2300,8 +2338,8 @@ function viewPrices() {
         <div class="price-row ${info.price === min ? 'best' : ''}">
           ${logo(k, 'sm')}
           <span class="grow"><b>${esc(ch[k].name)}</b> ${KIND[info.kind] ?? ''}${info.article ? `<span class="tiny muted" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${info.eq ? 'équivalent : ' : ''}${esc(info.article)}${info.until ? ` · jusqu'au ${dateFr(info.until)}` : ''}</span>` : ''}</span>
-          <input type="number" class="num ${info.kind === 'estimate' ? 'est' : ''}" step="0.01" min="0" data-action="price" data-id="${p.id}" data-chain="${k}" value="${info.price.toFixed(2)}" aria-label="Prix ${esc(ch[k].name)}">
-          ${info.kind === 'user' ? `<button class="icon-btn" data-action="unprice" data-id="${p.id}" data-chain="${k}" aria-label="Revenir au prix automatique">${icon('undo')}</button>` : ''}
+          <input type="number" class="num ${info.kind === 'estimate' ? 'est' : ''}" step="0.01" min="0" data-action="price" data-id="${esc(p.id)}" data-chain="${esc(k)}" value="${esc(info.price.toFixed(2))}" aria-label="Prix ${esc(ch[k].name)}">
+          ${info.kind === 'user' ? `<button class="icon-btn" data-action="unprice" data-id="${esc(p.id)}" data-chain="${esc(k)}" aria-label="Revenir au prix automatique">${icon('undo')}</button>` : ''}
         </div>`).join('')}</div></div>`;
     }).join('') || '<div class="empty">Aucun produit trouvé.</div>'}
     <p class="foot">${priceSourcesNote()}</p>`;
@@ -2319,33 +2357,33 @@ function viewSettings() {
     ${storesBlock()}
     ${state.home ? `<div class="card">
       <h2>Rayon de recherche</h2>
-      <div class="seg">${[1.5, 3, 5].map((r) => `<button data-action="radius" data-val="${r}" aria-pressed="${s.radiusKm === r}">${String(r).replace('.', ',')} km</button>`).join('')}</div>
+      <div class="seg">${[1.5, 3, 5].map((r) => `<button data-action="radius" data-val="${esc(r)}" aria-pressed="${s.radiusKm === r}">${String(r).replace('.', ',')} km</button>`).join('')}</div>
     </div>` : ''}
     <div class="card">
       <h2>Retrait (Collect)</h2>
       <div class="grid2">
-        <label class="field"><span class="row">${logo('colruyt', 'sm')}Collect&Go : frais (€)</span><input type="number" min="0" step="0.05" data-collect="colruyt.fee" value="${s.collect.colruyt.fee}"></label>
-        <label class="field"><span class="row">${logo('colruyt', 'sm')}Collect&Go : minimum (€)</span><input type="number" min="0" step="1" data-collect="colruyt.minOrder" value="${s.collect.colruyt.minOrder}"></label>
-        <label class="field"><span class="row">${logo('delhaize', 'sm')}Delhaize Collect : frais (€)</span><input type="number" min="0" step="0.05" data-collect="delhaize.fee" value="${s.collect.delhaize.fee}"></label>
-        <label class="field"><span class="row">${logo('delhaize', 'sm')}Delhaize Collect : minimum (€)</span><input type="number" min="0" step="1" data-collect="delhaize.minOrder" value="${s.collect.delhaize.minOrder}"></label>
+        <label class="field"><span class="row">${logo('colruyt', 'sm')}Collect&Go : frais (€)</span><input type="number" min="0" step="0.05" data-collect="colruyt.fee" value="${esc(s.collect.colruyt.fee)}"></label>
+        <label class="field"><span class="row">${logo('colruyt', 'sm')}Collect&Go : minimum (€)</span><input type="number" min="0" step="1" data-collect="colruyt.minOrder" value="${esc(s.collect.colruyt.minOrder)}"></label>
+        <label class="field"><span class="row">${logo('delhaize', 'sm')}Delhaize Collect : frais (€)</span><input type="number" min="0" step="0.05" data-collect="delhaize.fee" value="${esc(s.collect.delhaize.fee)}"></label>
+        <label class="field"><span class="row">${logo('delhaize', 'sm')}Delhaize Collect : minimum (€)</span><input type="number" min="0" step="1" data-collect="delhaize.minOrder" value="${esc(s.collect.delhaize.minOrder)}"></label>
       </div>
       <p class="tiny muted">Valeurs relevées le 12 oct. 2026 (Collect&Go : « à partir de 5,95 € » ; Delhaize : retrait gratuit, minimum de 30 € encore indiqué sur une page). Corrige-les si ton panier en ligne affiche autre chose.</p>
     </div>
     <div class="card">
       <h2>Calcul</h2>
       <div class="grid2">
-        <label class="field">Valeur de ton temps (€/h)<input type="number" min="0" step="1" data-setting="valueOfTime" data-num value="${s.valueOfTime}"></label>
-        <label class="field">Minutes par magasin<input type="number" min="0" data-setting="minutesPerStore" data-num value="${s.minutesPerStore}"></label>
+        <label class="field">Valeur de ton temps (€/h)<input type="number" min="0" step="1" data-setting="valueOfTime" data-num value="${esc(s.valueOfTime)}"></label>
+        <label class="field">Minutes par magasin<input type="number" min="0" data-setting="minutesPerStore" data-num value="${esc(s.minutesPerStore)}"></label>
       </div>
       <label class="row"><input type="checkbox" class="switch" data-setting="openNow" data-bool-check ${s.openNow ? 'checked' : ''}><span class="grow">Seulement les magasins ouverts maintenant</span></label>
-      <label class="field"><span>Mes œufs</span><div class="seg" role="group" aria-label="Œufs">${Object.entries(EGGS).map(([k, e]) => `<button data-action="eggs" data-val="${k}" aria-pressed="${(s.eggs ?? 'any') === k}">${esc(e.label)}</button>`).join('')}</div>
+      <label class="field"><span>Mes œufs</span><div class="seg" role="group" aria-label="Œufs">${Object.entries(EGGS).map(([k, e]) => `<button data-action="eggs" data-val="${esc(k)}" aria-pressed="${(s.eggs ?? 'any') === k}">${esc(e.label)}</button>`).join('')}</div>
         <span class="tiny muted">Choisis un type : l'app compare les œufs de ce type dans chaque magasin, au prix d'une boîte de 12.</span></label>
-      <label class="field"><span>Mon alimentation</span><div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${d}" aria-pressed="${(s.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
+      <label class="field"><span>Mon alimentation</span><div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(s.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
         <span class="tiny muted">Halal : ni porc ni alcool dans les recettes, et la viande va sur la liste du boucher halal (le supermarché ne garde que les articles marqués halal).</span></label>
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
-          <label class="field"><span class="row">${logo(k, 'sm')}${esc(c.name)}</span><input type="number" min="50" max="200" data-action="index" data-chain="${k}" value="${baseChains()[k].index}">${calibFactor(state.calib?.[k]) !== 1 ? `<span class="tiny muted">corrigé par tes tickets : ${calibFactor(state.calib[k]) > 1 ? '+' : ''}${Math.round((calibFactor(state.calib[k]) - 1) * 100)} % (${state.calib[k].length} articles)</span>` : ''}</label>`).join('')}</div>
+          <label class="field"><span class="row">${logo(k, 'sm')}${esc(c.name)}</span><input type="number" min="50" max="200" data-action="index" data-chain="${esc(k)}" value="${esc(baseChains()[k].index)}">${calibFactor(state.calib?.[k]) !== 1 ? `<span class="tiny muted">corrigé par tes tickets : ${calibFactor(state.calib[k]) > 1 ? '+' : ''}${Math.round((calibFactor(state.calib[k]) - 1) * 100)} % (${state.calib[k].length} articles)</span>` : ''}</label>`).join('')}</div>
         <p class="tiny muted" style="margin-top:8px">Colruyt = 100. Sert seulement quand on n'a pas le vrai prix.</p>
       </details>
     </div>
@@ -2356,7 +2394,7 @@ function viewSettings() {
         <label class="btn">Importer<input type="file" id="import" accept="application/json" hidden></label>
         <button class="btn danger" data-action="reset">Tout effacer</button>
       </div>
-      <p class="tiny muted">Tout reste sur ce téléphone : liste, adresse, prix saisis.</p>
+      <p class="tiny muted">Liste, adresse et prix saisis sont enregistrés seulement sur ce téléphone (l'app n'a pas de serveur). Services utilisés : OpenStreetMap pour l'adresse et les magasins, Google Maps pour les itinéraires, Open Food Facts pour les codes-barres.</p>
     </div>
     <p class="foot">${priceSourcesNote()}</p>`;
 }

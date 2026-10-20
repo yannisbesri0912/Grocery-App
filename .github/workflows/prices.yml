@@ -1,7 +1,7 @@
 name: Prix réels
 
-# Chaque nuit : vrais prix Colruyt (catalogue public), Delhaize et Aldi (robot
-# navigateur), promotions PrijsProfeet. Puis l'app est redéployée.
+# Chaque nuit : vrais prix Colruyt (copie publique du catalogue), Delhaize et Aldi
+# (catalogues complets), promotions PrijsProfeet. Puis l'app est redéployée.
 on:
   schedule:
     - cron: '17 4 * * *'
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
 
       # Optionnel : passer par NordVPN (identifiants de service à mettre dans
@@ -56,8 +56,12 @@ jobs:
           echo "Pays de sortie : $(curl -s https://ipinfo.io/country)"
 
       - name: Récupération des prix
-        run: node prices/run.mjs ${{ github.event.schedule == '41 15 * * *' && 'colruyt' || github.event.inputs.sources }}
+        # Sources passées par une variable et vérifiées (pas de texte libre dans la commande).
+        run: |
+          case "$SOURCES" in *[!a-z\ ]*) echo "Sources invalides : $SOURCES"; exit 1;; esac
+          node prices/run.mjs $SOURCES
         env:
+          SOURCES: ${{ github.event.schedule == '41 15 * * *' && 'colruyt' || github.event.inputs.sources }}
           PRIJSPROFEET_KEY: ${{ secrets.PRIJSPROFEET_KEY }}
 
       - name: Enregistrer les nouveaux prix

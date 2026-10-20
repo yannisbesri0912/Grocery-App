@@ -88,3 +88,17 @@ test('recettes importées : ingrédients de placard nommés, cuillères, filtres
   assert.equal(proteinOf(r), 35);
   assert.ok(STYLES.rapide.test(r) && STYLES.proteine.test(r) && STYLES.healthy.test(r) && !STYLES.veggie.test(r));
 });
+
+test('régimes : le placard compte aussi (farine du placard = gluten)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { RECIPES, ING, addRecipes, compatible } = await import('../src/recipes.js');
+  addRecipes(JSON.parse(readFileSync(new URL('../data/recipes-wikibooks.json', import.meta.url), 'utf8')));
+  const kitchen = { four: true, plaques: true, micro: true, airfryer: true, mixeur: true, robot: true, grill: true };
+  let bad = 0;
+  for (const r of RECIPES) {
+    for (const i of r.ingredients) for (const f of ING[i.key]?.flags ?? '') if (!r.flags.has(f)) bad++;
+  }
+  assert.equal(bad, 0);
+  const bourgui = RECIPES.find((r) => /bourguignon/i.test(r.name) && r.ingredients.some((i) => i.key === 'farine'));
+  if (bourgui) assert.equal(compatible(bourgui, { kitchen, allergies: ['g'] }), false);
+});

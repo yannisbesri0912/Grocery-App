@@ -235,3 +235,44 @@ test('optimize : œufs, la boîte de 12 plutôt que des boîtes de 10 pour 12 ou
   assert.equal(run(1).info.article, 'œufs 12 pc');
   assert.equal(run(2).total, 8.58);
 });
+
+test('optimize : un autre format ne profite jamais de la promo de l\'article retenu', async () => {
+  const { optimize } = await import('../src/optimizer.js');
+  const products = [{ id: 'eponges', name: 'Éponges (3)', ref: 2 }];
+  const stores = [{ id: 'd', chain: 'delhaize', name: 'Delhaize', lat: 50.8, lng: 4.4 }];
+  const deal = { k: 'g', q: 2, d: 0.25, m: 0, r: 0, end: null, txt: '2e à -50 %' };
+  const real = { eponges: { delhaize: { price: 1.5, pack: 1.5, article: 'Éponges A', deal, alts: [{ price: 1.1, pack: 1.1, article: 'Éponges B' }] } } };
+  const line = optimize({ items: [{ id: 'eponges', qty: 2 }], products, stores, chains: { delhaize: { index: 110 } }, real, home: { lat: 50.8, lng: 4.4 }, settings: { valueOfTime: 0 } })[0].stops[0].lines[0];
+  // A : 2 × 1,50 − 25 % = 2,25 € ; B sans promo : 2,20 € (et pas 1,10 € avec la promo de A).
+  assert.equal(line.info.article, 'Éponges B');
+  assert.equal(line.total, 2.2);
+  assert.equal(line.info.deal, null);
+});
+
+test('priceInfo : une promo terminée revient au prix normal (ou plus de vrai prix)', async () => {
+  const { priceInfo } = await import('../src/optimizer.js');
+  const p = { id: 'x', name: 'X', ref: 5 };
+  const chains = { colruyt: { index: 100 }, lidl: { index: 95 } };
+  const real = { x: {
+    colruyt: { price: 1, promo: true, until: '2026-10-01', regular: { price: 10, article: 'X normal' } },
+    lidl: { price: 1, promo: true, until: '2026-10-01', promoOnly: true },
+  } };
+  assert.equal(priceInfo(p, 'colruyt', chains, {}, real, '2026-10-20').price, 10);
+  assert.equal(priceInfo(p, 'colruyt', chains, {}, real, '2026-09-30').price, 1);
+  assert.equal(priceInfo(p, 'lidl', chains, {}, real, '2026-10-20').kind, 'estimate');
+});
+
+test('packsFor : jamais plus de 5 % d\'un paquet en moins', async () => {
+  const { packsFor } = await import('../src/optimizer.js');
+  assert.equal(packsFor(1, 1, 0.96), 1); // 960 g pour « 1 kg » : l'achat normal
+  assert.equal(packsFor(1, 2, 0.96), 3); // 2 kg : 3 paquets de 960 g
+  assert.equal(packsFor(1.05, 6, 6.29), 1); // 6 L en pack de 6 × 1 L (prix arrondi)
+  assert.equal(packsFor(1, 1, 0.8), 2); // 800 g pour 1 kg : 2 paquets
+  for (const [price, pack] of [[1, 0.96], [0.92, 1.38], [4.19, 3.49], [1.05, 6.29], [2.3, 1.15]]) {
+    for (let qty = 1; qty <= 12; qty++) {
+      const n = packsFor(price, qty, pack) ?? qty;
+      const per = pack / price; // unités de la liste par paquet
+      assert.ok(n * per >= qty - 0.05 * per - 0.01 * qty, `${price}/${pack} × ${qty} → ${n}`);
+    }
+  }
+});

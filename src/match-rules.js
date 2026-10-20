@@ -8,7 +8,7 @@
 //  tol  : formats acceptés, en multiple du format de référence (défaut 0,5 à 2,5)
 // Le prix retenu = prix unitaire le plus bas × format de référence.
 
-const PREPARED = ['saus', 'sauce', 'soep', 'soupe', 'potage', 'veloute', 'salade', 'salad', 'chips', 'gedroogd', 'seche*', 'moes', 'compote', 'jus', 'sap', 'confiture', 'confituur', 'baby', 'bebe', 'smoothie', 'yoghurt', 'yaourt', 'taart', 'tarte', 'cake'];
+const PREPARED = ['saus', 'sauce', 'soep', 'soupe', 'potage', 'veloute', 'salade', 'salad', 'chips', 'gedroogd', 'seche*', 'moes', 'compote', 'jus', 'sap', 'confiture', 'confituur', 'baby', 'bebe', 'smoothie', 'yoghurt', 'yaourt', 'taart', 'tarte', 'cake', 'farci*', 'fourre*', 'gevuld*'];
 
 // Mots qui signalent un aliment pour animaux ou pour bébé : écartés partout,
 // sauf pour les règles marquées « pets: true ».
@@ -32,7 +32,7 @@ export const RULES = {
   oranges: { q: 'oranges à jus', nl: 'sinaasappelen', all: [['oranges', 'sinaasappel*', 'appelsien*', 'perssinaas*']], not: PREPARED, size: [2, 'kg'] },
   citrons: { q: 'citrons', nl: 'citroenen', all: [['citrons', 'citroenen']], not: [...PREPARED, 'thee', 'the', 'limonade', 'water', 'eau'], size: [0.5, 'kg'] },
   tomates: { q: 'tomates', nl: 'tomaten', all: [['tomates', 'tomaten', 'trostomaten']], not: ['coulis', 'chair', 'concasse*', 'sechee*', 'heinz', 'gepel*', 'pelee*', 'mutti', 'gezeefd*', 'gezeefde', 'tamisees', 'maaltijdbox', 'soep', 'soupe', 'box', 'mix', 'wok*', 'schotel', 'plat', ...PREPARED, 'cerise*', 'kers*', 'cherry', 'pelati', 'gepeld*', 'concentre', 'geconcentreerd', 'passata', 'pulp*', 'blik', 'conserve', 'zongedroogd*', 'puree', 'ketchup'], size: [1, 'kg'] },
-  carottes: { q: 'carottes', nl: 'wortelen', all: [['carottes', 'wortelen', 'wortels']], not: ['erwt*', 'petits pois', 'maaltijdbox', 'soep', 'soupe', 'box', 'mix', 'wok*', 'schotel', 'plat', ...PREPARED, 'rapee*', 'geraspt*', 'julienne', 'erwten', 'petits pois', 'blik', 'conserve', 'diepvries', 'surgele*'], size: [1, 'kg'] },
+  carottes: { q: 'carottes', nl: 'wortelen', all: [['carottes', 'wortelen', 'wortels']], not: ['erwt*', 'petits pois', 'pois', 'petis', 'maaltijdbox', 'soep', 'soupe', 'box', 'mix', 'wok*', 'schotel', 'plat', ...PREPARED, 'rapee*', 'geraspt*', 'julienne', 'erwten', 'petits pois', 'blik', 'conserve', 'diepvries', 'surgele*'], size: [1, 'kg'] },
   oignons: { q: 'oignons', nl: 'uien', all: [['oignons', 'uien', 'ajuinen']], not: ['gesneden', 'snippers', 'emince*', 'maaltijdbox', 'soep', 'soupe', 'box', 'mix', 'wok*', 'schotel', 'plat', ...PREPARED, 'lente*', 'printanier*', 'rode', 'rouges', 'gebakken', 'frits', 'zilver*', 'diepvries', 'surgele*'], size: [1, 'kg'] },
   pdt: { q: 'pommes de terre', nl: 'aardappelen', all: [['pommes de terre', 'aardappelen', 'aardappels', 'patates']], not: [...PREPARED, 'frites', 'friet*', 'puree', 'kroket*', 'croquette*', 'gekookt*', 'cuites', 'diepvries', 'surgele*', 'partjes', 'quartiers', 'rosti', 'gratin'], size: [2.5, 'kg'], tol: [0.4, 2] },
   courgettes: { q: 'courgettes', nl: 'courgette', all: [['courgette', 'courgettes']], not: ['sachet', 'vapeur', 'pois', 'legumes', 'four', 'poivron*', 'puree', 'farci*', 'quiche', 'kip', 'poulet', 'spaghettis', 'maaltijdbox', 'soep', 'soupe', 'box', 'mix', 'wok*', 'schotel', 'plat', ...PREPARED, 'diepvries', 'surgele*', 'spaghetti', 'noedels', 'grill*'], size: [1, 'kg'], tol: [0.3, 2] },
