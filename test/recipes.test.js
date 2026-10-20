@@ -48,10 +48,11 @@ test('recipeCost et formatAmount', () => {
   assert.equal(formatAmount(0.5, 'pc'), '0,5');
 });
 
-test('questions : 5 en simple, 20 en complet', () => {
-  assert.equal(questionsFor('simple').length, 5);
-  assert.equal(questionsFor('complet').length, 20);
-  assert.equal(QUESTIONS.length, 20);
+test('questions : 6 en simple, 21 en complet (préférences sautées pour les végétariens)', () => {
+  assert.equal(questionsFor('simple').length, 6);
+  assert.equal(questionsFor('complet').length, 21);
+  assert.equal(QUESTIONS.length, 21);
+  assert.equal(questionsFor('simple', { diet: 'vegetarien' }).length, 5);
 });
 
 test('staplesFor : quantités selon personnes × jours, régime respecté', () => {
@@ -111,4 +112,19 @@ test('pickDishes : un plus gros budget par portion donne d\'autres plats', async
   const rich = pickDishes(5, { kitchen }, cost, { perServing: 6 });
   assert.equal(cheap.length, 5);
   assert.notDeepEqual(rich, cheap);
+});
+
+test('viandes préférées : « J\'adore » le poulet en donne plus souvent, « Jamais » le bœuf l\'écarte', async () => {
+  const { pickDishes, meatsOf, compatible, RECIPES } = await import('../src/recipes.js');
+  const filters = { kitchen: { four: true, plaques: true, micro: true }, diet: 'tout' };
+  const cost = (r) => r.minutes; // coût fictif
+  const count = (ids) => ids.map((id) => RECIPES.find((r) => r.id === id)).filter((r) => meatsOf(r).has('poulet')).length;
+  const base = pickDishes(7, filters, cost, { meat: 'souvent', fish: 'rarement' });
+  const loved = pickDishes(7, filters, cost, { meat: 'souvent', fish: 'rarement', loves: ['poulet'] });
+  assert.ok(count(loved) >= 2 && count(loved) > count(base), `${count(base)} → ${count(loved)}`);
+  const noBeef = RECIPES.filter((r) => compatible(r, { ...filters, avoid: ['boeuf'] }));
+  assert.ok(noBeef.length > 0 && noBeef.every((r) => !meatsOf(r).has('boeuf')));
+  // Halal : les lardons (de dinde chez le boucher) comptent comme de la dinde.
+  const carbo = RECIPES.find((r) => r.name === 'Pâtes carbonara');
+  assert.ok(meatsOf(carbo, true).has('dinde') && meatsOf(carbo).has('porc'));
 });

@@ -91,8 +91,8 @@ remplace la liste ; le plan choisit ensuite les magasins.
 
 ## Questions et plats
 
-- **Questions** (Panier malin) : *Simple* (5 questions : budget, personnes,
-  jours, repas à cuisiner, alimentation) ou *Complet* (20 : ustensiles,
+- **Questions** (Panier malin) : *Simple* (6 questions : budget, personnes,
+  jours, repas à cuisiner, alimentation, viandes préférées) ou *Complet* (21 : ustensiles,
   temps, allergies, petit-déj, boissons, viande/poisson, entretien…). Les
   réponses donnent les plats proposés et les produits de base
   (`src/questions.js`).

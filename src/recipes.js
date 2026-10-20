@@ -468,8 +468,24 @@ export const STYLES = {
 };
 
 /** La recette est-elle faisable avec ces ustensiles et ce régime ? */
-export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], maxTime = Infinity } = {}) {
+// Viandes et poissons qu'on peut préférer ou refuser (Réglages, questions du panier malin).
+export const MEATS = { poulet: 'Poulet', boeuf: 'Bœuf', dinde: 'Dinde', agneau: 'Agneau', porc: 'Porc', poisson: 'Poisson', 'fruits-mer': 'Crevettes, moules' };
+const MEAT_OF = {
+  poulet: 'poulet', hache: 'boeuf', boeuf: 'boeuf', steak: 'boeuf', 'boeuf-ragout': 'boeuf', 'steak-burger': 'boeuf', merguez: 'agneau',
+  dinde: 'dinde', jambon: 'porc', lardons: 'porc', chorizo: 'porc', porc: 'porc',
+  saumon: 'poisson', thon: 'poisson', cabillaud: 'poisson', crevettes: 'fruits-mer', moules: 'fruits-mer',
+};
+// Halal : le boucher remplace jambon et lardons par de la dinde, le chorizo par du bœuf.
+const HALAL_MEAT = { jambon: 'dinde', lardons: 'dinde', chorizo: 'boeuf' };
+/** Viandes et poissons d'une recette (clés de MEATS). */
+export function meatsOf(r, halal = false) {
+  return new Set(r.ingredients.filter((i) => !i.pantry).map((i) => (halal && HALAL_MEAT[i.key]) || MEAT_OF[i.key]).filter(Boolean));
+}
+
+export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], maxTime = Infinity, avoid = [] } = {}) {
   if (r.minutes > maxTime) return false;
+  // Viandes refusées (« Jamais »).
+  if (avoid.length) { const m = meatsOf(r, DIETS[diet]?.halal); if (avoid.some((k) => m.has(k))) return false; }
   if (!r.tools.every((group) => group.some((t) => kitchen[t]))) return false;
   const banned = (DIETS[diet]?.not ?? '') + allergies.join('');
   if (DIETS[diet]?.halal && r.flags.has('p') && !r.flags.has('h')) return false;
@@ -519,7 +535,7 @@ function mainKind(r) {
 const MEAL = new Set(['pates', 'riz', 'pdt', 'semoule', 'quinoa', 'nouilles', 'gnocchi', 'lasagne', 'pain', 'baguette', 'tortillas', 'pate-pizza', 'pate-brisee', 'pate-feuil', 'pizza', 'frites', 'patate-douce', 'pain-burger', 'pain-mie', 'pain-pita', 'poulet', 'hache', 'boeuf', 'steak', 'boeuf-ragout', 'steak-burger', 'dinde', 'porc', 'merguez', 'jambon', 'lardons', 'chorizo', 'saumon', 'thon', 'cabillaud', 'crevettes', 'moules', 'oeufs', 'lentilles', 'pois-chiches', 'haricots-rouges', 'tofu', 'falafel']);
 export const isMeal = (r) => r.ingredients.filter((i) => !i.pantry && MEAL.has(i.key)).length >= 1 && r.ingredients.filter((i) => !i.pantry).length >= 3;
 
-export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null } = {}) {
+export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null, loves = [] } = {}) {
   if (n <= 0) return [];
   // perServing : prix visé par portion (le budget le permet) ; sans lui, les moins chers.
   // Au-dessus du prix visé, un plat est trois fois plus pénalisé qu'en dessous.
@@ -532,15 +548,24 @@ export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfo
   target.vege = Math.max(0, n - target.viande - target.poisson);
   const picked = [];
   const used = new Set();
-  const take = (kind, count) => {
+  // Viandes préférées (« J'adore ») : environ 2 plats sur 3 de viande ou de poisson les contiennent.
+  const halal = DIETS[filters?.diet]?.halal;
+  const loved = (r) => loves.length > 0 && loves.some((k) => meatsOf(r, halal).has(k));
+  const take = (kind, count, only = null) => {
     for (const x of pool) {
       if (picked.length >= n || count <= 0) break;
-      if (used.has(x.r.id) || (kind && mainKind(x.r) !== kind)) continue;
+      if (used.has(x.r.id) || (kind && mainKind(x.r) !== kind) || (only && !only(x.r))) continue;
       picked.push(x.r.id); used.add(x.r.id); count--;
     }
+    return count;
   };
-  take('viande', target.viande);
-  take('poisson', target.poisson);
+  const takeLoved = (kind, count) => {
+    const before = picked.length;
+    take(kind, Math.ceil(count * 0.67), loved);
+    take(kind, count - (picked.length - before));
+  };
+  takeLoved('viande', target.viande);
+  takeLoved('poisson', target.poisson);
   take('vege', target.vege);
   take(null, n - picked.length); // compléter si une catégorie manque
   return picked;

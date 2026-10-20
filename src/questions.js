@@ -1,7 +1,7 @@
 // Questions du panier malin : 5 en mode simple, 20 en mode complet.
 // Les réponses donnent le budget, le régime, les ustensiles, le nombre de
 // plats à proposer et les produits de base (petit-déj, fruits, boissons…).
-import { DIETS, ALLERGIES, TOOLS } from './recipes.js';
+import { DIETS, ALLERGIES, TOOLS, MEATS } from './recipes.js';
 
 const opts = (o) => Object.entries(o).map(([value, label]) => ({ value, label }));
 
@@ -16,6 +16,10 @@ export const QUESTIONS = [
   { id: 'dinners', simple: true, text: 'Combien de repas veux-tu cuisiner ?', type: 'one',
     options: [0, 3, 5, 7, 10, 14].map((n) => ({ value: n, label: n ? `${n} repas` : 'Aucun' })) },
   { id: 'diet', simple: true, text: 'Ton alimentation ?', type: 'one', options: opts(Object.fromEntries(Object.entries(DIETS).map(([k, d]) => [k, d.label]))) },
+  // Posée seulement si on mange de la viande ou du poisson ; sans porc pour « Sans porc » et « Halal ».
+  { id: 'loves', simple: true, text: 'Ce que tu préfères ? (les plats en contiendront plus souvent)', type: 'many', options: opts(MEATS),
+    when: (a) => !['vegetarien', 'vegan'].includes(a.diet),
+    only: (a, o) => o.value !== 'porc' || !['sans-porc', 'halal'].includes(a.diet) },
   // Mode complet
   { id: 'kitchen', text: 'Quels appareils as-tu dans ta cuisine ?', type: 'many', options: opts(TOOLS) },
   { id: 'time', text: 'Combien de temps pour cuisiner un repas ?', type: 'one',
@@ -40,14 +44,16 @@ export const QUESTIONS = [
     options: opts({ 'gel-douche': 'Gel douche', shampoing: 'Shampoing', dentifrice: 'Dentifrice', deodorant: 'Déodorant', mouchoirs: 'Mouchoirs' }) },
 ];
 
-export const questionsFor = (mode) => QUESTIONS.filter((q) => mode === 'complet' || q.simple);
+export const questionsFor = (mode, answers = {}) => QUESTIONS.filter((q) => (mode === 'complet' || q.simple) && (!q.when || q.when(answers)));
+/** Choix proposés pour une question (certains dépendent des réponses précédentes). */
+export const optionsOf = (q, answers = {}) => (q.only ? q.options.filter((o) => q.only(answers, o)) : q.options);
 
 /** Réponses par défaut (questions non posées en mode simple). */
 export const DEFAULT_PROFILE = {
   budget: 50, people: 1, days: 7, dinners: 5, diet: 'tout',
   kitchen: ['plaques', 'four', 'micro', 'bouilloire'], time: 999, allergies: [], lunch: 'dehors',
   breakfast: 'aucun', hot: 'none', meat: 'parfois', fish: 'parfois', fruits: 'normal', dairy: 'peu',
-  snacks: 'non', drinks: [], dessert: '0', gamme: 'best', house: [], hygiene: [],
+  snacks: 'non', drinks: [], dessert: '0', gamme: 'best', house: [], hygiene: [], loves: [],
 };
 
 /**

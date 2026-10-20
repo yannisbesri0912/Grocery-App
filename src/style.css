@@ -527,3 +527,7 @@ button.link { border: 0; background: var(--promo-soft); color: var(--promo); fon
 .nutri-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--ink); }
 .nutri-legend li { display: flex; align-items: center; gap: 6px; }
 .nutri-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+/* Réglages : viandes préférées */
+.meat-prefs li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.seg.small button { padding: 6px 10px; font-size: .8rem; }

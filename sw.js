@@ -1,5 +1,5 @@
 // Hors-ligne : garde une copie de l'app ; en ligne, sert la dernière version.
-const CACHE = 'grocery-opti-v37';
+const CACHE = 'grocery-opti-v38';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
   'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js', 'src/smart.js', 'src/matcher.js', 'src/recipes.js', 'src/questions.js', 'src/voice.js', 'src/scan.js', 'src/receipt.js', 'src/tuto.js', 'src/same.js', 'src/deals.js', 'src/history.js', 'src/aisles.js', 'src/calib.js', 'src/share.js', 'src/report.js', 'src/cheaper.js', 'src/halal.js', 'src/translate.js', 'src/validate.js', 'src/spend.js'];
 

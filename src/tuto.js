@@ -36,7 +36,7 @@ function steps({ icon, logo, nutri }) {
     },
     {
       title: '4. Le panier malin',
-      text: 'Donne ton budget et réponds à quelques questions (5 en simple, 20 en complet). L\'app compose le meilleur panier : premier prix, marque du magasin ou grande marque.',
+      text: 'Donne ton budget et réponds à quelques questions (6 en simple, 21 en complet). L\'app compose le meilleur panier : premier prix, marque du magasin ou grande marque.',
       art: `<div class="tp-banner">${icon('spark')}<span class="grow"><b>Panier malin</b><br><small>Donne un budget</small></span>${tap}</div>
         <div class="tp-card">${row('Budget', '<b>60 €</b>')}
         <div class="tp-tiers"><span class="on">Premier prix</span><span>Marque Colruyt</span><span>Grande marque</span></div></div>`,

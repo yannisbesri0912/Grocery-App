@@ -16,8 +16,8 @@ import { isId, cleanProduct, cleanItem, cleanReceipt } from './validate.js';
 import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q } from './recipes.js';
-import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS } from './recipes.js';
+import { QUESTIONS, questionsFor, optionsOf, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
 import { startScanner, lookupBarcode, decodePhoto, validEan } from './scan.js';
@@ -1303,7 +1303,21 @@ function kitchen() {
   state.settings.kitchen ??= Object.fromEntries(Object.keys(TOOLS).map((t) => [t, DEFAULT_PROFILE.kitchen.includes(t)]));
   return state.settings.kitchen;
 }
-const recipeFilters = (extra = {}) => ({ kitchen: kitchen(), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], ...extra });
+const recipeFilters = (extra = {}) => ({ kitchen: kitchen(), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], avoid: meatsWith('never'), ...extra });
+// Réglages → « Mes viandes et poissons » : j'adore (plus souvent dans les plats), ça va, jamais.
+function meatPrefsField() {
+  const diet = state.settings.diet ?? 'tout';
+  if (['vegetarien', 'vegan'].includes(diet)) return '';
+  const keys = Object.keys(MEATS).filter((k) => k !== 'porc' || !['sans-porc', 'halal'].includes(diet));
+  const prefs = state.settings.meatPrefs ?? {};
+  const levels = [['love', '❤️ J\'adore'], ['ok', 'Ça va'], ['never', 'Jamais']];
+  return `<div class="field"><span>Mes viandes et poissons</span>
+    <ul class="items meat-prefs">${keys.map((k) => `<li><span class="name">${esc(MEATS[k])}</span>
+      <div class="seg small" role="group" aria-label="${esc(MEATS[k])}">${levels.map(([v, l]) => `<button data-action="meat-pref" data-id="${esc(k)}" data-val="${v}" aria-pressed="${(prefs[k] ?? 'ok') === v}">${l}</button>`).join('')}</div></li>`).join('')}</ul>
+    <span class="tiny muted">« J'adore » : environ 2 plats sur 3 avec viande ou poisson en contiendront. « Jamais » : plus aucun plat avec.</span></div>`;
+}
+// Viandes et poissons par préférence (Réglages → Mes viandes) : 'love', 'never' (sinon « ça va »).
+const meatsWith = (level) => Object.entries(state.settings.meatPrefs ?? {}).filter(([k, v]) => v === level && MEATS[k]).map(([k]) => k);
 
 // Ajoute une part de paquet à la liste : on n'ajoute un paquet que quand
 // le précédent est entamé (deux recettes à 250 g de pâtes = un paquet de 1 kg).
@@ -1455,7 +1469,7 @@ function proposeDishes(profile, exclude = [], target = dishTarget({ ...DEFAULT_P
   const pr = { ...DEFAULT_PROFILE, ...profile };
   exclude = [...exclude, ...(smartSettings().disliked ?? [])]; // plats écartés (« pas pour moi »)
   const filters = recipeFilters({ maxTime: pr.time });
-  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target });
+  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target, loves: meatsWith('love') });
   const desserts = RECIPES.filter((r) => r.type === 'dessert' && !exclude.includes(r.id) && compatible(r, filters))
     .sort((a, b) => dishCost(a) - dishCost(b)).slice(0, Number(pr.dessert) || 0).map((r) => r.id);
   return [...ids, ...desserts].map((id) => ({ id, servings: recipeById(id).type === 'dessert' ? pr.people : servingsFor(pr) }));
@@ -1579,8 +1593,8 @@ function viewSmart() {
           ${sm.dishes.length ? '<button class="btn ghost small" data-action="smart-step" data-val="review">Vérifier les plats</button>' : ''}
           ${sm.disliked?.length ? `<span class="tiny muted">${sm.disliked.length} plat${sm.disliked.length > 1 ? 's' : ''} écarté${sm.disliked.length > 1 ? 's' : ''} · <button class="link" data-action="dislike-reset">tout remettre</button></span>` : ''}`
         : '<span class="small">Réponds à quelques questions : je compose un panier avec des plats adaptés à ta cuisine.</span>'}
-      <div class="row" style="gap:8px"><button class="btn soft grow" data-action="quiz" data-val="simple">${prof ? 'Refaire · ' : ''}Simple · 5 questions</button>
-        <button class="btn soft grow" data-action="quiz" data-val="complet">Complet · 20 questions</button></div></div>`;
+      <div class="row" style="gap:8px"><button class="btn soft grow" data-action="quiz" data-val="simple">${prof ? 'Refaire · ' : ''}Simple · ${questionsFor('simple', { diet: state.settings.diet ?? 'tout' }).length} questions</button>
+        <button class="btn soft grow" data-action="quiz" data-val="complet">Complet · ${questionsFor('complet', { diet: state.settings.diet ?? 'tout' }).length} questions</button></div></div>`;
   return `
     <button class="btn ghost small" data-action="smart-close">← Ma liste</button>
     <h1>Panier malin</h1>
@@ -1659,12 +1673,12 @@ function applySmart() {
 function startQuiz(mode) {
   loadMoreRecipes();
   const sm = smartSettings();
-  const answers = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}), kitchen: Object.keys(kitchen()).filter((k) => kitchen()[k]), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [] };
+  const answers = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}), kitchen: Object.keys(kitchen()).filter((k) => kitchen()[k]), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], loves: meatsWith('love') };
   quiz = { mode, i: 0, answers };
 }
 
 function viewQuiz() {
-  const qs = questionsFor(quiz.mode);
+  const qs = questionsFor(quiz.mode, quiz.answers);
   const q = qs[quiz.i];
   const val = quiz.answers[q.id];
   const on = (o) => (q.type === 'many' ? (val ?? []).map(String).includes(String(o.value)) : String(val) === String(o.value));
@@ -1675,7 +1689,7 @@ function viewQuiz() {
       <div class="progress"><span style="width:${((quiz.i + 1) / qs.length) * 100}%"></span></div>
       <span class="plan-name" style="font-size:1.25rem">${esc(q.text)}</span>
     </section>
-    <div class="quiz-options">${q.options.map((o) => `<button class="quiz-opt" data-action="quiz-pick" data-val="${esc(o.value)}" aria-pressed="${on(o)}">${esc(o.label)}</button>`).join('')}</div>
+    <div class="quiz-options">${optionsOf(q, quiz.answers).map((o) => `<button class="quiz-opt" data-action="quiz-pick" data-val="${esc(o.value)}" aria-pressed="${on(o)}">${esc(o.label)}</button>`).join('')}</div>
     ${q.type === 'many' ? '<p class="small muted">Plusieurs réponses possibles (ou aucune).</p>' : ''}
     <button class="btn primary lg block" data-action="quiz-next">${quiz.i + 1 < qs.length ? 'Suivant' : 'Composer mon panier'} ${icon('arrow')}</button>`;
 }
@@ -1685,6 +1699,8 @@ function finishQuiz() {
   const a = { ...quiz.answers };
   const mode = quiz.mode;
   quiz = null;
+  // Mode simple : cocher des viandes préférées = en manger souvent (la question n'est posée qu'en complet).
+  if (mode === 'simple' && a.loves?.some((k) => k !== 'poisson' && k !== 'fruits-mer')) a.meat = 'souvent';
   sm.profile = a;
   sm.budget = Number(a.budget) || sm.budget;
   if (mode === 'complet') {
@@ -1693,6 +1709,12 @@ function finishQuiz() {
     state.settings.allergies = a.allergies;
   }
   state.settings.diet = a.diet;
+  // Viandes préférées : « J'adore » pour celles cochées, les « Jamais » restent.
+  if (Array.isArray(a.loves)) {
+    const prefs = Object.fromEntries(Object.entries(state.settings.meatPrefs ?? {}).filter(([, v]) => v === 'never'));
+    for (const k of a.loves) prefs[k] = 'love';
+    state.settings.meatPrefs = prefs;
+  }
   sm.removed = {};
   sm.dishes = proposeDishes(a);
   sm.dishesAuto = true;
@@ -2609,6 +2631,7 @@ function viewSettings() {
         <span class="tiny muted">Choisis un type : l'app compare les œufs de ce type dans chaque magasin, au prix d'une boîte de 12.</span></label>
       <label class="field"><span>Mon alimentation</span><div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(s.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
         <span class="tiny muted">Halal : ni porc ni alcool dans les recettes, et la viande va sur la liste du boucher halal (le supermarché ne garde que les articles marqués halal).</span></label>
+      ${meatPrefsField()}
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
@@ -2701,7 +2724,7 @@ document.addEventListener('click', async (e) => {
     render();
     window.scrollTo({ top: 0 });
   } else if (a === 'quiz-pick') {
-    const q = questionsFor(quiz.mode)[quiz.i];
+    const q = questionsFor(quiz.mode, quiz.answers)[quiz.i];
     const v = q.options.find((o) => String(o.value) === b.dataset.val).value;
     if (q.type === 'many') {
       const cur = new Set((quiz.answers[q.id] ?? []).map(String));
@@ -2710,11 +2733,11 @@ document.addEventListener('click', async (e) => {
       render();
     } else {
       quiz.answers[q.id] = v;
-      if (quiz.i + 1 < questionsFor(quiz.mode).length) quiz.i++; else finishQuiz();
+      if (quiz.i + 1 < questionsFor(quiz.mode, quiz.answers).length) quiz.i++; else finishQuiz();
       render();
     }
   } else if (a === 'quiz-next') {
-    if (quiz.i + 1 < questionsFor(quiz.mode).length) { quiz.i++; render(); } else finishQuiz();
+    if (quiz.i + 1 < questionsFor(quiz.mode, quiz.answers).length) { quiz.i++; render(); } else finishQuiz();
   } else if (a === 'quiz-back') {
     if (quiz.i) quiz.i--; else quiz = null;
     render();
@@ -2726,6 +2749,15 @@ document.addEventListener('click', async (e) => {
     sm.dishesAuto = false; // choix à la main : un changement de budget ne les remplace plus
     sm.swapped = [...(sm.swapped ?? []), id].slice(-40);
     if (next && cur) Object.assign(cur, { id: next.id }); else toast('Pas d\'autre plat compatible');
+    save();
+    render();
+  } else if (a === 'meat-pref') {
+    const prefs = { ...(state.settings.meatPrefs ?? {}) };
+    if (b.dataset.val === 'ok') delete prefs[id]; else prefs[id] = b.dataset.val;
+    state.settings.meatPrefs = prefs;
+    // Les plats proposés suivent (sauf ceux choisis à la main).
+    const sm = smartSettings();
+    if (sm.profile && sm.dishesAuto !== false && sm.dishes.length) sm.dishes = proposeDishes(sm.profile);
     save();
     render();
   } else if (a === 'receipt') {
