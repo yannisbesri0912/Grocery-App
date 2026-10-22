@@ -1,13 +1,8 @@
-# Prix réels — 2026-10-22 09:25 UTC
+# Prix réels — 2026-10-22 19:27 UTC
 
-- **colruyt** : 68 produits au 2026-10-21
-- **colruyt** : catalogue complet de 9565 articles
-- **delhaize** : 60 produits au 2026-10-22
-- **delhaize** : catalogue complet de 14372 articles
-- **aldi** : 52 produits au 2026-10-22
-- **aldi** : catalogue complet de 2307 articles
-- **promos** : 13 promotions utiles
-- **même produit** : 828 articles identiques Colruyt / Delhaize
+- **colruyt** : 68 produits au 2026-10-22
+- **colruyt** : catalogue complet de 9568 articles
+- **même produit** : 826 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
 
@@ -29,7 +24,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Brocoli (500 g) | 0.99 € — Brocoli 1st 500g | 0.68 € 🏷️ — Delhaize brocoli 600 gr | 0.90 € — Brocoli 1 kg | — |
 | Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 0.99 € 🏷️ — Delhaize champignons coupé 450 gr | 2.96 € — Champignons blonds 2 x 250 g | — |
 | Avocats (2 pièces) | 0.98 € — BONI hass avocat 5st | — | 1.40 € — Avocats, 3 pcs 2 x 3 pcs, 3 pcs | — |
-| Pain gris tranché (800 g) | 0.99 € — EVERYDAY pain gris coupé 800g | 1.85 € — DELHAIZE Pain de campagne, gris, pré-emballé 800 gr | 0.99 € — DÉLIPAIN Pain gris 800 g | 0.93 € 🏷️ — Pain gris carré 850 g |
+| Pain gris tranché (800 g) | 0.99 € — Pain gris carré frais du jour 800g | 1.85 € — DELHAIZE Pain de campagne, gris, pré-emballé 800 gr | 0.99 € — DÉLIPAIN Pain gris 800 g | 0.93 € 🏷️ — Pain gris carré 850 g |
 | Baguette | 0.46 € — EVERYDAY 1/2 baguette blanc 4x150g | 0.46 € — DELHAIZE Baguette, blanc, 2 pièces 2 x 150 gr | 0.62 € — Baguette blanche Parisienne 400 g | — |
 | Pistolets (6) | — | — | — | — |
 | Corn flakes (500 g) | 0.89 € — EVERYDAY Cornflakes 750g | 0.92 € — DELHAIZE Céréales, corn flakes 2 x 375 gr | — | — |
@@ -58,7 +53,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Thé noir (20 sachets) | 0.50 € — BONI Earl Grey thé noir 25st | — | — | — |
 | Confiture de fraises (450 g) | 0.86 € — EVERYDAY confiture fraise 50% 700g | 1.09 € — DELHAIZE Confiture, fraises 450 gr | 0.87 € — GRANDESSA Confiture aux fraises 700 g | — |
 | Chocolat noir (200 g) | 1.32 € — BONI Choconimo chocolat noir 225g | 1.65 € — DELHAIZE Chocolat, noir 200 gr | 1.65 € — CHOCEUR Chocolat fondant 2 x 200 g | — |
-| Pois chiches (400 g) | 0.85 € — BONI PLAN'T pois chiches 200g | 1.19 € — LUENGO Pois chiches, cuit 570 gr | 1.19 € — TAGINE Pois chiches cuits 400 g | — |
+| Pois chiches (400 g) | 0.90 € — BONI PLAN'T pois chiches 200g | 1.19 € — LUENGO Pois chiches, cuit 570 gr | 1.19 € — TAGINE Pois chiches cuits 400 g | — |
 | Mayonnaise (500 ml) | 1.15 € — EVERYDAY mayonnaise avec œufs 500ml | 1.82 € — DELHAIZE Mayonnaise, oeufs 30 cl | 1.15 € — REGALO Mayonnaise aux œufs 500 ml | — |
 | Nutella (750 g) | 3.66 € — NUTELLA pâte à tartiner choco 1kg | 3.86 € — NUTELLA Pâte à tartiner, choco-noisettes 1 kg | 3.66 € — NUTELLA Pâte à tartiner aux noisettes 1 kg | — |
 | Biscuits (Lu / Délacre) | — | — | — | — |
@@ -82,7 +77,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Mouchoirs (boîte de 100) | 0.39 € — EVERYDAY mouchoirs box 2l 150st | 0.40 € — DELHAIZE Mouchoirs, boite, 2-plis 200 pc | 0.83 € — SUBLIMO Mouchoirs, 120 pcs par boîte | — |
 | Lessive liquide (40 lavages) | 3.19 € — EVERYDAY lessive white 45d 2,475L | 7.08 € 🏷️ — Coral Vloeib wasmiddel/ Optmal white/ 1.17L / 26D 26 st | 2.63 € — Lessive liquide 50 wasbeurten | — |
 | Liquide vaisselle (500 ml) | 0.43 € — ACTAE liquide vaisselle citron 1L | 0.89 € — DELHAIZE Liquide vaisselle, original 50 cl | 0.43 € — POWER FORCE Liquide vaisselle, 1L 1 l | — |
-| Tablettes lave-vaisselle (40) | 9.02 € 🏷️ — Dreft vaatwas tabs plat.citroen 39st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | 9.02 € 🏷️ — DREFT Vaatwastabs platinum all en 1 2 x 39 pièces |
+| Tablettes lave-vaisselle (40) | 16.12 € — FINISH QUANTUM vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | 9.02 € 🏷️ — DREFT Vaatwastabs platinum all en 1 2 x 39 pièces |
 | Sacs poubelle blancs (20) | — | — | — | — |
 | Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.44 € — VILEDA Eponges à récurer, slalom Universal, 3+1 4 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
 | Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, boeuf 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
