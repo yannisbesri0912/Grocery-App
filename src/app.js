@@ -14,6 +14,7 @@ import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
 import { isId, cleanProduct, cleanItem, cleanReceipt } from './validate.js';
 import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
+import { parsePlacard, matchPlacard, KEEPS_LONG } from './placard.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS } from './recipes.js';
@@ -70,6 +71,8 @@ function migrate(saved) {
   const h = saved.home;
   s.home = h && Number.isFinite(h.lat) && Number.isFinite(h.lng) ? { address: String(h.address ?? '').slice(0, 200), lat: h.lat, lng: h.lng } : null;
   s.receipts = arr(saved.receipts).slice(0, 150).map(cleanReceipt).filter(Boolean);
+  s.pantryOther = arr(saved.pantryOther).filter((x) => x && typeof x.name === 'string').slice(0, 300).map((x) => ({ name: x.name.slice(0, 80), qty: String(x.qty ?? '').slice(0, 30) }));
+  s.pantryNames = Object.fromEntries(Object.entries(obj(saved.pantryNames)).filter(([k, v]) => isId(k) && Array.isArray(v)).map(([k, v]) => [k, v.filter((x) => typeof x === 'string').slice(0, 10).map((x) => x.slice(0, 80))]));
   s.overrides = obj(saved.overrides);
   s.chainIndex = obj(saved.chainIndex);
   for (const k of ['valueOfTime', 'minutesPerStore', 'radiusKm', 'detour', 'servings']) {
@@ -1291,7 +1294,8 @@ function haveIng(i) {
   if (i.pantry) return v !== 'missing';
   if (typeof v !== 'string' || v === 'missing') return false;
   const until = state.pantryUntil?.[i.key];
-  return until ? until >= today() : (Date.now() - new Date(v).getTime()) / DAY <= 10;
+  // Riz, pâtes, conserves… : au placard jusqu'à « Fini » ; le frais compte 10 jours.
+  return until ? until >= today() : KEEPS_LONG.has(i.key) || (Date.now() - new Date(v).getTime()) / DAY <= 10;
 }
 // Ingrédient de recette ↔ produit de l'app (pour remplir le placard après les courses).
 const ING_OF_PRODUCT = Object.fromEntries(Object.entries(ING).filter(([, d]) => d.p).map(([k, d]) => [d.p, k]));
@@ -1439,7 +1443,7 @@ function dishItems(chain = smartShop()) {
   const need = {};
   return smartSettings().dishes.map((d) => ({ d, r: recipeById(d.id) })).filter((x) => x.r).map(({ d, r }) => {
     let price = 0;
-    for (const i of r.ingredients.filter((x) => !x.pantry)) {
+    for (const i of r.ingredients.filter((x) => !x.pantry && !haveIng(x))) { // déjà au placard : rien à acheter
       const res = resolveIng(i.key, chain);
       const before = Math.ceil((need[i.key] ?? 0) - 1e-6);
       need[i.key] = (need[i.key] ?? 0) + (i.amount * d.servings) / res.pack;
@@ -1811,6 +1815,52 @@ function promoMenuCard() {
 }
 
 // ---------- Mon placard (anti-gaspi) ----------
+// Liste collée (JSON ou une ligne par produit) → placard. Ce que les recettes
+// connaissent devient un ingrédient « j'ai » ; le reste est gardé à part.
+function importPlacard(text) {
+  const items = parsePlacard(text);
+  if (!items.length) { toast('Liste vide ou illisible'); return; }
+  const labels = { ING: Object.fromEntries(Object.keys(ING).filter((k) => !ING[k].pantry).map((k) => [k, ingName(k)])), PANTRY: { ...PANTRY_LABELS, epices: 'épices' } };
+  state.pantry ??= {};
+  state.pantryNames ??= {};
+  state.pantryOther ??= [];
+  let ing = 0, spices = 0, other = 0;
+  for (const it of items) {
+    const m = matchPlacard(it.name, labels);
+    if (m?.pantry) { if (state.pantry[m.key] === 'missing') delete state.pantry[m.key]; spices++; continue; }
+    if (m) {
+      state.pantry[m.key] = today();
+      delete state.pantryUntil?.[m.key];
+      const label = `${it.name}${it.qty ? ` (${it.qty})` : ''}`;
+      state.pantryNames[m.key] = [...new Set([...(state.pantryNames[m.key] ?? []), label])].slice(-10);
+      ing++;
+      continue;
+    }
+    const prev = state.pantryOther.find((x) => norm(x.name) === norm(it.name));
+    if (prev) prev.qty = it.qty || prev.qty; else state.pantryOther.push({ name: it.name, qty: it.qty });
+    other++;
+  }
+  placardOpen = true;
+  save();
+  render();
+  toast(`${ing} produit${ing > 1 ? 's' : ''} pour les recettes · ${spices} épice${spices > 1 ? 's' : ''} et condiments · ${other} autre${other > 1 ? 's' : ''}`);
+}
+function placardImportDialog() {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Importer mon placard">
+    <div class="row"><b class="grow">Importer mon placard</b><button class="btn ghost small" data-p="close" aria-label="Fermer">${icon('x')}</button></div>
+    <p class="small muted">Colle ta liste : une ligne par produit (« 3 paquets de spaghettis »), ou une liste JSON avec « nom », « quantite », « unite ».</p>
+    <textarea id="placard-text" rows="9" placeholder="Riz basmati&#10;3 paquets de spaghettis&#10;Thon en conserve"></textarea>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-p="close">Annuler</button><button class="btn primary" data-p="ok">Importer</button></div></div>`;
+  document.body.append(wrap);
+  wrap.querySelector('textarea').focus();
+  wrap.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-p]');
+    if (e.target === wrap || b?.dataset.p === 'close') { wrap.remove(); return; }
+    if (b?.dataset.p === 'ok') { const t = wrap.querySelector('textarea').value; wrap.remove(); importPlacard(t); }
+  });
+}
 let placardOpen = false;
 document.addEventListener('toggle', (e) => { if (e.target.matches?.('details.placard')) placardOpen = e.target.open; }, true);
 function placardCard() {
@@ -1821,15 +1871,23 @@ function placardCard() {
   const ideas = soon.length ? RECIPES.filter((r) => compatible(r, recipeFilters()) && r.ingredients.some((i) => soon.includes(i.key)))
     .map((r) => ({ r, n: r.ingredients.filter((i) => keys.includes(i.key)).length })).sort((a, b) => b.n - a.n).slice(0, 4) : [];
   const names = Object.entries(ING).filter(([, d]) => !d.pantry).map(([k]) => ingName(k)).sort((a, b) => a.localeCompare(b, 'fr'));
+  // Plats qui utilisent le plus ce que tu as (et à qui il manque le moins).
+  const cookable = keys.length >= 2 ? RECIPES.filter((r) => r.type === 'plat' && compatible(r, recipeFilters()))
+    .map((r) => { const b = r.ingredients.filter((i) => !i.pantry); const have = b.filter((i) => haveIng(i)).length; return { r, have, miss: b.length - have }; })
+    .filter((x) => x.have >= 2 || (x.have >= 1 && x.miss <= 1)).sort((a, b) => (b.have - b.miss) - (a.have - a.miss) || a.miss - b.miss).slice(0, 6) : [];
   return `<details class="card placard" ${placardOpen ? 'open' : ''}>
-    <summary><b>🏠 Mon placard</b> <span class="small muted">${keys.length ? `${keys.length} produit${keys.length > 1 ? 's' : ''}` : 'vide'}${soon.length ? ` · <span class="warn-text">${soon.length} à finir vite</span>` : ''}</span></summary>
+    <summary><b>🏠 Mon placard</b> <span class="small muted">${keys.length + (state.pantryOther ?? []).length ? `${keys.length + (state.pantryOther ?? []).length} produit${keys.length + (state.pantryOther ?? []).length > 1 ? 's' : ''}` : 'vide'}${soon.length ? ` · <span class="warn-text">${soon.length} à finir vite</span>` : ''}</span></summary>
     <p class="small muted">Ce que tu as déjà : rempli tout seul quand tu valides « Courses faites », ou à la main. Les recettes n'ajoutent pas ce que tu as.</p>
     <div class="row" style="gap:8px"><input id="placard-add" list="ing-names" placeholder="Ajouter (ex. œufs, riz…)" autocomplete="off" style="flex:1;min-width:0"><button class="btn soft small" data-action="placard-add">Ajouter</button></div>
+    <button class="btn ghost small" data-action="placard-import">${icon('copy')} Importer une liste (coller)</button>
     <datalist id="ing-names">${names.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
     ${keys.length ? `<ul class="items">${keys.sort((a, b) => (until[a] ?? '9') .localeCompare(until[b] ?? '9')).map((k) => `<li class="${soon.includes(k) ? 'soon' : ''}">
-      <span class="name">${esc(ingName(k))}<span class="sub">depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}${until[k] ? ` · à consommer avant le ${dateFr(until[k])}` : ''}</span></span>
+      <span class="name">${esc(ingName(k))}<span class="sub">${state.pantryNames?.[k]?.length ? `${esc(state.pantryNames[k].join(', '))} · ` : ''}depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}${until[k] ? ` · à consommer avant le ${dateFr(until[k])}` : ''}</span></span>
       <input type="date" class="placard-date" data-until="${esc(k)}" value="${esc(until[k] ?? '')}" aria-label="Date limite ${esc(ingName(k))}">
       <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
+    ${(state.pantryOther ?? []).length ? `<span class="eyebrow">Autres produits</span><p class="tiny muted">Pas utilisés par les recettes de l'app (soupes, sauces prêtes, mélanges…), gardés pour mémoire.</p>
+      <ul class="items">${state.pantryOther.map((x, i) => `<li><span class="name">${esc(x.name)}${x.qty ? `<span class="sub">${esc(x.qty)}</span>` : ''}</span><button class="btn ghost small" data-action="placard-other-remove" data-i="${i}">Fini</button></li>`).join('')}</ul>` : ''}
+    ${cookable.length ? `<p class="small"><b>Avec ce que tu as :</b></p><div class="chips wrap">${cookable.map(({ r, miss }) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}<span class="muted"> · ${miss ? `il manque ${miss}` : 'tout est là'}</span></button>`).join('')}</div>` : ''}
     ${ideas.length ? `<p class="small"><b>À finir vite :</b> ${esc(soon.map(ingName).join(', '))}. Idées :</p><div class="chips wrap">${ideas.map(({ r }) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div>` : ''}
   </details>`;
 }
@@ -2884,9 +2942,16 @@ document.addEventListener('click', async (e) => {
     state.pantry = { ...(state.pantry ?? {}), [k]: today() };
     save();
     render();
+  } else if (a === 'placard-import') {
+    placardImportDialog();
+  } else if (a === 'placard-other-remove') {
+    state.pantryOther = (state.pantryOther ?? []).filter((_, i) => i !== Number(b.dataset.i));
+    save();
+    render();
   } else if (a === 'placard-remove') {
     delete state.pantry?.[b.dataset.key];
     delete state.pantryUntil?.[b.dataset.key];
+    delete state.pantryNames?.[b.dataset.key];
     save();
     render();
   } else if (a === 'promo-hide') {
@@ -3273,7 +3338,19 @@ if (state.custom.some(isArticle) || EGGS[state.settings.eggs]?.re) loadCatalog()
   const shared = readShared(location.hash);
   if (shared) importShared(shared);
 }
-window.addEventListener('hashchange', () => { const sh = readShared(location.hash); if (sh) importShared(sh); });
+window.addEventListener('hashchange', () => { const sh = readShared(location.hash); if (sh) importShared(sh); placardFromHash(); });
+// Lien « …#placard=… » : la liste du placard voyage dans le lien (jamais envoyée au serveur).
+function placardFromHash() {
+  const m = location.hash.match(/[#&]placard=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const text = new TextDecoder().decode(Uint8Array.from(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
+    setTab('plats');
+    importPlacard(text);
+  } catch { toast('Lien de placard illisible'); }
+}
+placardFromHash();
 
 // Catalogues préchargés quand le téléphone est libre : première recherche immédiate,
 // et tout reste utilisable sans réseau en magasin (gardés par sw.js).

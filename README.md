@@ -118,6 +118,15 @@ autres plats ont une icône.
 suite) ou *Vérifier les plats* : « Pas pour moi » écarte un plat pour de bon et le remplace par un
 autre du même genre (viande, poisson, végé) dans le budget.
 
+## Mon placard
+
+Plats → **Mon placard** : ce que tu as déjà. Rempli par « Courses faites », à la main, ou en
+**collant une liste** (une ligne par produit, ou JSON avec `nom`, `quantite`, `unite`) ; un lien
+`…#placard=…` fait la même chose. Les produits connus des recettes (riz, pâtes, thon…) ne sont plus
+achetés pour un plat ni comptés dans le prix du panier malin ; riz, pâtes et conserves restent au
+placard jusqu'à « Fini ». Le reste (soupes, sauces prêtes, mélanges) est gardé à part. L'app propose
+les plats qui utilisent le plus ce que tu as (`src/placard.js`).
+
 ## Reçus et dépenses
 
 Chaque « Courses faites » (et chaque ticket scanné) garde un **reçu** : Budget → **Mes reçus**.
