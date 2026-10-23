@@ -1,12 +1,7 @@
-# Prix réels — 2026-10-23 09:21 UTC
+# Prix réels — 2026-10-23 19:32 UTC
 
-- **colruyt** : 68 produits au 2026-10-22
-- **colruyt** : catalogue complet de 9568 articles
-- **delhaize** : 60 produits au 2026-10-23
-- **delhaize** : catalogue complet de 14368 articles
-- **aldi** : 52 produits au 2026-10-23
-- **aldi** : catalogue complet de 2294 articles
-- **promos** : 17 promotions utiles
+- **colruyt** : 68 produits au 2026-10-23
+- **colruyt** : catalogue complet de 9578 articles
 - **même produit** : 826 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
@@ -15,9 +10,9 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 |---|---|---|---|---|
 | Bananes (1 kg) | 1.13 € — EVERYDAY bananes ±1kg | 1.29 € — DELHAIZE Bananes 1 kg | — | — |
 | Pommes Jonagold (1 kg) | 1.70 € — BONI pomme jonagold 6st | 1.21 € 🏷️ — Delhaize Jonagold / 6ST 900 gr | — | 2.44 € 🏷️ — Rubis gold-pommes 2 x 1 kg |
-| Oranges à jus (2 kg) | 2.66 € — EVERYDAY orange / à presser 4kg | 3.59 € — DELHAIZE Oranges, de table 2 kg | — | — |
+| Oranges à jus (2 kg) | 2.00 € — BONI oranges | 3.59 € — DELHAIZE Oranges, de table 2 kg | — | — |
 | Citrons (500 g) | 0.94 € — BONI citrons 1kg | 1.05 € — DELHAIZE Citrons 1 kg | — | — |
-| Tomates (1 kg) | 1.29 € — Tomates extra | 5.78 € — DELHAIZE Tomates, san Marzano 500 gr | 5.00 € — Tomates bonbons 500 g | — |
+| Tomates (1 kg) | 1.97 € — trostomaten | 5.78 € — DELHAIZE Tomates, san Marzano 500 gr | 5.00 € — Tomates bonbons 500 g | — |
 | Concombre | 0.89 € — Concombre | 0.99 € — DELHAIZE Concombre 1 pc | — | — |
 | Salade (laitue) | 0.98 € — Salade uit serre 1st | 1.09 € — DELHAIZE Laitue pommée, racines 1 pc | — | — |
 | Carottes (1 kg) | 0.72 € — EVERYDAY carottes 2kg | 1.49 € — DELHAIZE Carottes 1 kg | — | — |
@@ -25,7 +20,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Ail (250 g) | 1.34 € — EVERYDAY ail 250g | 1.49 € — DELHAIZE Ail, filet 250 gr | — | — |
 | Pommes de terre (2,5 kg) | 2.38 € — Pommes de terre matig vastkokend | 4.74 € — DELHAIZE Pommes de terre, farineuses, primeur 2 kg | — | — |
 | Courgettes (1 kg) | 3.49 € — Ronde Courgettes (los) | 4.55 € 🏷️ — Delhaize Stoomzakje / courgette / suikererwt 2 x 200 gr | — | — |
-| Poivrons (500 g) | 1.48 € — Poivron rouge | 1.28 € 🏷️ — Delhaize poivron / cubes 600 gr | 1.43 € — Poivrons pointus 2 x 500 g | — |
+| Poivrons (500 g) | 1.35 € — Poivron rouge | 1.28 € 🏷️ — Delhaize poivron / cubes 600 gr | 1.43 € — Poivrons pointus 2 x 500 g | — |
 | Brocoli (500 g) | 0.99 € — Brocoli 1st 500g | 0.68 € 🏷️ — Delhaize brocoli 600 gr | 0.90 € — Brocoli 1 kg | — |
 | Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 0.99 € 🏷️ — Delhaize champignons coupé 450 gr | 2.96 € — Champignons blonds 2 x 250 g | — |
 | Avocats (2 pièces) | 0.98 € — BONI hass avocat 5st | — | 1.40 € — Avocats, 3 pcs 2 x 3 pcs, 3 pcs | — |
@@ -73,16 +68,16 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Coca-Cola (6×33 cl) | 2.96 € — COCA-COLA Regular Original Taste 2L | 5.08 € — COCA-COLA Original taste, canette 15 x 33 cl | 2.96 € — COCA-COLA Coca-Cola regular 2 l | — |
 | Bière Jupiler (24×25 cl) | 14.69 € — JUPILER pils 5,2% casier 24x33cl | 13.43 € 🏷️ — Jupiler Blond bière / pils / 5,2% alc. / en boîte 8 x 50 cl | 16.18 € — JUPILER Pils, 8 pcs 8 x 50 cl | — |
 | Vin rouge (75 cl) | — | — | — | — |
-| Papier toilette (12 rouleaux) | 2.13 € 🏷️ — Nalys papier toilette Soft 2l 130v 24r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
+| Papier toilette (12 rouleaux) | 3.20 € 🏷️ — NALYS papier toilette Soft 2l 130v 24r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
 | Essuie-tout (4 rouleaux) | 2.72 € — BONI essuie-tout classic 3l 64v 6r | 2.85 € — DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc | — | — |
 | Dentifrice | 0.35 € — BONI dentifrice coolmint 125ml | 2.15 € 🏷️ — Oral-B dentifrice / Professional protection 7,5 cl | 0.35 € — DENTITEX Dentifrice 125 ml | — |
-| Gel douche (250 ml) | 0.60 € — BONI gel douche noir 500ml | 1.71 € — TAHITI Gel douche, coco 31,5 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
+| Gel douche (250 ml) | 0.60 € — EVERYDAY gel douche Marine 300ml | 1.71 € — TAHITI Gel douche, coco 31,5 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
 | Shampoing (300 ml) | 0.29 € — EVERYDAY shampoo oranjebloesem 500ml | 4.34 € — NIVEA Shampoing, care Express, 2en1, 400ML 40 cl | 0.30 € — LACURA Shampoing, 750 ml | — |
 | Déodorant | 1.19 € — BONI deo Woman fris gevoel 200ml | 2.59 € — FA Deo, divine Moments 15 cl | 1.19 € — LACURA Déodorant 200 ml | — |
 | Mouchoirs (boîte de 100) | 0.39 € — EVERYDAY mouchoirs box 2l 150st | 0.40 € — DELHAIZE Mouchoirs, boite, 2-plis 200 pc | 0.83 € — SUBLIMO Mouchoirs, 120 pcs par boîte | — |
 | Lessive liquide (40 lavages) | 3.19 € — EVERYDAY lessive white 45d 2,475L | 7.08 € 🏷️ — Coral Vloeib wasmiddel/ Optmal white/ 1.17L / 26D 26 st | 2.63 € — Lessive liquide 50 wasbeurten | — |
 | Liquide vaisselle (500 ml) | 0.43 € — ACTAE liquide vaisselle citron 1L | 0.89 € — DELHAIZE Liquide vaisselle, original 50 cl | 0.43 € — POWER FORCE Liquide vaisselle, 1L 1 l | — |
-| Tablettes lave-vaisselle (40) | 9.02 € 🏷️ — Dreft vaatwas tabs plat.citroen 39st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | 9.02 € 🏷️ — DREFT Vaatwastabs platinum all en 1 2 x 39 pièces |
+| Tablettes lave-vaisselle (40) | 16.12 € — FINISH QUANTUM vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | 9.02 € 🏷️ — DREFT Vaatwastabs platinum all en 1 2 x 39 pièces |
 | Sacs poubelle blancs (20) | — | — | — | — |
 | Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.44 € — VILEDA Eponges à récurer, slalom Universal, 3+1 4 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
 | Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, poulet 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
