@@ -13,13 +13,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Sondage livres de cuisine
-        run: node prices/probe-cookbooks.mjs
+      - name: Livre de cuisine (Wikilivres)
+        run: node prices/fetch-wikilivres.mjs
       - name: Enregistrer
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data-raw
-          git commit -m "Relevé brut (sondage livres de cuisine)" || exit 0
+          git commit -m "Relevé brut (Livre de cuisine)" || exit 0
           git pull --rebase -q origin data-raw || true
           git push
