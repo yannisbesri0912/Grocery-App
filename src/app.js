@@ -71,6 +71,8 @@ function migrate(saved) {
   const h = saved.home;
   s.home = h && Number.isFinite(h.lat) && Number.isFinite(h.lng) ? { address: String(h.address ?? '').slice(0, 200), lat: h.lat, lng: h.lng } : null;
   s.receipts = arr(saved.receipts).slice(0, 150).map(cleanReceipt).filter(Boolean);
+  s.saved = arr(saved.saved).filter((x) => x && isId(x.id)).slice(0, 100).map((x) => ({ id: x.id, at: typeof x.at === 'string' ? x.at.slice(0, 10) : '' }));
+  s.menu = arr(saved.menu).filter((x) => x && isId(x.id)).slice(-30).map((x) => ({ id: x.id, servings: Number(x.servings) > 0 ? Math.min(20, Number(x.servings)) : 1 }));
   s.pantryOther = arr(saved.pantryOther).filter((x) => x && typeof x.name === 'string').slice(0, 300).map((x) => ({ name: x.name.slice(0, 80), qty: String(x.qty ?? '').slice(0, 30) }));
   s.pantryNames = Object.fromEntries(Object.entries(obj(saved.pantryNames)).filter(([k, v]) => isId(k) && Array.isArray(v)).map(([k, v]) => [k, v.filter((x) => typeof x === 'string').slice(0, 10).map((x) => x.slice(0, 80))]));
   s.overrides = obj(saved.overrides);
@@ -1537,7 +1539,7 @@ function viewSmartReview(sm) {
       <div class="stack" style="gap:2px"><b>${esc(r.name)}</b><span class="small muted">${r.minutes} min · ${d.servings} portion${d.servings > 1 ? 's' : ''} · ≈ ${eur(dishCost(r))}/pers.</span>
         <span class="small">${esc(ings(r))}</span></div>
       <div class="row" style="gap:6px"><button class="btn soft small grow" data-action="dish-dislike" data-id="${esc(r.id)}">👎 Pas pour moi</button>
-        <button class="btn ghost small" data-action="dish-swap" data-id="${esc(r.id)}">Autre idée</button></div>
+        <button class="btn ghost small" data-action="dish-swap" data-id="${esc(r.id)}">Autre idée</button>${heartBtn(r)}</div>
     </div>`).join('')}</div>
     <button class="btn primary lg block" data-action="smart-step" data-val="">${icon('check')} C'est bon, voir mon panier</button>`;
 }
@@ -1586,7 +1588,7 @@ function viewSmart() {
         ${dishVisual(it.dish)}<span class="name grow">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
         <b class="num">${eur(it.options[0].price)}</b></div>
       <div class="row" style="gap:6px;justify-content:flex-end">
-        <button class="btn soft small" data-action="dish-swap" data-id="${esc(it.dish.id)}">Changer</button>
+        ${heartBtn(it.dish)}<button class="btn soft small" data-action="dish-swap" data-id="${esc(it.dish.id)}">Changer</button>
         <button class="btn ghost small" data-action="recipe-open" data-id="${esc(it.dish.id)}">Recette</button>
         <button class="icon-btn" data-action="dish-remove" data-id="${esc(it.dish.id)}" aria-label="Retirer">${icon('x')}</button></div></li>`;
   };
@@ -1794,6 +1796,47 @@ function promoMenu(chain, n = 5) {
   }
   return picked;
 }
+// ---------- Mon menu et plats gardés ----------
+// Carte de plat (menus, plats gardés) : photo, nom, infos ; toucher ouvre la recette.
+function dishTile(r, { sub = '', actions = '' } = {}) {
+  return `<div class="dish-tile">
+    <button class="tile-open" data-action="recipe-open" data-id="${esc(r.id)}">${dishVisual(r, 'md')}<b>${esc(r.name)}</b><span class="small muted">${sub}</span></button>
+    ${actions ? `<div class="tile-actions">${actions}</div>` : ''}</div>`;
+}
+const isSaved = (id) => (state.saved ?? []).some((x) => x.id === id);
+const heartBtn = (r, label = false) => {
+  const on = isSaved(r.id);
+  return `<button class="${label ? 'btn soft small' : 'icon-btn'} heart${on ? ' on' : ''}" data-action="dish-save" data-id="${esc(r.id)}" aria-pressed="${on}" aria-label="${on ? 'Retirer de mes plats gardés' : 'Garder ce plat'}">${on ? '❤️' : '🤍'}${label ? (on ? ' Gardé' : ' Garder ce plat') : ''}</button>`;
+};
+const servingsNow = () => state.settings.servings ?? smartSettings().profile?.people ?? 1;
+
+// Plats ajoutés à la liste : ce qu'on va cuisiner (un plat ajouté deux fois n'apparaît qu'une fois).
+function myMenuCard() {
+  const byId = new Map();
+  for (const m of state.menu ?? []) { const r = recipeById(m.id); if (r) byId.set(m.id, { r, servings: (byId.get(m.id)?.servings ?? 0) + (m.servings ?? 1) }); }
+  const list = [...byId.values()].reverse();
+  if (!list.length) return '';
+  return `<div class="card">
+    <div class="section-head"><h2>🍽️ Mon menu <span class="pill">${list.length}</span></h2><button class="btn ghost small" data-action="menu-clear">Tout effacer</button></div>
+    <p class="small muted">Les plats dont les ingrédients sont dans ta liste. Touche « Cuisiné » quand c'est fait.</p>
+    <div class="tiles">${list.map(({ r, servings }) => dishTile(r, {
+      sub: `${servings} pers. · ${r.minutes} min`,
+      actions: `<button class="btn soft small" data-action="menu-done" data-id="${esc(r.id)}">${icon('check')} Cuisiné</button>${heartBtn(r)}`,
+    })).join('')}</div></div>`;
+}
+
+// Plats gardés (❤️) : à refaire plus tard, sans acheter tout de suite.
+function savedCard() {
+  const list = (state.saved ?? []).map((x) => recipeById(x.id)).filter(Boolean);
+  if (!list.length) return `<p class="small muted saved-hint">❤️ Touche 🤍 sur un plat pour le garder ici et le retrouver en un geste.</p>`;
+  return `<div class="card">
+    <div class="section-head"><h2>❤️ Mes plats gardés <span class="pill">${list.length}</span></h2>${list.length > 1 ? `<button class="btn ghost small" data-action="saved-add-all">Tout ajouter</button>` : ''}</div>
+    <div class="tiles">${list.map((r) => dishTile(r, {
+      sub: `≈ ${eur(dishCost(r))} / pers. · ${r.minutes} min`,
+      actions: `<button class="btn primary small" data-action="dish-add" data-id="${esc(r.id)}">${icon('plus')} Ma liste</button>${heartBtn(r)}`,
+    })).join('')}</div></div>`;
+}
+
 function promoMenuCard() {
   if (!CATALOG) return '';
   const chain = smartShop();
@@ -1808,8 +1851,10 @@ function promoMenuCard() {
     <div class="section-head"><h2>🏷️ Menu de la semaine en promo</h2></div>
     <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${esc(c)}" aria-pressed="${chain === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
     <p class="small muted">${menu.length} plats dont des ingrédients sont en promo cette semaine chez ${esc(CHAINS[chain].name)}${chain === 'delhaize' && !hasCard('delhaize') ? ' (sans les promos carte Plus : coche-la dans Réglages si tu l\'as)' : ''}.</p>
-    <ul class="items">${menu.map((x) => `<li>${dishVisual(x.r)}<span class="name"><button class="link-plain" data-action="recipe-open" data-id="${esc(x.r.id)}">${esc(x.r.name)}</button>
-      <span class="sub deal">${esc(x.promos.slice(0, 3).join(' · '))}</span></span><span class="num">≈ ${eur(x.cost)}<span class="sub">/ pers.</span></span></li>`).join('')}</ul>
+    <div class="tiles">${menu.map((x) => dishTile(x.r, {
+      sub: `<b class="num">≈ ${eur(x.cost)}</b> / pers.<span class="deal tile-deal">${esc(x.promos.slice(0, 2).join(' · '))}</span>`,
+      actions: heartBtn(x.r),
+    })).join('')}</div>
     <button class="btn primary block" data-action="promo-menu-add">${icon('cart')} Ajouter ce menu (${people} pers.) · ≈ ${eur(total)}${saved >= 0.5 ? `, dont −${eur(saved)} de promos` : ''}</button>
   </div>`;
 }
@@ -1945,13 +1990,12 @@ function viewPlats() {
   const all = RECIPES.filter((r) => r.type === recipeType && (!q || norm(r.name).includes(q) || r.ingredients.some((i) => norm(ingName(i.key)).includes(q))));
   const ok = all.filter((r) => compatible(r, filters) && styles.every((st) => (st === 'pascher' ? dishCost(r) <= 2 : STYLES[st]?.test(r) ?? true)))
     .sort((a, b) => dishCost(a) - dishCost(b));
-  const menu = (state.menu ?? []).map((m) => recipeById(m.id)).filter(Boolean);
   return `
     <h1>Plats</h1>
+    ${myMenuCard()}
+    ${savedCard()}
     ${placardCard()}
     ${promoMenuCard()}
-    ${menu.length ? `<div class="card"><div class="section-head"><span class="eyebrow">Ajoutés à ta liste</span><button class="btn ghost small" data-action="menu-clear">Effacer</button></div>
-      <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
     <div class="card">
       <span class="eyebrow">Ma cuisine</span>
       <div class="chips wrap">${Object.entries(TOOLS).map(([t, label]) => `<button class="chip" data-action="kitchen" data-val="${esc(t)}" aria-pressed="${Boolean(k[t])}">${k[t] ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
@@ -1993,7 +2037,7 @@ function viewRecipe(r) {
   return `
     <button class="btn ghost small" data-action="recipe-back">← Plats</button>
     ${dishVisual(r, 'lg')}
-    <h1>${esc(r.name)}</h1>
+    <div class="row" style="align-items:flex-start;gap:10px"><h1 class="grow">${esc(r.name)}</h1>${heartBtn(r, true)}</div>
     <p class="small muted">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'} · ≈ ${proteinOf(r)} g de protéines par personne</p>
     ${missing.length ? `<div class="banner warn-banner">⚠️<span class="small">Il te faut : ${esc(missing.join(', '))}.</span></div>` : ''}
     <div class="card">
@@ -2901,7 +2945,33 @@ document.addEventListener('click', async (e) => {
     toast(`Ingrédients de « ${r.name} » ajoutés à ta liste`);
     recipeOpen = null;
     render();
+  } else if (a === 'dish-save') {
+    const on = isSaved(id);
+    state.saved = on ? state.saved.filter((x) => x.id !== id) : [{ id, at: today() }, ...(state.saved ?? [])].slice(0, 100);
+    save();
+    toast(on ? 'Retiré de tes plats gardés' : 'Gardé ❤️ (Plats → Mes plats gardés)');
+    render();
+  } else if (a === 'dish-add') {
+    const r = recipeById(id);
+    if (!r) return;
+    addDish(r, servingsNow());
+    save();
+    toast(`« ${r.name} » : ingrédients dans ta liste`);
+    render();
+  } else if (a === 'saved-add-all') {
+    const list = (state.saved ?? []).map((x) => recipeById(x.id)).filter(Boolean);
+    if (!(await ask(`Ajouter les ingrédients de ${list.length} plats à ta liste (${servingsNow()} pers.) ?`, { ok: 'Ajouter' }))) return;
+    for (const r of list) addDish(r, servingsNow());
+    save();
+    toast(`${list.length} plats dans ta liste`);
+    render();
+  } else if (a === 'menu-done') {
+    state.menu = (state.menu ?? []).filter((m) => m.id !== id);
+    save();
+    toast(isSaved(id) ? 'Bon appétit !' : 'Bon appétit ! Touche 🤍 pour le garder et le refaire plus tard.');
+    render();
   } else if (a === 'menu-clear') {
+    if (!(await ask('Effacer tout ton menu ? (ta liste de courses ne change pas)', { ok: 'Effacer' }))) return;
     state.menu = [];
     save();
     render();
