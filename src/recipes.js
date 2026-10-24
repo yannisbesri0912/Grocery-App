@@ -349,7 +349,7 @@ const PANTRY_FLAGS = {
 const HALAL_SWAP = new Set(['hache', 'jambon', 'lardons', 'chorizo', 'steak-burger']);
 
 /** [nom, type, minutes, ustensiles, ingrédients, étapes, source?] → recette. */
-export function makeRecipe([name, type, minutes, tools, ingredients, steps, src], prefix = '') {
+export function makeRecipe([name, type, minutes, tools, ingredients, steps, src, fam], prefix = '') {
   const ings = parseIngredients(ingredients);
   // Régimes et allergies : tous les ingrédients comptent, placard compris
   // (« pantry » ne change que ce qu'on achète, pas ce que contient le plat).
@@ -362,6 +362,7 @@ export function makeRecipe([name, type, minutes, tools, ingredients, steps, src]
     ingredients: ings,
     flags,
     ...(src ? { src } : {}),
+    ...(fam != null ? { fam } : {}), // plat d'ici (1) ou « découverte » (0), noté à l'import
   };
 }
 
@@ -371,13 +372,16 @@ export const RECIPES = R.map((r) => makeRecipe(r));
  * Ajoute des recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) :
  * ingrédients inconnus écartés, identifiants uniques.
  */
+const sameName = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1/g, '$1');
 export function addRecipes(rows, prefix = 'wb-') {
   const ids = new Set(RECIPES.map((r) => r.id));
+  const names = new Set(RECIPES.map((r) => sameName(r.name))); // « Carbonnade flamande » déjà là : pas en double
   let added = 0;
   for (const row of rows) {
     const r = makeRecipe(row, prefix);
-    if (ids.has(r.id) || r.ingredients.some((i) => !ING[i.key] && !(i.pantry && PANTRY_LABELS[i.key]))) continue;
+    if (ids.has(r.id) || names.has(sameName(r.name)) || r.ingredients.some((i) => !ING[i.key] && !(i.pantry && PANTRY_LABELS[i.key]))) continue;
     ids.add(r.id);
+    names.add(sameName(r.name));
     RECIPES.push(r);
     added++;
   }
@@ -485,6 +489,7 @@ const FARAWAY_LIGHT = /tanzan|y[ée]m[ée]nite|catalan|haoussa|tchad|chypri|urug
 /** 3 : grand classique familial ; 2 : recette de l'app ; 1 : classique importé ; 0 : découverte. */
 export function familiarity(r) {
   if (FAVORITES.has(r.id)) return 3;
+  if (r.fam != null) return r.fam; // Livre de cuisine (Wikilivres) : noté à l'import
   if (!r.id.startsWith('wb-')) return 2;
   if (r.type !== 'plat') return FAMILIAR_LIGHT.test(r.name) && !FARAWAY_LIGHT.test(r.name) ? 1 : 0;
   return FAMILIAR.test(r.name) && !FARAWAY.test(r.name) ? 1 : 0;

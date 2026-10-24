@@ -1237,9 +1237,10 @@ function viewList() {
 // ---------- Recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) ----------
 let moreRecipes = null;
 function loadMoreRecipes() {
-  moreRecipes ??= fetch('data/recipes-wikibooks.json', { cache: 'no-cache' })
-    .then((res) => (res.ok ? res.json() : []))
-    .then((rows) => { addRecipes(rows); render(); })
+  // Livre de cuisine en français (Wikilivres) d'abord, puis le Cookbook anglais traduit.
+  const get = (f) => fetch(f, { cache: 'no-cache' }).then((res) => (res.ok ? res.json() : [])).catch(() => []);
+  moreRecipes ??= Promise.all([get('data/recipes-wikilivres.json'), get('data/recipes-wikibooks.json')])
+    .then(([fr, en]) => { addRecipes(fr, 'wl-'); addRecipes(en); render(); })
     .catch(() => { moreRecipes = null; });
   return moreRecipes;
 }
@@ -2059,7 +2060,7 @@ function viewRecipe(r) {
     </div>
     <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
       ${photoCredit(r)}
-      ${r.src ? `<p class="tiny muted">Recette adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a> (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
+      ${r.src ? `<p class="tiny muted">Recette ${r.id.startsWith('wl-') ? 'adaptée du <a href="' + esc(r.src) + '" target="_blank" rel="noopener">Livre de cuisine de Wikilivres</a>' : `adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a>`} (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
     ${dishShops(r, n)}
     ${(() => {
       const need = r.ingredients.filter((i) => !haveIng(i));

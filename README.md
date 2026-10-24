@@ -96,11 +96,12 @@ remplace la liste ; le plan choisit ensuite les magasins.
   temps, allergies, petit-déj, boissons, viande/poisson, entretien…). Les
   réponses donnent les plats proposés et les produits de base
   (`src/questions.js`).
-- **Plats** (onglet) : 659 recettes — 104 écrites pour l'app (`src/recipes.js`)
-  et 555 adaptées du [Wikibooks Cookbook](https://en.wikibooks.org/wiki/Cookbook:Table_of_Contents)
-  (CC BY-SA 4.0, `data/recipes-wikibooks.json`, voir `data/RECETTES-LICENCE.md`) :
-  traduites en français, mesures américaines converties, ingrédients reliés
-  aux produits (`prices/wikibooks.mjs`). Toutes
+- **Plats** (onglet) : environ 890 recettes — 104 écrites pour l'app (`src/recipes.js`),
+  ~245 du [Livre de cuisine de Wikilivres](https://fr.wikibooks.org/wiki/Livre_de_cuisine)
+  en français (`data/recipes-wikilivres.json`, `prices/wikilivres.mjs`) et ~550 adaptées du
+  [Wikibooks Cookbook](https://en.wikibooks.org/wiki/Cookbook:Table_of_Contents) anglais
+  (`data/recipes-wikibooks.json`), toutes en CC BY-SA 4.0 (voir `data/RECETTES-LICENCE.md`) :
+  ingrédients reliés aux produits (`prices/wikibooks.mjs`). Toutes
   filtrées selon les appareils de la cuisine (taques, four, micro-ondes, air
   fryer, bouilloire, mixeur), le régime et les allergies, avec un prix par
   personne aux vrais prix Colruyt. « Ajouter à ma liste » ajoute les
