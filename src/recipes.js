@@ -479,10 +479,14 @@ const FAVORITES = new Set(['spaghetti-bolognaise', 'pates-carbonara', 'lasagnes-
   'burger-maison-et-frites', 'fajitas-au-poulet', 'croque-monsieur-et-salade', 'pizza-maison', 'quiche-lorraine', 'poulet-pane-croustillant-et-frites',
   'saumon-au-four-et-legumes', 'carbonnade-flamande', 'riz-cantonais', 'tacos-au-boeuf', 'boulettes-sauce-tomate-et-puree', 'gratin-de-pates-au-jambon',
   'poulet-basquaise', 'waterzooi-de-poulet', 'cabillaud-pane-et-puree', 'pates-au-thon-et-a-la-tomate', 'omelette-aux-champignons', 'soupe-a-la-tomate']);
+// Desserts, midi et petit-déj connus (les noms entre parenthèses y expliquent souvent un classique : « (scones) »).
+const FAMILIAR_LIGHT = /croque|wraps?\b|hachis|tourte|roul[ée]s [àa] la cannelle|pudding aux pommes|mousse|cr[eè]me [àa] la banane|pralin|champignons farcis|g[aâ]teau|cake|brownie|blondie|cookie|crumble|cr[eê]pes?\b|pancake|gaufre|muffin|madeleine|mousse au chocolat|riz au lait|tarte|quatre-quarts|meringue|[ée]clair|cr[eè]me (anglaise|p[aâ]tissi[eè]re|au chocolat)|flan|cupcake|scones?|biscuits?|salade|mimosa|coleslaw|porridge|banana split|bananes po[eê]l|tatin|strudel|teurgoule|pain perdu|sandwich|tartines?|smoothie|compote|caprese|omelette|œufs brouill|lemon curd|carr[ée]s au citron|soufflés au citron|sauce chocolat|petit-d[ée]jeuner anglais/i;
+const FARAWAY_LIGHT = /tanzan|y[ée]m[ée]nite|catalan|haoussa|tchad|chypri|uruguay|shirazi|chopska|curtido|ontario|ozark|nig[ée]rian|malawi|congee|zimtsterne|vanillekipferl|reindling|sachertorte|halva|panocha|jahnun|kal kals|bu[ñn]uelos|irish potatoes|tire au miel|wainar|welsh|snickerdoodle|grout|thiele|shrewsbury|marly|pascualina|zambien|[ée]gyptien|laban|chapati|monte cristo|red devils|pan con tomate|ancienne mode|bonbon/i;
 /** 3 : grand classique familial ; 2 : recette de l'app ; 1 : classique importé ; 0 : découverte. */
 export function familiarity(r) {
   if (FAVORITES.has(r.id)) return 3;
   if (!r.id.startsWith('wb-')) return 2;
+  if (r.type !== 'plat') return FAMILIAR_LIGHT.test(r.name) && !FARAWAY_LIGHT.test(r.name) ? 1 : 0;
   return FAMILIAR.test(r.name) && !FARAWAY.test(r.name) ? 1 : 0;
 }
 // Réglage « Plats proposés » : part de plats « découverte » dans les propositions.
