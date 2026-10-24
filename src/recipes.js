@@ -468,6 +468,30 @@ export const STYLES = {
 };
 
 /** La recette est-elle faisable avec ces ustensiles et ce régime ? */
+// Plats connus en Belgique et en France : les recettes écrites pour l'app (2), et
+// parmi les recettes importées, les grands classiques (1). Le reste : « découverte » (0).
+const FAMILIAR = /fricass|tourte|poulet croustillant|poulet barbecue|haricots verts|riz au curry|œufs brouill|bruschetta|bolognaise|bolo\b|carbonara|lasagne|gratin|quiche|omelette|croque|hachis|parmentier|bourguignon|blanquette|pot-au-feu|ratatouille|poulet r[oô]ti|steak|burger|pizza|chili|risotto|paella|couscous|tajine|boulettes?\b|pur[ée]e|frites|macaroni|spaghetti|tagliatelle|p[aâ]tes|nouilles saut|riz saut|riz pilaf|wok|fajitas|tacos|tortilla|wraps?\b|tartiflette|raclette|coq au vin|goulasch|waterzooi|carbonnade|stoemp|chicons|vol-au-vent|moules|cabillaud|saumon|thon|poulet (au|à la|aux)|escalope|cordon bleu|soupe (de|à la|aux|au) (tomate|légumes|lentilles|poulet|pommes de terre|potiron|courgette)|velout|pommes de terre (farcies|sautées|au four|à la crème)|poivrons farcis|courgettes farcies|tomates farcies|pain de viande|chakchouka|falafels?|curry de (poulet|lentilles|pois)|mafé|ragoût de bœuf|bœuf|dinde rôtie|côtes de porc|gratin/i;
+// Origine lointaine écrite dans le nom : plat de découverte, même s'il ressemble à un classique.
+const FARAWAY = /\((?![^)]*(variante|express|maison|sans viande|végé))[^)]*\)|africain|ougand|zambien|mongol|cap-verd|pakistan|philippin|nigérian|libérien|rwand|dominicain|péruvien|gambien|éthiopien|égyptien|libyen|kényan|sylheti|trinidad|portoric|indonésien|colombien|hongrois|bulgare|slovaque|maltais|norvégien|suédois|polonais|cubain|séfarade|vietnam|coréen|sindhi|haoussa|caroline|cincinnati|pedernales|texan|créole|mexicain|madras|vindaloo|karahi|tetrazzini|marsala|jollof|tonkatsu|bulgogi|kedgeree|picadillo|gumbo|jambalaya|tso|denver|mjaddara|koshari|maqlouba|sayadeya|dinuguan|babi|langue|cent ans|bryndz|knödel|kasnocken|komle|kroppkakor|pierogi|rissoles|yorkshire|gyuveche|kyufteta|stracciatella|salmorejo|bacalhau|rassolnik|youvarlakia|kugel|aloo|rajma|chushki|asopao|caldo|chraime|chikwanda|damoda|muchomo|buuz|braai|boxty|coddle|figolli|froġa|holzknecht|ibijumba|ikijumba|sukuma|yetakelt|ertesuppe|oliebollen|pickert|racuszki|palatschinken|kaiserschmarrn|lomo|locrio|com chiên|riz gras|mafé/i;
+// Les plats préférés des familles, proposés en priorité.
+const FAVORITES = new Set(['spaghetti-bolognaise', 'pates-carbonara', 'lasagnes-a-la-bolognaise', 'poulet-curry-coco-et-riz', 'chili-con-carne',
+  'poulet-roti-et-pommes-de-terre', 'steak-frites-et-salade', 'boulets-a-la-liegeoise-et-frites', 'hachis-parmentier', 'vol-au-vent', 'moules-frites',
+  'burger-maison-et-frites', 'fajitas-au-poulet', 'croque-monsieur-et-salade', 'pizza-maison', 'quiche-lorraine', 'poulet-pane-croustillant-et-frites',
+  'saumon-au-four-et-legumes', 'carbonnade-flamande', 'riz-cantonais', 'tacos-au-boeuf', 'boulettes-sauce-tomate-et-puree', 'gratin-de-pates-au-jambon',
+  'poulet-basquaise', 'waterzooi-de-poulet', 'cabillaud-pane-et-puree', 'pates-au-thon-et-a-la-tomate', 'omelette-aux-champignons', 'soupe-a-la-tomate']);
+/** 3 : grand classique familial ; 2 : recette de l'app ; 1 : classique importé ; 0 : découverte. */
+export function familiarity(r) {
+  if (FAVORITES.has(r.id)) return 3;
+  if (!r.id.startsWith('wb-')) return 2;
+  return FAMILIAR.test(r.name) && !FARAWAY.test(r.name) ? 1 : 0;
+}
+// Réglage « Plats proposés » : part de plats « découverte » dans les propositions.
+export const DISCOVERY = {
+  classique: { label: 'Classiques', share: 0 },
+  mix: { label: 'Un peu de découverte', share: 0.2 },
+  aventure: { label: 'Aventure', share: 1 },
+};
+
 // Viandes et poissons qu'on peut préférer ou refuser (Réglages, questions du panier malin).
 export const MEATS = { poulet: 'Poulet', boeuf: 'Bœuf', dinde: 'Dinde', agneau: 'Agneau', porc: 'Porc', poisson: 'Poisson', 'fruits-mer': 'Crevettes, moules' };
 const MEAT_OF = {
@@ -535,14 +559,17 @@ function mainKind(r) {
 const MEAL = new Set(['pates', 'riz', 'pdt', 'semoule', 'quinoa', 'nouilles', 'gnocchi', 'lasagne', 'pain', 'baguette', 'tortillas', 'pate-pizza', 'pate-brisee', 'pate-feuil', 'pizza', 'frites', 'patate-douce', 'pain-burger', 'pain-mie', 'pain-pita', 'poulet', 'hache', 'boeuf', 'steak', 'boeuf-ragout', 'steak-burger', 'dinde', 'porc', 'merguez', 'jambon', 'lardons', 'chorizo', 'saumon', 'thon', 'cabillaud', 'crevettes', 'moules', 'oeufs', 'lentilles', 'pois-chiches', 'haricots-rouges', 'tofu', 'falafel']);
 export const isMeal = (r) => r.ingredients.filter((i) => !i.pantry && MEAL.has(i.key)).length >= 1 && r.ingredients.filter((i) => !i.pantry).length >= 3;
 
-export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null, loves = [] } = {}) {
+export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null, loves = [], discovery = 'classique', recent = [] } = {}) {
   if (n <= 0) return [];
   // perServing : prix visé par portion (le budget le permet) ; sans lui, les moins chers.
   // Au-dessus du prix visé, un plat est trois fois plus pénalisé qu'en dessous.
   const gap = (c) => (perServing == null ? c : c <= perServing ? perServing - c : (c - perServing) * 3);
   const pool = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && !exclude.includes(r.id) && compatible(r, filters))
     .map((r) => ({ r, cost: costOf(r) }))
-    .sort((a, b) => gap(a.cost) - gap(b.cost));
+    // Classiques familiaux (bolognaise, carbonara, boulets…) d'abord, puis les recettes de l'app,
+    // à 2 € et 1 € par portion près ; un plat proposé récemment recule (variété d'une fois à l'autre).
+    .map((x) => ({ ...x, score: gap(x.cost) - ({ 3: 2, 2: 1 }[familiarity(x.r)] ?? 0) + (recent.includes(x.r.id) ? 1.5 : 0) }))
+    .sort((a, b) => a.score - b.score);
   const share = { souvent: 0.5, parfois: 0.3, rarement: 0.15, jamais: 0 };
   const target = { viande: Math.round(n * share[meat]), poisson: Math.round(n * share[fish]) };
   target.vege = Math.max(0, n - target.viande - target.poisson);
@@ -551,11 +578,17 @@ export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfo
   // Viandes préférées (« J'adore ») : environ 2 plats sur 3 de viande ou de poisson les contiennent.
   const halal = DIETS[filters?.diet]?.halal;
   const loved = (r) => loves.length > 0 && loves.some((k) => meatsOf(r, halal).has(k));
-  const take = (kind, count, only = null) => {
+  // Plats « découverte » (origine lointaine) : une petite part au plus, selon le réglage.
+  const maxNew = Math.round(n * (DISCOVERY[discovery]?.share ?? 0));
+  let newCount = 0;
+  const take = (kind, count, only = null, any = false) => {
     for (const x of pool) {
       if (picked.length >= n || count <= 0) break;
       if (used.has(x.r.id) || (kind && mainKind(x.r) !== kind) || (only && !only(x.r))) continue;
+      const isNew = familiarity(x.r) === 0;
+      if (isNew && newCount >= maxNew && !any) continue;
       picked.push(x.r.id); used.add(x.r.id); count--;
+      if (isNew) newCount++;
     }
     return count;
   };
@@ -568,5 +601,6 @@ export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfo
   takeLoved('poisson', target.poisson);
   take('vege', target.vege);
   take(null, n - picked.length); // compléter si une catégorie manque
+  take(null, n - picked.length, null, true); // et s'il n'y a plus assez de classiques
   return picked;
 }

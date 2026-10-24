@@ -17,7 +17,7 @@ import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
 import { parsePlacard, matchPlacard, KEEPS_LONG } from './placard.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS } from './recipes.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS, familiarity, DISCOVERY } from './recipes.js';
 import { QUESTIONS, questionsFor, optionsOf, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
@@ -1322,6 +1322,14 @@ function meatPrefsField() {
       <div class="seg small" role="group" aria-label="${esc(MEATS[k])}">${levels.map(([v, l]) => `<button data-action="meat-pref" data-id="${esc(k)}" data-val="${v}" aria-pressed="${(prefs[k] ?? 'ok') === v}">${l}</button>`).join('')}</div></li>`).join('')}</ul>
     <span class="tiny muted">« J'adore » : environ 2 plats sur 3 avec viande ou poisson en contiendront. « Jamais » : plus aucun plat avec.</span></div>`;
 }
+// « Plats proposés » : classiques (défaut), un peu de découverte, aventure.
+const discoveryLevel = () => (DISCOVERY[state.settings.discovery] ? state.settings.discovery : 'classique');
+const okForLevel = (r) => discoveryLevel() !== 'classique' || familiarity(r) > 0;
+function discoveryField() {
+  const cur = discoveryLevel();
+  return `<div class="field"><span>Plats proposés</span><div class="seg" role="group" aria-label="Plats proposés">${Object.entries(DISCOVERY).map(([k, d]) => `<button data-action="set" data-key="discovery" data-val="${esc(k)}" aria-pressed="${cur === k}">${esc(d.label)}</button>`).join('')}</div>
+    <span class="tiny muted">${cur === 'classique' ? 'Des plats connus : bolognaise, gratin, poulet rôti, curry, quiche…' : cur === 'mix' ? 'Surtout des classiques, et environ 1 plat sur 5 venu d\'ailleurs.' : 'Toutes les recettes, du monde entier.'}</span></div>`;
+}
 // Viandes et poissons par préférence (Réglages → Mes viandes) : 'love', 'never' (sinon « ça va »).
 const meatsWith = (level) => Object.entries(state.settings.meatPrefs ?? {}).filter(([k, v]) => v === level && MEATS[k]).map(([k]) => k);
 
@@ -1475,7 +1483,7 @@ function proposeDishes(profile, exclude = [], target = dishTarget({ ...DEFAULT_P
   const pr = { ...DEFAULT_PROFILE, ...profile };
   exclude = [...exclude, ...(smartSettings().disliked ?? [])]; // plats écartés (« pas pour moi »)
   const filters = recipeFilters({ maxTime: pr.time });
-  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target, loves: meatsWith('love') });
+  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target, loves: meatsWith('love'), discovery: discoveryLevel(), recent: smartSettings().recent ?? [] });
   const desserts = RECIPES.filter((r) => r.type === 'dessert' && !exclude.includes(r.id) && compatible(r, filters))
     .sort((a, b) => dishCost(a) - dishCost(b)).slice(0, Number(pr.dessert) || 0).map((r) => r.id);
   return [...ids, ...desserts].map((id) => ({ id, servings: recipeById(id).type === 'dessert' ? pr.people : servingsFor(pr) }));
@@ -1723,6 +1731,7 @@ function finishQuiz() {
   }
   sm.removed = {};
   sm.dishes = proposeDishes(a);
+  sm.recent = [...sm.dishes.map((d) => d.id), ...(sm.recent ?? [])].slice(0, 21); // variété au prochain questionnaire
   sm.dishesAuto = true;
   smartStep = sm.dishes.length ? 'choice' : null; // faire confiance, ou vérifier les plats
   save();
@@ -1765,7 +1774,7 @@ function promoMenu(chain, n = 5) {
   const filters = recipeFilters();
   const styles = state.settings.recipeStyles ?? [];
   const main = (r) => r.ingredients.find((i) => !i.pantry && /[mfe]/.test(ING[i.key]?.flags ?? ''))?.key ?? r.ingredients.find((i) => !i.pantry)?.key;
-  const scored = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && compatible(r, filters)
+  const scored = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && okForLevel(r) && compatible(r, filters)
       && styles.every((st) => (st === 'pascher' ? true : STYLES[st]?.test(r) ?? true)))
     .map((r) => {
       let saving = 0;
@@ -1917,7 +1926,7 @@ function placardCard() {
     .map((r) => ({ r, n: r.ingredients.filter((i) => keys.includes(i.key)).length })).sort((a, b) => b.n - a.n).slice(0, 4) : [];
   const names = Object.entries(ING).filter(([, d]) => !d.pantry).map(([k]) => ingName(k)).sort((a, b) => a.localeCompare(b, 'fr'));
   // Plats qui utilisent le plus ce que tu as (et à qui il manque le moins).
-  const cookable = keys.length >= 2 ? RECIPES.filter((r) => r.type === 'plat' && compatible(r, recipeFilters()))
+  const cookable = keys.length >= 2 ? RECIPES.filter((r) => r.type === 'plat' && okForLevel(r) && compatible(r, recipeFilters()))
     .map((r) => { const b = r.ingredients.filter((i) => !i.pantry); const have = b.filter((i) => haveIng(i)).length; return { r, have, miss: b.length - have }; })
     .filter((x) => x.have >= 2 || (x.have >= 1 && x.miss <= 1)).sort((a, b) => (b.have - b.miss) - (a.have - a.miss) || a.miss - b.miss).slice(0, 6) : [];
   return `<details class="card placard" ${placardOpen ? 'open' : ''}>
@@ -1975,7 +1984,7 @@ function photoCredit(r) {
 function recipeCard(r) {
   const cost = dishCost(r);
   return `<button class="recipe" data-action="recipe-open" data-id="${esc(r.id)}">
-    ${dishVisual(r)}<span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}</span></span>
+    ${dishVisual(r)}<span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}${familiarity(r) ? '' : ' · <span class="pill">découverte</span>'}</span></span>
     <span class="num price">≈ ${eur(cost)}<span class="sub">/ pers.</span></span></button>`;
 }
 
@@ -1989,7 +1998,7 @@ function viewPlats() {
   const styles = state.settings.recipeStyles ?? [];
   const all = RECIPES.filter((r) => r.type === recipeType && (!q || norm(r.name).includes(q) || r.ingredients.some((i) => norm(ingName(i.key)).includes(q))));
   const ok = all.filter((r) => compatible(r, filters) && styles.every((st) => (st === 'pascher' ? dishCost(r) <= 2 : STYLES[st]?.test(r) ?? true)))
-    .sort((a, b) => dishCost(a) - dishCost(b));
+    .sort((a, b) => Number(familiarity(b) > 0) - Number(familiarity(a) > 0) || dishCost(a) - dishCost(b)); // classiques d'abord
   return `
     <h1>Plats</h1>
     ${myMenuCard()}
@@ -1999,6 +2008,7 @@ function viewPlats() {
     <div class="card">
       <span class="eyebrow">Ma cuisine</span>
       <div class="chips wrap">${Object.entries(TOOLS).map(([t, label]) => `<button class="chip" data-action="kitchen" data-val="${esc(t)}" aria-pressed="${Boolean(k[t])}">${k[t] ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
+      ${discoveryField()}
       <span class="eyebrow">Alimentation</span>
       <div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(state.settings.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
     </div>
@@ -2734,6 +2744,7 @@ function viewSettings() {
       <label class="field"><span>Mon alimentation</span><div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(s.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
         <span class="tiny muted">Halal : ni porc ni alcool dans les recettes, et la viande va sur la liste du boucher halal (le supermarché ne garde que les articles marqués halal).</span></label>
       ${meatPrefsField()}
+      ${discoveryField()}
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `

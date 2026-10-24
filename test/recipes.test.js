@@ -128,3 +128,19 @@ test('viandes préférées : « J\'adore » le poulet en donne plus souvent, « 
   const carbo = RECIPES.find((r) => r.name === 'Pâtes carbonara');
   assert.ok(meatsOf(carbo, true).has('dinde') && meatsOf(carbo).has('porc'));
 });
+
+test('plats proposés : des classiques (bolognaise…), la découverte seulement si on la demande', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { RECIPES, addRecipes, pickDishes, familiarity } = await import('../src/recipes.js');
+  addRecipes(JSON.parse(readFileSync(new URL('../data/recipes-wikibooks.json', import.meta.url), 'utf8')));
+  const byName = (n) => RECIPES.find((r) => r.name === n);
+  assert.equal(familiarity(byName('Spaghetti bolognaise')), 3);
+  assert.equal(familiarity(byName('Bœuf bourguignon')), 1);
+  assert.equal(familiarity(byName('Poulet karahi (poulet pakistanais aux tomates et piments)')), 0);
+  const filters = { kitchen: { four: true, plaques: true, micro: true }, diet: 'tout' };
+  const cost = (r) => r.minutes / 10;
+  const classic = pickDishes(10, filters, cost, { meat: 'souvent' });
+  assert.equal(classic.filter((id) => familiarity(RECIPES.find((r) => r.id === id)) === 0).length, 0);
+  const mix = pickDishes(10, filters, cost, { meat: 'souvent', discovery: 'mix' });
+  assert.ok(mix.filter((id) => familiarity(RECIPES.find((r) => r.id === id)) === 0).length <= 2);
+});
