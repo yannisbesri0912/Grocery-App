@@ -1,5 +1,5 @@
 // Hors-ligne : garde une copie de l'app ; en ligne, sert la dernière version.
-const CACHE = 'grocery-opti-v45';
+const CACHE = 'grocery-opti-v46';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg',
   'src/style.css', 'src/app.js', 'src/data.js', 'src/optimizer.js', 'src/places.js', 'src/order.js', 'src/match-rules.js', 'src/catalog.js', 'src/smart.js', 'src/matcher.js', 'src/recipes.js', 'src/questions.js', 'src/voice.js', 'src/scan.js', 'src/receipt.js', 'src/tuto.js', 'src/same.js', 'src/deals.js', 'src/history.js', 'src/aisles.js', 'src/calib.js', 'src/share.js', 'src/report.js', 'src/cheaper.js', 'src/halal.js', 'src/translate.js', 'src/validate.js', 'src/spend.js', 'src/placard.js'];
 
@@ -10,7 +10,7 @@ self.addEventListener('install', (e) => {
 // Données lourdes (catalogues, recettes, historique) : gardées d'une version à
 // l'autre, servies tout de suite depuis le téléphone et rafraîchies en arrière-plan.
 const DATA = 'grocery-opti-data';
-const HEAVY = /\/data\/(catalog-[a-z]+|recipes-wikibooks|recipes-wikilivres|recipe-images|history|same)\.json$/;
+const HEAVY = /\/data\/(catalog-[a-z]+|recipes-wikibooks|recipes-wikilivres|recipes-kookboek|recipe-images|history|same)\.json$/;
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()

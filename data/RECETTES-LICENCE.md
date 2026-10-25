@@ -28,3 +28,17 @@ produits de l'app, ustensiles et type de plat déduits du texte, recettes dont u
 est introuvable en supermarché belge écartées (`prices/wikilivres.mjs`). L'adresse de la page
 d'origine est le 7ᵉ champ et s'affiche dans l'app ; le 8ᵉ champ vaut 1 pour un plat d'ici,
 0 pour un plat « découverte ».
+
+---
+
+`recipes-kookboek.json` contient environ 130 recettes adaptées et traduites du néerlandais du
+[Kookboek de Wikibooks](https://nl.wikibooks.org/wiki/Kookboek) (contributeurs de Wikibooks en
+néerlandais), relevé en octobre 2026 (`prices/fetch-kookboek.mjs`).
+
+Licence : [Creative Commons Attribution – Partage dans les mêmes conditions 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr).
+Ce fichier est donc diffusé sous la même licence.
+
+Modifications : texte wiki nettoyé, quantités ramenées à une personne, ingrédients reliés aux
+produits de l'app (`prices/kookboek.mjs`), nom et étapes traduits en français et parfois
+résumés ou complétés (`prices/kookboek-fr.json`), quelques quantités mal lues corrigées.
+Même format que ci-dessus.

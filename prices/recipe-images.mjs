@@ -112,7 +112,8 @@ async function licenses(files) {
 
 const wikibooks = JSON.parse(readFileSync(new URL('../data/recipes-wikibooks.json', import.meta.url), 'utf8')).map((row) => ({ r: makeRecipe(row, 'wb-'), src: row[6] }));
 const wikilivres = JSON.parse(readFileSync(new URL('../data/recipes-wikilivres.json', import.meta.url), 'utf8')).map((row) => ({ r: makeRecipe(row, 'wl-'), src: row[6], fr: true }));
-const all = [...RECIPES.map((r) => ({ r })), ...wikibooks, ...wikilivres];
+const kookboek = JSON.parse(readFileSync(new URL('../data/recipes-kookboek.json', import.meta.url), 'utf8')).map((row) => ({ r: makeRecipe(row, 'kb-'), src: row[6] }));
+const all = [...RECIPES.map((r) => ({ r })), ...wikibooks, ...wikilivres, ...kookboek];
 const found = new Map(); // id → { file, thumb }
 
 // 1. Page Wikibooks de la recette.
@@ -133,6 +134,11 @@ const wlPages = await pageImages('fr.wikibooks.org', [...new Set(wikilivres.map(
 for (const x of wikilivres) { const hit = wlPages.get(wbTitle(x.src)); if (hit) found.set(x.r.id, hit); }
 console.log(`+ Wikilivres : ${found.size}`);
 
+// 2c. Kookboek (Wikibooks en néerlandais) : image de la page de la recette.
+const kbPages = await pageImages('nl.wikibooks.org', [...new Set(kookboek.map((x) => wbTitle(x.src)).filter(Boolean))]);
+for (const x of kookboek) { const hit = kbPages.get(wbTitle(x.src)); if (hit) found.set(x.r.id, hit); }
+console.log(`+ Kookboek : ${found.size}`);
+
 // 3. Recettes de l'app (noms français) : premier résultat de recherche sur Wikipédia en français.
 for (const { r } of all.filter((x) => !found.has(x.r.id) && (!x.src || x.fr))) {
   const q = r.name.replace(/\s+(et|avec|au|aux|à la|à l'|sauce)\s.*$/i, '');
@@ -149,11 +155,12 @@ for (const [id, f] of found) {
   const l = lic.get(f.file);
   if (l) out[id] = [f.thumb.replace(/\?utm_.*$/, ''), l.author, l.license, l.page];
 }
-// L'app charge Wikilivres puis Wikibooks sans doublon de nom : la photo d'une recette écartée
+// L'app charge Wikilivres, le Kookboek puis Wikibooks sans doublon de nom : la photo d'une recette écartée
 // passe à la recette gardée du même nom (si celle-ci n'en a pas).
 const wlRows = JSON.parse(readFileSync(new URL('../data/recipes-wikilivres.json', import.meta.url), 'utf8'));
 const wbRows = JSON.parse(readFileSync(new URL('../data/recipes-wikibooks.json', import.meta.url), 'utf8'));
 addRecipes(wlRows, 'wl-');
+addRecipes(JSON.parse(readFileSync(new URL('../data/recipes-kookboek.json', import.meta.url), 'utf8')), 'kb-');
 addRecipes(wbRows, 'wb-');
 const keptIds = new Set(RECIPES.map((r) => r.id));
 const keptByName = new Map(RECIPES.map((r) => [sameName(r.name), r.id]));

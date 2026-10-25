@@ -41,3 +41,28 @@ test('recettes françaises chargées sans doublon', async () => {
   const names = RECIPES.map((r) => r.name.toLowerCase());
   assert.equal(names.filter((x) => x === 'carbonnade flamande').length, 1); // déjà dans l'app
 });
+
+test('kookboek : ingrédients néerlandais', async () => {
+  const { parseIngredient } = await import('../prices/kookboek.mjs');
+  assert.deepEqual(parseIngredient('* 300 gram {{Kb|gehakt}}'), { key: 'hache', total: 300 });
+  assert.deepEqual(parseIngredient('* 2 eetlepels {{Kb|room}}'), { key: 'creme', total: 30 });
+  assert.equal(parseIngredient('* 1 ui, fijngehakt').key, 'oignons'); // « fijngehakt » n'est pas du haché
+  assert.equal(parseIngredient('* 2 el fijngehakte peterselie').key, 'persil');
+  assert.equal(parseIngredient('* 4 boterhammen').key, 'pain');
+  assert.deepEqual(parseIngredient('* 1 koekenpan'), { empty: true }); // ustensile
+  assert.equal(parseIngredient('* 4 konijnenbouten'), null); // introuvable : recette écartée
+});
+
+test('recettes du Kookboek traduites et chargées sans doublon', async () => {
+  const { RECIPES, addRecipes } = await import('../src/recipes.js');
+  const rows = JSON.parse(readFileSync(new URL('../data/recipes-kookboek.json', import.meta.url), 'utf8'));
+  for (const r of rows) {
+    assert.equal(r.length, 8);
+    assert.match(r[6], /^https:\/\/nl\.wikibooks\.org\//);
+    assert.doesNotMatch(`${r[0]} ${r[5]}`, /\b(het|een|met|voeg|snijd|laat|wordt)\b/i, `pas traduit : ${r[0]}`);
+  }
+  const before = RECIPES.length;
+  const added = addRecipes(rows, 'kb-');
+  assert.ok(added > 100, `${added} ajoutées`);
+  assert.equal(RECIPES.length, before + added);
+});
