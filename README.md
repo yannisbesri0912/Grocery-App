@@ -126,6 +126,15 @@ autre du même genre (viande, poisson, végé) dans le budget.
 
 ## Mon placard
 
+**Après les courses** : « Courses faites » montre ce qui a été acheté — *C'était exactement ça ?*
+**Oui**, ou **Non, je modifie** (décocher ce qui n'a pas été pris, corriger les quantités, ajouter
+ce qui a été pris en plus, montant payé). Ce qui est validé va dans le placard avec une **date
+limite estimée** (saumon 2 jours, lait 7, carottes 14, riz et conserves : se garde) ; ce qui n'a
+pas été pris reste dans la liste. Le placard est rangé en *À manger vite*, *Cette semaine*,
+*Se garde* (+ *Date dépassée : encore bon ?*), et **Mon menu** classe les plats dans l'ordre où
+les cuisiner : d'abord ceux dont un produit frais à la maison se garde le moins. Chaque reçu peut
+être **refait** (« Refaire cette liste »).
+
 Plats → **Mon placard** : ce que tu as déjà. Rempli par « Courses faites », à la main, ou en
 **collant une liste** (une ligne par produit, ou JSON avec `nom`, `quantite`, `unite`) ; un lien
 `…#placard=…` fait la même chose. Les produits connus des recettes (riz, pâtes, thon…) ne sont plus

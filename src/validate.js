@@ -61,6 +61,7 @@ function cleanLine(l) {
     n: l.n.slice(0, 160), a: str(l.a), q: num(l.q, 999) ?? 1, t: num(l.t) ?? 0, c: typeof l.c === 'string' && Object.hasOwn(CHAINS, l.c) ? l.c : undefined,
     s: str(l.s, 120), cat: Number.isInteger(l.cat) && l.cat >= 0 && l.cat <= 9 ? l.cat : undefined, g: str(l.g, 20),
     ns: typeof l.ns === 'string' && /^[A-E]$/.test(l.ns) ? l.ns : undefined, k: str(l.k, 10), d: str(l.d, 60),
+    id: isId(l.id) ? l.id : undefined,
   });
 }
 export function cleanReceipt(r) {

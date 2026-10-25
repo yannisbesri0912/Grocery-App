@@ -14,7 +14,7 @@ import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
 import { isId, cleanProduct, cleanItem, cleanReceipt } from './validate.js';
 import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
-import { parsePlacard, matchPlacard, KEEPS_LONG } from './placard.js';
+import { parsePlacard, matchPlacard, KEEPS_LONG, shelfDays, freshness } from './placard.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
 import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS, familiarity, DISCOVERY } from './recipes.js';
@@ -1820,17 +1820,29 @@ const heartBtn = (r, label = false) => {
 };
 const servingsNow = () => state.settings.servings ?? smartSettings().profile?.people ?? 1;
 
+// Urgence d'un plat : l'ingrédient déjà à la maison qui se garde le moins.
+function menuUrgency(r) {
+  let best = { days: Infinity, name: '' };
+  for (const i of r.ingredients.filter((x) => !x.pantry)) {
+    if (!haveIng(i) || KEEPS_LONG.has(i.key)) continue; // pas encore à la maison : acheté frais au moment voulu
+    const d = daysLeft(i.key);
+    if (d < best.days) best = { days: d, name: ingName(i.key).toLowerCase() };
+  }
+  return best;
+}
 // Plats ajoutés à la liste : ce qu'on va cuisiner (un plat ajouté deux fois n'apparaît qu'une fois).
 function myMenuCard() {
   const byId = new Map();
   for (const m of state.menu ?? []) { const r = recipeById(m.id); if (r) byId.set(m.id, { r, servings: (byId.get(m.id)?.servings ?? 0) + (m.servings ?? 1) }); }
-  const list = [...byId.values()].reverse();
+  // Ordre de cuisine : d'abord les plats aux produits frais les plus fragiles (saumon avant pâtes).
+  const list = [...byId.values()].reverse().map((x) => ({ ...x, urgent: menuUrgency(x.r) })).sort((a, b) => a.urgent.days - b.urgent.days);
   if (!list.length) return '';
+  const when = (u) => (!Number.isFinite(u.days) ? 'quand tu veux' : u.days <= 0 ? `aujourd'hui (${u.name})` : u.days <= 3 ? `d'abord : ${u.name} ${u.days} j` : `avant le ${dateFr(new Date(Date.now() + u.days * DAY).toISOString())}`);
   return `<div class="card">
     <div class="section-head"><h2>🍽️ Mon menu <span class="pill">${list.length}</span></h2><button class="btn ghost small" data-action="menu-clear">Tout effacer</button></div>
-    <p class="small muted">Les plats dont les ingrédients sont dans ta liste. Touche « Cuisiné » quand c'est fait.</p>
-    <div class="tiles">${list.map(({ r, servings }) => dishTile(r, {
-      sub: `${servings} pers. · ${r.minutes} min`,
+    <p class="small muted">Dans l'ordre où les cuisiner : les plats aux produits frais qui se gardent le moins d'abord. Touche « Cuisiné » quand c'est fait.</p>
+    <div class="tiles">${list.map(({ r, servings, urgent }, i) => dishTile(r, {
+      sub: `<b class="${urgent.days <= 3 ? 'warn-text' : ''}">${i + 1}. ${esc(when(urgent))}</b><br>${servings} pers. · ${r.minutes} min`,
       actions: `<button class="btn soft small" data-action="menu-done" data-id="${esc(r.id)}">${icon('check')} Cuisiné</button>${heartBtn(r)}`,
     })).join('')}</div></div>`;
 }
@@ -1918,11 +1930,23 @@ function placardImportDialog() {
 }
 let placardOpen = false;
 document.addEventListener('toggle', (e) => { if (e.target.matches?.('details.placard')) placardOpen = e.target.open; }, true);
+// Jours restants avant la date limite d'un produit du placard (Infinity : se garde).
+function daysLeft(k) {
+  const u = state.pantryUntil?.[k];
+  if (u) return Math.round((new Date(`${u}T12:00:00`) - new Date(`${today()}T12:00:00`)) / DAY);
+  if (KEEPS_LONG.has(k)) return Infinity;
+  const v = state.pantry?.[k];
+  return typeof v === 'string' && v !== 'missing' ? 10 - Math.floor((Date.now() - new Date(v).getTime()) / DAY) : Infinity;
+}
+const FRESH = { vite: '⏰ À manger vite (3 jours ou moins)', semaine: '📅 Cette semaine', garde: '🗄️ Se garde' };
+
 function placardCard() {
   const keys = placardKeys();
   const until = state.pantryUntil ?? {};
-  const soon = keys.filter((k) => until[k] && until[k] <= new Date(Date.now() + 2 * DAY).toISOString().slice(0, 10));
+  const soon = keys.filter((k) => daysLeft(k) <= 3);
   const age = (k) => Math.max(0, Math.floor((Date.now() - new Date(state.pantry[k]).getTime()) / DAY));
+  // Date dépassée : à vérifier (encore bon ? fini ?).
+  const expired = Object.keys(state.pantry ?? {}).filter((k) => ING[k] && !ING[k].pantry && state.pantry[k] !== 'missing' && until[k] && until[k] < today());
   const ideas = soon.length ? RECIPES.filter((r) => compatible(r, recipeFilters()) && r.ingredients.some((i) => soon.includes(i.key)))
     .map((r) => ({ r, n: r.ingredients.filter((i) => keys.includes(i.key)).length })).sort((a, b) => b.n - a.n).slice(0, 4) : [];
   const names = Object.entries(ING).filter(([, d]) => !d.pantry).map(([k]) => ingName(k)).sort((a, b) => a.localeCompare(b, 'fr'));
@@ -1934,12 +1958,18 @@ function placardCard() {
     <summary><b>🏠 Mon placard</b> <span class="small muted">${keys.length + (state.pantryOther ?? []).length ? `${keys.length + (state.pantryOther ?? []).length} produit${keys.length + (state.pantryOther ?? []).length > 1 ? 's' : ''}` : 'vide'}${soon.length ? ` · <span class="warn-text">${soon.length} à finir vite</span>` : ''}</span></summary>
     <p class="small muted">Ce que tu as déjà : rempli tout seul quand tu valides « Courses faites », ou à la main. Les recettes n'ajoutent pas ce que tu as.</p>
     <div class="row" style="gap:8px"><input id="placard-add" list="ing-names" placeholder="Ajouter (ex. œufs, riz…)" autocomplete="off" style="flex:1;min-width:0"><button class="btn soft small" data-action="placard-add">Ajouter</button></div>
-    <button class="btn ghost small" data-action="placard-import">${icon('copy')} Importer une liste (coller)</button>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost small" data-action="placard-import">${icon('copy')} Importer une liste (coller)</button>
+      ${(state.receipts ?? []).length ? `<button class="btn ghost small" data-action="receipts-from-placard">🧾 Mes courses passées (${state.receipts.length})</button>` : ''}</div>
     <datalist id="ing-names">${names.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
-    ${keys.length ? `<ul class="items">${keys.sort((a, b) => (until[a] ?? '9') .localeCompare(until[b] ?? '9')).map((k) => `<li class="${soon.includes(k) ? 'soon' : ''}">
-      <span class="name">${esc(ingName(k))}<span class="sub">${state.pantryNames?.[k]?.length ? `${esc(state.pantryNames[k].join(', '))} · ` : ''}depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}${until[k] ? ` · à consommer avant le ${dateFr(until[k])}` : ''}</span></span>
+    ${expired.length ? `<span class="eyebrow warn-text">⚠️ Date dépassée : encore bon ?</span><ul class="items">${expired.map((k) => `<li><span class="name">${esc(ingName(k))}<span class="sub">${state.pantryNames?.[k]?.length ? `${esc(state.pantryNames[k].join(', '))} · ` : ''}à consommer avant le ${dateFr(until[k])}</span></span>
+      <button class="btn soft small" data-action="placard-extend" data-key="${esc(k)}">Encore bon</button><button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
+    ${Object.keys(FRESH).map((g) => {
+      const ks = keys.filter((k) => freshness(daysLeft(k)) === g).sort((a, b) => daysLeft(a) - daysLeft(b));
+      return ks.length ? `<span class="eyebrow fresh-${g}">${FRESH[g]}</span><ul class="items">${ks.map((k) => `<li class="${g === 'vite' ? 'soon' : ''}">
+      <span class="name">${esc(ingName(k))}<span class="sub">${state.pantryNames?.[k]?.length ? `${esc(state.pantryNames[k].join(', '))} · ` : ''}${Number.isFinite(daysLeft(k)) ? (daysLeft(k) <= 0 ? 'à manger aujourd\'hui' : `encore ${daysLeft(k)} j (avant le ${dateFr(until[k] ?? new Date(Date.now() + daysLeft(k) * DAY).toISOString())})`) : `depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}`}</span></span>
       <input type="date" class="placard-date" data-until="${esc(k)}" value="${esc(until[k] ?? '')}" aria-label="Date limite ${esc(ingName(k))}">
-      <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
+      <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : '';
+    }).join('')}
     ${(state.pantryOther ?? []).length ? `<span class="eyebrow">Autres produits</span><p class="tiny muted">Pas utilisés par les recettes de l'app (soupes, sauces prêtes, mélanges…), gardés pour mémoire.</p>
       <ul class="items">${state.pantryOther.map((x, i) => `<li><span class="name">${esc(x.name)}${x.qty ? `<span class="sub">${esc(x.qty)}</span>` : ''}</span><button class="btn ghost small" data-action="placard-other-remove" data-i="${i}">Fini</button></li>`).join('')}</ul>` : ''}
     ${cookable.length ? `<p class="small"><b>Avec ce que tu as :</b></p><div class="chips wrap">${cookable.map(({ r, miss }) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}<span class="muted"> · ${miss ? `il manque ${miss}` : 'tout est là'}</span></button>`).join('')}</div>` : ''}
@@ -2421,18 +2451,102 @@ function savingOf(lines) {
   return Math.max(0, Math.round(total * 100) / 100);
 }
 
-function finishShopping(plan, paid = null) {
+// Achats → placard : chaque produit alimentaire reconnu devient un ingrédient « j'ai »
+// avec sa date limite estimée (src/placard.js) ; le reste va dans « Autres produits ».
+// L'hygiène, l'entretien et les boissons n'y vont pas. → nombre de produits rangés.
+function addToPlacard(items, date = today()) {
+  const labels = { ING: Object.fromEntries(Object.keys(ING).filter((k) => !ING[k].pantry).map((k) => [k, ingName(k)])), PANTRY: { ...PANTRY_LABELS, epices: 'épices' } };
+  state.pantry ??= {};
+  state.pantryUntil ??= {};
+  state.pantryNames ??= {};
+  state.pantryOther ??= [];
+  let n = 0;
+  for (const it of items) {
+    if (it.cat != null && it.cat > 5) continue;
+    const m = matchPlacard(it.name, labels) ?? (it.article ? matchPlacard(it.article, labels) : null);
+    const label = `${it.article || it.name.replace(/\s*\(.*\)$/, '')}${it.qty > 1 ? ` ×${it.qty}` : ''}`;
+    if (m?.pantry) { if (state.pantry[m.key] === 'missing') delete state.pantry[m.key]; continue; }
+    if (m) {
+      state.pantry[m.key] = date;
+      if (KEEPS_LONG.has(m.key)) delete state.pantryUntil[m.key];
+      else state.pantryUntil[m.key] = new Date(new Date(`${date}T12:00:00`).getTime() + shelfDays(m.key) * DAY).toISOString().slice(0, 10);
+      state.pantryNames[m.key] = [...new Set([...(state.pantryNames[m.key] ?? []), label])].slice(-10);
+    } else {
+      const prev = state.pantryOther.find((x) => norm(x.name) === norm(it.article || it.name));
+      if (prev) prev.qty = it.qty > 1 ? `×${it.qty}` : prev.qty; else state.pantryOther.push({ name: (it.article || it.name).slice(0, 80), qty: it.qty > 1 ? `×${it.qty}` : '' });
+    }
+    n++;
+  }
+  return n;
+}
+
+// « Courses faites » : la liste de ce qui a été acheté, à confirmer ou corriger.
+function confirmShopping(plan) {
+  const rows = [
+    ...boughtLines(plan).map((l) => ({ id: l.product.id, name: l.product.name, sub: l.info?.article ?? '', qty: l.packs ?? l.qty, unit: l.total / (l.packs ?? l.qty), on: true })),
+    ...butcherItems().filter((l) => l.checked).map((l) => ({ id: l.id, name: butcherLabel(l.p), sub: 'boucher halal', qty: l.qty, unit: butcherCost(l) / l.qty, on: true })),
+  ];
+  const extras = [];
+  let editing = false;
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  document.body.append(wrap);
+  const est = () => rows.filter((r) => r.on).reduce((t, r) => t + r.unit * r.qty, 0) + (plan.fees ?? 0);
+  function draw() {
+    const paidVal = wrap.querySelector('#paid')?.value;
+    wrap.innerHTML = `<div class="modal-box shop-confirm" role="dialog" aria-modal="true" aria-label="Tes courses">
+      <div class="row"><b class="grow">🛒 Tes courses</b><button class="btn ghost small" data-c="close" aria-label="Fermer">${icon('x')}</button></div>
+      <p class="small">${editing ? 'Décoche ce que tu n\'as pas pris, corrige les quantités, ajoute ce que tu as pris en plus.' : 'C\'était exactement ça ?'}</p>
+      <ul class="items">${rows.map((r, i) => `<li class="${r.on ? '' : 'done'}">
+        ${editing ? `<input type="checkbox" class="check" data-c="on" data-i="${i}" ${r.on ? 'checked' : ''} aria-label="Acheté">` : ''}
+        <span class="name">${r.qty > 1 && !editing ? `${r.qty} × ` : ''}${esc(r.name)}${r.sub ? `<span class="sub">${esc(r.sub)}</span>` : ''}</span>
+        ${editing && r.on ? `<span class="stepper"><button data-c="qty" data-i="${i}" data-d="-1" aria-label="Moins">${icon('minus')}</button><b class="num">${r.qty}</b><button data-c="qty" data-i="${i}" data-d="1" aria-label="Plus">${icon('plus')}</button></span>` : `<b class="num price-col">${r.on ? eur(r.unit * r.qty) : '—'}</b>`}</li>`).join('')}
+        ${extras.map((x, i) => `<li><span class="name">${esc(x)}<span class="sub">ajouté</span></span><button class="icon-btn" data-c="extra-del" data-i="${i}" aria-label="Retirer">${icon('x')}</button></li>`).join('')}</ul>
+      ${editing ? `<div class="row" style="gap:8px"><input id="extra" placeholder="Pris en plus (ex. yaourts)" autocomplete="off" style="flex:1;min-width:0"><button class="btn soft small" data-c="extra-add">Ajouter</button></div>` : ''}
+      <label class="field"><span>Montant payé (facultatif)</span><div class="row"><input type="text" id="paid" inputmode="decimal" placeholder="${esc(est().toFixed(2).replace('.', ','))}" value="${esc(paidVal ?? '')}" style="max-width:140px"> <b>€</b></div></label>
+      ${editing ? '<button class="btn primary block" data-c="save">Valider mes courses</button>'
+        : `<div class="row" style="gap:8px"><button class="btn primary grow" data-c="save">Oui, c'est ça</button><button class="btn soft grow" data-c="edit">Non, je modifie</button></div>`}
+      <p class="tiny muted">Ce qui est validé va dans ton placard (avec une date limite estimée) et dans tes reçus ; ce qui n'a pas été pris reste dans ta liste.</p></div>`;
+  }
+  wrap.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-c]');
+    if (e.target === wrap || b?.dataset.c === 'close') { wrap.remove(); return; }
+    if (!b) return;
+    const i = Number(b.dataset.i);
+    const c = b.dataset.c;
+    if (c === 'edit') editing = true;
+    else if (c === 'on') rows[i].on = b.checked;
+    else if (c === 'qty') rows[i].qty = Math.max(1, rows[i].qty + Number(b.dataset.d));
+    else if (c === 'extra-add') { const v = wrap.querySelector('#extra')?.value.trim(); if (v) extras.push(v.slice(0, 80)); }
+    else if (c === 'extra-del') extras.splice(i, 1);
+    else if (c === 'save') {
+      const n = Number(String(wrap.querySelector('#paid')?.value ?? '').replace(',', '.'));
+      wrap.remove();
+      finishShopping(plan, Number.isFinite(n) && n > 0 ? n : null, { rows: rows.map((r) => ({ id: r.id, on: r.on, qty: r.qty })), extras });
+      return;
+    }
+    draw();
+  });
+  draw();
+}
+
+function finishShopping(plan, paid = null, edits = null) {
   const today = new Date().toISOString().slice(0, 10);
-  const lines = boughtLines(plan);
+  // Corrections de « C'était exactement ça ? » : articles pas pris, autres quantités.
+  const edit = new Map((edits?.rows ?? []).map((r) => [r.id, r]));
+  const lines = boughtLines(plan).filter((l) => edit.get(l.product.id)?.on !== false).map((l) => {
+    const e = edit.get(l.product.id);
+    const orig = l.packs ?? l.qty;
+    if (!e || e.qty === orig || !(orig > 0)) return l;
+    const k = e.qty / orig;
+    return { ...l, total: Math.round(l.total * k * 100) / 100, ...(l.packs ? { packs: e.qty } : { qty: e.qty }) };
+  });
   const estimate = Math.round((lines.reduce((t, l) => t + l.total, 0) + (plan.fees ?? 0)) * 100) / 100;
   const saving = state.home ? savingOf(lines) : 0;
-  const inPlan = plan.stops.flatMap((s) => s.lines.map((l) => l.product.id));
-  const checked = inPlan.filter((id) => state.list.find((l) => l.id === id)?.checked);
-  const bought = new Set(checked.length ? checked : inPlan);
+  const bought = new Set(lines.map((l) => l.product.id));
   state.recurring = state.recurring.map((r) => (bought.has(r.id) ? learnFrequency(r, today) : r));
-  // Placard : ce qui vient d'être acheté est à la maison.
-  state.pantry ??= {};
-  for (const id of bought) { const k = ING_OF_PRODUCT[id]; if (k) { state.pantry[k] = today; delete state.pantryUntil?.[k]; } }
+  // Placard : tout ce qui vient d'être acheté est à la maison (avec sa date limite estimée).
+  const toPlacard = lines.map((l) => ({ name: l.product.name, article: l.info?.article, qty: l.packs ?? l.qty, cat: l.product.cat }));
   // Dépenses par rayon (ramenées au montant payé s'il est connu).
   const goods = lines.reduce((t, l) => t + l.total, 0);
   const k = paid != null && goods > 0 ? Math.max(0, paid - (plan.fees ?? 0)) / goods : 1;
@@ -2441,18 +2555,21 @@ function finishShopping(plan, paid = null) {
   state.history.unshift({ date: today, label: plan.label, total: estimate, ...(paid != null ? { paid } : {}), saving, items: bought.size, cats });
   state.history = state.history.slice(0, 50);
   // Reçu conservé (Budget → Mes reçus) : chaque article, son prix, sa famille, son Nutri-Score.
-  const meat = butcherItems().filter((l) => l.checked);
-  for (const l of meat) bought.add(l.id);
+  const meat = butcherItems().filter((l) => l.checked && edit.get(l.id)?.on !== false).map((l) => ({ ...l, qty: edit.get(l.id)?.qty ?? l.qty }));
+  for (const l of meat) { bought.add(l.id); toPlacard.push({ name: butcherLabel(l.p), qty: l.qty, cat: 3 }); }
+  for (const name of edits?.extras ?? []) toPlacard.push({ name, qty: 1 });
+  const added = addToPlacard(toPlacard, today);
   keepReceipt({
     date: today, label: plan.label, total: estimate, paid, fees: plan.fees || undefined,
-    lines: lines.map((l) => receiptLine(l.product, l.info?.article, l.packs ?? l.qty, l.total, l.chain, l.storeName, l.info?.kind, l.saving ? l.deal?.txt : undefined)),
+    lines: [...lines.map((l) => ({ ...receiptLine(l.product, l.info?.article, l.packs ?? l.qty, l.total, l.chain, l.storeName, l.info?.kind, l.saving ? l.deal?.txt : undefined), id: l.product.id })),
+      ...(edits?.extras ?? []).map((name) => ({ ...receiptLine({ name }, null, 1, 0, null, 'En plus', 'user'), d: 'ajouté à la main' }))],
     butcher: meat.map((l) => ({ n: butcherLabel(l.p), q: l.qty, t: butcherCost(l), g: 'viande' })),
   });
   state.list = state.list.filter((l) => !bought.has(l.id)).map((l) => ({ ...l, checked: false }));
   for (const id of bought) delete state.dishNeed?.[id];
   save();
   const left = state.list.length;
-  toast(`${left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍'} Reçu conservé (Budget → Mes reçus).`);
+  toast(`${left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍'} ${added} produit${added > 1 ? 's' : ''} rangé${added > 1 ? 's' : ''} dans ton placard.`);
   setTab('list');
 }
 
@@ -2528,7 +2645,7 @@ function viewReceipts() {
       <section class="hero"><span class="eyebrow">${esc(dateFr(r.date))} · ${esc(r.label ?? '')}</span>
         <div class="total num">${eur(r.paid ?? r.total)}</div>
         <span class="small">${r.paid != null ? `Payé (estimé par l'app : ${eur(r.total)})` : 'Estimé par l\'app'} · ${r.lines.length + (r.butcher?.length ?? 0)} articles</span></section>
-      <div class="actions"><button class="btn" data-action="receipt-copy" data-id="${esc(r.id)}">${icon('copy')}Copier pour Claude</button>
+      <div class="actions">${r.lines.some((l) => l.id && productById(l.id)) ? `<button class="btn" data-action="receipt-again" data-id="${esc(r.id)}">${icon('repeat')}Refaire cette liste</button>` : ''}<button class="btn" data-action="receipt-copy" data-id="${esc(r.id)}">${icon('copy')}Copier pour Claude</button>
         <button class="btn" data-action="receipt-md" data-id="${esc(r.id)}">${icon('share')}Télécharger (.md)</button></div>
       <p class="tiny muted">Le texte copié contient chaque article, son prix et d'où vient le prix : colle-le dans une conversation avec Claude pour vérifier un problème.</p>
       ${[...byStore].map(([store, ls]) => `<div class="card"><div class="row"><b class="grow">${esc(store)}</b><b class="num">${eur(ls.reduce((t, l) => t + l.t, 0))}</b></div><ul class="items">${ls.map(line).join('')}</ul></div>`).join('')}
@@ -2886,6 +3003,17 @@ document.addEventListener('click', async (e) => {
     else {
       try { await navigator.clipboard.writeText(md); toast('Copié : colle-le dans Claude'); } catch { await ask('Copie ce texte :', { text: md, ok: 'Fermer', cancel: null }); }
     }
+  } else if (a === 'receipt-again') {
+    const r = (state.receipts ?? []).find((x) => x.id === id);
+    const items = (r?.lines ?? []).filter((l) => l.id && productById(l.id));
+    for (const l of items) {
+      const it = state.list.find((x) => x.id === l.id);
+      if (it) it.qty = Math.max(it.qty, Math.round(l.q) || 1); else state.list.push({ id: l.id, qty: Math.round(l.q) || 1, checked: false });
+    }
+    save();
+    toast(`${items.length} produit${items.length > 1 ? 's' : ''} remis dans ta liste`);
+    receiptOpen = null;
+    setTab('list');
   } else if (a === 'receipt-delete') {
     if (!(await ask('Supprimer ce reçu ? (le total du mois reste compté)', { ok: 'Supprimer' }))) return;
     state.receipts = (state.receipts ?? []).filter((x) => x.id !== id);
@@ -3024,8 +3152,19 @@ document.addEventListener('click', async (e) => {
     state.pantry = { ...(state.pantry ?? {}), [k]: today() };
     save();
     render();
+  } else if (a === 'receipts-from-placard') {
+    receiptOpen = 'list';
+    setTab('recurring');
+    receiptOpen = 'list';
+    render();
   } else if (a === 'placard-import') {
     placardImportDialog();
+  } else if (a === 'placard-extend') {
+    const k = b.dataset.key;
+    state.pantryUntil = { ...(state.pantryUntil ?? {}), [k]: new Date(Date.now() + 3 * DAY).toISOString().slice(0, 10) };
+    save();
+    toast(`${ingName(k)} : encore 3 jours`);
+    render();
   } else if (a === 'placard-other-remove') {
     state.pantryOther = (state.pantryOther ?? []).filter((_, i) => i !== Number(b.dataset.i));
     save();
@@ -3198,10 +3337,7 @@ document.addEventListener('click', async (e) => {
       ? 'Marquer les articles cochés comme achetés ? Les autres restent dans ta liste.'
       : 'Aucun article coché : marquer tout le plan comme acheté ?';
     if (!(await ask(msg, { ok: 'Oui, c\'est fait' }))) return;
-    const est = boughtLines(p).reduce((t, l) => t + l.total, 0) + (p.fees ?? 0);
-    const paid = await ask('Combien as-tu payé ? (pour le suivi du budget)', { input: est.toFixed(2).replace('.', ','), ok: 'Enregistrer', cancel: 'Passer' });
-    const n = paid == null ? null : Number(String(paid).replace(',', '.'));
-    finishShopping(p, Number.isFinite(n) && n > 0 ? n : null);
+    confirmShopping(p);
   } else if (a === 'rec') {
     const p = productById(id);
     state.recurring.push({ id, every: p.every ?? 7 });

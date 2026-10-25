@@ -29,3 +29,14 @@ test('matchPlacard : ingrédients des recettes, épices, et le reste à part', (
   assert.equal(key('Herbes de Provence'), 'herbes*');
   assert.equal(key('Épices pour poulet'), 'epices*');
 });
+
+test('fraîcheur : le saumon se garde moins que les pâtes', async () => {
+  const { shelfDays, freshness } = await import('../src/placard.js');
+  assert.ok(shelfDays('saumon') <= 2 && shelfDays('pates') >= 100);
+  assert.equal(freshness(shelfDays('saumon')), 'vite');
+  assert.equal(freshness(shelfDays('courgettes')), 'semaine');
+  assert.equal(freshness(shelfDays('riz')), 'garde');
+  assert.equal(key('Filet de poulet (1 kg)'), 'poulet'); // produit acheté → placard
+  assert.equal(key('Haché de bœuf (500 g)'), 'boeuf');
+  assert.equal(key('EVERYDAY lait demi-écrémé brique 1L'), 'lait');
+});
