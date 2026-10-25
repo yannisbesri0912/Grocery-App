@@ -12,11 +12,13 @@ import { priceSignal, KEEPS } from './history.js';
 import { aisleKey, aisleOrder } from './aisles.js';
 import { addRatio, calibFactor } from './calib.js';
 import { shareLink, readShared } from './share.js';
-import { isId, cleanProduct, cleanItem } from './validate.js';
+import { isId, cleanProduct, cleanItem, cleanReceipt } from './validate.js';
+import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
+import { parsePlacard, matchPlacard, KEEPS_LONG, shelfDays, freshness } from './placard.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q } from './recipes.js';
-import { QUESTIONS, questionsFor, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS, familiarity, DISCOVERY } from './recipes.js';
+import { QUESTIONS, questionsFor, optionsOf, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
 import { startScanner, lookupBarcode, decodePhoto, validEan } from './scan.js';
@@ -68,6 +70,11 @@ function migrate(saved) {
     .map((st) => ({ ...st, name: String(st.name ?? '').slice(0, 120), address: String(st.address ?? '').slice(0, 200) }));
   const h = saved.home;
   s.home = h && Number.isFinite(h.lat) && Number.isFinite(h.lng) ? { address: String(h.address ?? '').slice(0, 200), lat: h.lat, lng: h.lng } : null;
+  s.receipts = arr(saved.receipts).slice(0, 150).map(cleanReceipt).filter(Boolean);
+  s.saved = arr(saved.saved).filter((x) => x && isId(x.id)).slice(0, 100).map((x) => ({ id: x.id, at: typeof x.at === 'string' ? x.at.slice(0, 10) : '' }));
+  s.menu = arr(saved.menu).filter((x) => x && isId(x.id)).slice(-30).map((x) => ({ id: x.id, servings: Number(x.servings) > 0 ? Math.min(20, Number(x.servings)) : 1 }));
+  s.pantryOther = arr(saved.pantryOther).filter((x) => x && typeof x.name === 'string').slice(0, 300).map((x) => ({ name: x.name.slice(0, 80), qty: String(x.qty ?? '').slice(0, 30) }));
+  s.pantryNames = Object.fromEntries(Object.entries(obj(saved.pantryNames)).filter(([k, v]) => isId(k) && Array.isArray(v)).map(([k, v]) => [k, v.filter((x) => typeof x === 'string').slice(0, 10).map((x) => x.slice(0, 80))]));
   s.overrides = obj(saved.overrides);
   s.chainIndex = obj(saved.chainIndex);
   for (const k of ['valueOfTime', 'minutesPerStore', 'radiusKm', 'detour', 'servings']) {
@@ -811,6 +818,15 @@ function applyReceipt() {
     cats[key] = Math.round(((cats[key] ?? 0) + it.total) * 100) / 100;
   }
   state.history.unshift({ date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum, saving: 0, items: used.length, cats });
+  keepReceipt({
+    date: today, label: `Ticket ${CHAINS[chain]?.name ?? ''}`.trim(), total: sum, paid: receipt.total ?? sum,
+    lines: used.map((it) => {
+      const p = it.match?.id ? productById(it.match.id) : null;
+      const r = !p && it.match?.row ? rowById(it.match.chain, it.match.row) : null;
+      const prod = p ?? (r ? { name: rowName(r), cat: r[ROW.cat], nutri: r[ROW.nutri] || undefined } : { name: it.name, cat: undefined });
+      return receiptLine(prod, it.name, it.qty ?? 1, it.total, chain, CHAINS[chain]?.name, 'real');
+    }),
+  });
   receipt = null;
   save();
   render();
@@ -861,7 +877,7 @@ const icon = (name) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${
 
 // Logo de l'enseigne (icône officielle de son site ; initiale colorée en secours).
 // Icône introuvable : on la retire (écouteur global, la page n'autorise pas le code en ligne).
-document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageElement && e.target.closest('.logo')) e.target.remove(); }, true);
+document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageElement && e.target.closest('.logo, .dish-pic')) e.target.remove(); }, true);
 function logo(chain, size = '') {
   const c = CHAINS[chain] ?? { name: '?', color: '#888' };
   const img = c.domain ? `<img src="https://www.google.com/s2/favicons?domain=${c.domain}&sz=64" alt="" loading="lazy">` : '';
@@ -919,6 +935,7 @@ function toast(msg) {
 }
 
 function setTab(tab) {
+  if (tab !== state.tab) receiptOpen = null;
   state.tab = tab;
   save();
   render();
@@ -1220,9 +1237,10 @@ function viewList() {
 // ---------- Recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) ----------
 let moreRecipes = null;
 function loadMoreRecipes() {
-  moreRecipes ??= fetch('data/recipes-wikibooks.json', { cache: 'no-cache' })
-    .then((res) => (res.ok ? res.json() : []))
-    .then((rows) => { addRecipes(rows); render(); })
+  // Livre de cuisine en français (Wikilivres) d'abord, puis le Cookbook anglais traduit.
+  const get = (f) => fetch(f, { cache: 'no-cache' }).then((res) => (res.ok ? res.json() : [])).catch(() => []);
+  moreRecipes ??= Promise.all([get('data/recipes-wikilivres.json'), get('data/recipes-wikibooks.json')])
+    .then(([fr, en]) => { addRecipes(fr, 'wl-'); addRecipes(en); render(); })
     .catch(() => { moreRecipes = null; });
   return moreRecipes;
 }
@@ -1279,7 +1297,8 @@ function haveIng(i) {
   if (i.pantry) return v !== 'missing';
   if (typeof v !== 'string' || v === 'missing') return false;
   const until = state.pantryUntil?.[i.key];
-  return until ? until >= today() : (Date.now() - new Date(v).getTime()) / DAY <= 10;
+  // Riz, pâtes, conserves… : au placard jusqu'à « Fini » ; le frais compte 10 jours.
+  return until ? until >= today() : KEEPS_LONG.has(i.key) || (Date.now() - new Date(v).getTime()) / DAY <= 10;
 }
 // Ingrédient de recette ↔ produit de l'app (pour remplir le placard après les courses).
 const ING_OF_PRODUCT = Object.fromEntries(Object.entries(ING).filter(([, d]) => d.p).map(([k, d]) => [d.p, k]));
@@ -1291,7 +1310,29 @@ function kitchen() {
   state.settings.kitchen ??= Object.fromEntries(Object.keys(TOOLS).map((t) => [t, DEFAULT_PROFILE.kitchen.includes(t)]));
   return state.settings.kitchen;
 }
-const recipeFilters = (extra = {}) => ({ kitchen: kitchen(), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], ...extra });
+const recipeFilters = (extra = {}) => ({ kitchen: kitchen(), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], avoid: meatsWith('never'), ...extra });
+// Réglages → « Mes viandes et poissons » : j'adore (plus souvent dans les plats), ça va, jamais.
+function meatPrefsField() {
+  const diet = state.settings.diet ?? 'tout';
+  if (['vegetarien', 'vegan'].includes(diet)) return '';
+  const keys = Object.keys(MEATS).filter((k) => k !== 'porc' || !['sans-porc', 'halal'].includes(diet));
+  const prefs = state.settings.meatPrefs ?? {};
+  const levels = [['love', '❤️ J\'adore'], ['ok', 'Ça va'], ['never', 'Jamais']];
+  return `<div class="field"><span>Mes viandes et poissons</span>
+    <ul class="items meat-prefs">${keys.map((k) => `<li><span class="name">${esc(MEATS[k])}</span>
+      <div class="seg small" role="group" aria-label="${esc(MEATS[k])}">${levels.map(([v, l]) => `<button data-action="meat-pref" data-id="${esc(k)}" data-val="${v}" aria-pressed="${(prefs[k] ?? 'ok') === v}">${l}</button>`).join('')}</div></li>`).join('')}</ul>
+    <span class="tiny muted">« J'adore » : environ 2 plats sur 3 avec viande ou poisson en contiendront. « Jamais » : plus aucun plat avec.</span></div>`;
+}
+// « Plats proposés » : classiques (défaut), un peu de découverte, aventure.
+const discoveryLevel = () => (DISCOVERY[state.settings.discovery] ? state.settings.discovery : 'classique');
+const okForLevel = (r) => discoveryLevel() !== 'classique' || familiarity(r) > 0;
+function discoveryField() {
+  const cur = discoveryLevel();
+  return `<div class="field"><span>Plats proposés</span><div class="seg" role="group" aria-label="Plats proposés">${Object.entries(DISCOVERY).map(([k, d]) => `<button data-action="set" data-key="discovery" data-val="${esc(k)}" aria-pressed="${cur === k}">${esc(d.label)}</button>`).join('')}</div>
+    <span class="tiny muted">${cur === 'classique' ? 'Des plats connus : bolognaise, gratin, poulet rôti, curry, quiche…' : cur === 'mix' ? 'Surtout des classiques, et environ 1 plat sur 5 venu d\'ailleurs.' : 'Toutes les recettes, du monde entier.'}</span></div>`;
+}
+// Viandes et poissons par préférence (Réglages → Mes viandes) : 'love', 'never' (sinon « ça va »).
+const meatsWith = (level) => Object.entries(state.settings.meatPrefs ?? {}).filter(([k, v]) => v === level && MEATS[k]).map(([k]) => k);
 
 // Ajoute une part de paquet à la liste : on n'ajoute un paquet que quand
 // le précédent est entamé (deux recettes à 250 g de pâtes = un paquet de 1 kg).
@@ -1413,7 +1454,7 @@ function dishItems(chain = smartShop()) {
   const need = {};
   return smartSettings().dishes.map((d) => ({ d, r: recipeById(d.id) })).filter((x) => x.r).map(({ d, r }) => {
     let price = 0;
-    for (const i of r.ingredients.filter((x) => !x.pantry)) {
+    for (const i of r.ingredients.filter((x) => !x.pantry && !haveIng(x))) { // déjà au placard : rien à acheter
       const res = resolveIng(i.key, chain);
       const before = Math.ceil((need[i.key] ?? 0) - 1e-6);
       need[i.key] = (need[i.key] ?? 0) + (i.amount * d.servings) / res.pack;
@@ -1441,8 +1482,9 @@ function dishTarget(pr) {
 
 function proposeDishes(profile, exclude = [], target = dishTarget({ ...DEFAULT_PROFILE, ...profile })) {
   const pr = { ...DEFAULT_PROFILE, ...profile };
+  exclude = [...exclude, ...(smartSettings().disliked ?? [])]; // plats écartés (« pas pour moi »)
   const filters = recipeFilters({ maxTime: pr.time });
-  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target });
+  const ids = pickDishes(pr.dinners, filters, (r) => dishCost(r), { meat: pr.meat, fish: pr.fish, exclude, perServing: target, loves: meatsWith('love'), discovery: discoveryLevel(), recent: smartSettings().recent ?? [] });
   const desserts = RECIPES.filter((r) => r.type === 'dessert' && !exclude.includes(r.id) && compatible(r, filters))
     .sort((a, b) => dishCost(a) - dishCost(b)).slice(0, Number(pr.dessert) || 0).map((r) => r.id);
   return [...ids, ...desserts].map((id) => ({ id, servings: recipeById(id).type === 'dessert' ? pr.people : servingsFor(pr) }));
@@ -1476,9 +1518,46 @@ function shopComparison() {
     ${gap > 0.005 ? `<span class="small"><b>${esc(CHAINS[rows[0].c].name)}</b> est moins cher de <b>${eur(gap)}</b>.</span>` : ''}</div>`;
 }
 
+// Remplacer un plat par un autre du même genre (viande, poisson, végé) : l'équilibre de la semaine reste.
+function sameKind(pr, r) {
+  const kind = r?.flags.has('f') ? 'f' : r?.flags.has('m') ? 'm' : 'v';
+  return { ...pr, meat: kind === 'm' ? 'souvent' : 'jamais', fish: kind === 'f' ? 'souvent' : 'jamais' };
+}
+
+// Après les questions : faire confiance au panier, ou passer les plats en revue.
+let smartStep = null; // null | 'choice' | 'review'
+
+function viewSmartChoice(sm) {
+  const n = sm.dishes.length;
+  return `<button class="btn ghost small" data-action="smart-step" data-val="">← Panier malin</button>
+    <section class="hero"><span class="eyebrow">Ton panier est prêt</span>
+      <span class="plan-name">${n} plat${n > 1 ? 's' : ''} pour ${sm.profile.people} pers. · budget ${eur(sm.budget)}</span>
+      <div class="pics-row">${sm.dishes.slice(0, 5).map((d) => recipeById(d.id)).filter(Boolean).map((r) => dishVisual(r)).join('')}</div></section>
+    <button class="choice" data-action="smart-step" data-val="">${icon('check')}<span class="grow"><b>Faire confiance au panier malin</b><span class="sub">Voir le panier tout de suite</span></span>${icon('arrow')}</button>
+    <button class="choice" data-action="smart-step" data-val="review">${icon('search')}<span class="grow"><b>Vérifier les plats</b><span class="sub">Écarte ce que tu n'aimes pas : l'app propose autre chose et s'en souvient</span></span>${icon('arrow')}</button>`;
+}
+
+function viewSmartReview(sm) {
+  const list = sm.dishes.map((d) => ({ d, r: recipeById(d.id) })).filter((x) => x.r);
+  const ings = (r) => r.ingredients.filter((i) => !i.pantry).map((i) => ingName(i.key)).slice(0, 5).join(', ');
+  return `<button class="btn ghost small" data-action="smart-step" data-val="choice">← Retour</button>
+    <h1>Tes plats</h1>
+    <p class="small muted">« Pas pour moi » : le plat est écarté pour de bon et remplacé par un autre dans ton budget.</p>
+    <div class="dish-cards">${list.map(({ d, r }) => `<div class="dish-card">
+      ${dishVisual(r, 'md')}
+      <div class="stack" style="gap:2px"><b>${esc(r.name)}</b><span class="small muted">${r.minutes} min · ${d.servings} portion${d.servings > 1 ? 's' : ''} · ≈ ${eur(dishCost(r))}/pers.</span>
+        <span class="small">${esc(ings(r))}</span></div>
+      <div class="row" style="gap:6px"><button class="btn soft small grow" data-action="dish-dislike" data-id="${esc(r.id)}">👎 Pas pour moi</button>
+        <button class="btn ghost small" data-action="dish-swap" data-id="${esc(r.id)}">Autre idée</button>${heartBtn(r)}</div>
+    </div>`).join('')}</div>
+    <button class="btn primary lg block" data-action="smart-step" data-val="">${icon('check')} C'est bon, voir mon panier</button>`;
+}
+
 function viewSmart() {
   const sm = smartSettings();
   const shop = smartShop();
+  if (smartStep === 'choice' && sm.profile && sm.dishes.length) return viewSmartChoice(sm);
+  if (smartStep === 'review' && sm.dishes.length) return viewSmartReview(sm);
   if (!CATALOG || !CATALOGS[shop]) {
     loadCatalog().then(() => loadOtherCatalogs()).then(() => { if (smartOpen) render(); });
     return `<button class="btn ghost small" data-action="smart-close">← Ma liste</button><div class="empty"><span class="spin"></span><b>Je charge les prix ${esc(CHAINS[shop].name)}…</b></div>`;
@@ -1515,20 +1594,22 @@ function viewSmart() {
     const line = picked.get(it.id);
     return `<li class="smart-item ${line ? '' : 'out'}">
       <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
-        <span class="name">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
+        ${dishVisual(it.dish)}<span class="name grow">${esc(it.dish.name)}<span class="sub">${it.servings} portion${it.servings > 1 ? 's' : ''} · ${it.dish.minutes} min · ${eur(it.used)} consommés, le reste des paquets sert ensuite${line ? '' : ' · pas assez de budget'}</span></span>
         <b class="num">${eur(it.options[0].price)}</b></div>
       <div class="row" style="gap:6px;justify-content:flex-end">
-        <button class="btn soft small" data-action="dish-swap" data-id="${esc(it.dish.id)}">Changer</button>
+        ${heartBtn(it.dish)}<button class="btn soft small" data-action="dish-swap" data-id="${esc(it.dish.id)}">Changer</button>
         <button class="btn ghost small" data-action="recipe-open" data-id="${esc(it.dish.id)}">Recette</button>
         <button class="icon-btn" data-action="dish-remove" data-id="${esc(it.dish.id)}" aria-label="Retirer">${icon('x')}</button></div></li>`;
   };
   const prof = sm.profile;
   const quizCard = `<div class="card">
       ${prof
-        ? `<div class="row" style="justify-content:space-between"><span class="small"><b>Tes réponses :</b> ${prof.people} pers. · ${prof.days} j · ${prof.dinners} repas · ${esc(DIETS[prof.diet]?.label ?? '')}</span></div>`
+        ? `<div class="row" style="justify-content:space-between"><span class="small"><b>Tes réponses :</b> ${prof.people} pers. · ${prof.days} j · ${prof.dinners} repas · ${esc(DIETS[prof.diet]?.label ?? '')}</span></div>
+          ${sm.dishes.length ? '<button class="btn ghost small" data-action="smart-step" data-val="review">Vérifier les plats</button>' : ''}
+          ${sm.disliked?.length ? `<span class="tiny muted">${sm.disliked.length} plat${sm.disliked.length > 1 ? 's' : ''} écarté${sm.disliked.length > 1 ? 's' : ''} · <button class="link" data-action="dislike-reset">tout remettre</button></span>` : ''}`
         : '<span class="small">Réponds à quelques questions : je compose un panier avec des plats adaptés à ta cuisine.</span>'}
-      <div class="row" style="gap:8px"><button class="btn soft grow" data-action="quiz" data-val="simple">${prof ? 'Refaire · ' : ''}Simple · 5 questions</button>
-        <button class="btn soft grow" data-action="quiz" data-val="complet">Complet · 20 questions</button></div></div>`;
+      <div class="row" style="gap:8px"><button class="btn soft grow" data-action="quiz" data-val="simple">${prof ? 'Refaire · ' : ''}Simple · ${questionsFor('simple', { diet: state.settings.diet ?? 'tout' }).length} questions</button>
+        <button class="btn soft grow" data-action="quiz" data-val="complet">Complet · ${questionsFor('complet', { diet: state.settings.diet ?? 'tout' }).length} questions</button></div></div>`;
   return `
     <button class="btn ghost small" data-action="smart-close">← Ma liste</button>
     <h1>Panier malin</h1>
@@ -1598,7 +1679,8 @@ function applySmart() {
   sm.dishes = [];
   setSmartOpen(false);
   save();
-  toast(`Panier de ${eur(res.total)} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
+  const meatNote = halalOn() && butcherItems().length ? ` (dont ≈ ${eur(butcherItems().reduce((t, l) => t + butcherCost(l), 0))} de viande chez le boucher)` : '';
+  toast(`Panier de ${eur(res.total)}${meatNote} dans ta liste${dropped ? ` · ${dropped} produit${dropped > 1 ? 's' : ''} hors budget retiré${dropped > 1 ? 's' : ''}` : ''}`);
   setTab('plan');
 }
 
@@ -1606,12 +1688,12 @@ function applySmart() {
 function startQuiz(mode) {
   loadMoreRecipes();
   const sm = smartSettings();
-  const answers = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}), kitchen: Object.keys(kitchen()).filter((k) => kitchen()[k]), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [] };
+  const answers = { ...DEFAULT_PROFILE, ...(sm.profile ?? {}), kitchen: Object.keys(kitchen()).filter((k) => kitchen()[k]), diet: state.settings.diet ?? 'tout', allergies: state.settings.allergies ?? [], loves: meatsWith('love') };
   quiz = { mode, i: 0, answers };
 }
 
 function viewQuiz() {
-  const qs = questionsFor(quiz.mode);
+  const qs = questionsFor(quiz.mode, quiz.answers);
   const q = qs[quiz.i];
   const val = quiz.answers[q.id];
   const on = (o) => (q.type === 'many' ? (val ?? []).map(String).includes(String(o.value)) : String(val) === String(o.value));
@@ -1622,7 +1704,7 @@ function viewQuiz() {
       <div class="progress"><span style="width:${((quiz.i + 1) / qs.length) * 100}%"></span></div>
       <span class="plan-name" style="font-size:1.25rem">${esc(q.text)}</span>
     </section>
-    <div class="quiz-options">${q.options.map((o) => `<button class="quiz-opt" data-action="quiz-pick" data-val="${esc(o.value)}" aria-pressed="${on(o)}">${esc(o.label)}</button>`).join('')}</div>
+    <div class="quiz-options">${optionsOf(q, quiz.answers).map((o) => `<button class="quiz-opt" data-action="quiz-pick" data-val="${esc(o.value)}" aria-pressed="${on(o)}">${esc(o.label)}</button>`).join('')}</div>
     ${q.type === 'many' ? '<p class="small muted">Plusieurs réponses possibles (ou aucune).</p>' : ''}
     <button class="btn primary lg block" data-action="quiz-next">${quiz.i + 1 < qs.length ? 'Suivant' : 'Composer mon panier'} ${icon('arrow')}</button>`;
 }
@@ -1632,6 +1714,8 @@ function finishQuiz() {
   const a = { ...quiz.answers };
   const mode = quiz.mode;
   quiz = null;
+  // Mode simple : cocher des viandes préférées = en manger souvent (la question n'est posée qu'en complet).
+  if (mode === 'simple' && a.loves?.some((k) => k !== 'poisson' && k !== 'fruits-mer')) a.meat = 'souvent';
   sm.profile = a;
   sm.budget = Number(a.budget) || sm.budget;
   if (mode === 'complet') {
@@ -1640,9 +1724,17 @@ function finishQuiz() {
     state.settings.allergies = a.allergies;
   }
   state.settings.diet = a.diet;
+  // Viandes préférées : « J'adore » pour celles cochées, les « Jamais » restent.
+  if (Array.isArray(a.loves)) {
+    const prefs = Object.fromEntries(Object.entries(state.settings.meatPrefs ?? {}).filter(([, v]) => v === 'never'));
+    for (const k of a.loves) prefs[k] = 'love';
+    state.settings.meatPrefs = prefs;
+  }
   sm.removed = {};
   sm.dishes = proposeDishes(a);
+  sm.recent = [...sm.dishes.map((d) => d.id), ...(sm.recent ?? [])].slice(0, 21); // variété au prochain questionnaire
   sm.dishesAuto = true;
+  smartStep = sm.dishes.length ? 'choice' : null; // faire confiance, ou vérifier les plats
   save();
   render();
   window.scrollTo({ top: 0 });
@@ -1683,7 +1775,7 @@ function promoMenu(chain, n = 5) {
   const filters = recipeFilters();
   const styles = state.settings.recipeStyles ?? [];
   const main = (r) => r.ingredients.find((i) => !i.pantry && /[mfe]/.test(ING[i.key]?.flags ?? ''))?.key ?? r.ingredients.find((i) => !i.pantry)?.key;
-  const scored = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && compatible(r, filters)
+  const scored = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && okForLevel(r) && compatible(r, filters)
       && styles.every((st) => (st === 'pascher' ? true : STYLES[st]?.test(r) ?? true)))
     .map((r) => {
       let saving = 0;
@@ -1714,6 +1806,59 @@ function promoMenu(chain, n = 5) {
   }
   return picked;
 }
+// ---------- Mon menu et plats gardés ----------
+// Carte de plat (menus, plats gardés) : photo, nom, infos ; toucher ouvre la recette.
+function dishTile(r, { sub = '', actions = '' } = {}) {
+  return `<div class="dish-tile">
+    <button class="tile-open" data-action="recipe-open" data-id="${esc(r.id)}">${dishVisual(r, 'md')}<b>${esc(r.name)}</b><span class="small muted">${sub}</span></button>
+    ${actions ? `<div class="tile-actions">${actions}</div>` : ''}</div>`;
+}
+const isSaved = (id) => (state.saved ?? []).some((x) => x.id === id);
+const heartBtn = (r, label = false) => {
+  const on = isSaved(r.id);
+  return `<button class="${label ? 'btn soft small' : 'icon-btn'} heart${on ? ' on' : ''}" data-action="dish-save" data-id="${esc(r.id)}" aria-pressed="${on}" aria-label="${on ? 'Retirer de mes plats gardés' : 'Garder ce plat'}">${on ? '❤️' : '🤍'}${label ? (on ? ' Gardé' : ' Garder ce plat') : ''}</button>`;
+};
+const servingsNow = () => state.settings.servings ?? smartSettings().profile?.people ?? 1;
+
+// Urgence d'un plat : l'ingrédient déjà à la maison qui se garde le moins.
+function menuUrgency(r) {
+  let best = { days: Infinity, name: '' };
+  for (const i of r.ingredients.filter((x) => !x.pantry)) {
+    if (!haveIng(i) || KEEPS_LONG.has(i.key)) continue; // pas encore à la maison : acheté frais au moment voulu
+    const d = daysLeft(i.key);
+    if (d < best.days) best = { days: d, name: ingName(i.key).toLowerCase() };
+  }
+  return best;
+}
+// Plats ajoutés à la liste : ce qu'on va cuisiner (un plat ajouté deux fois n'apparaît qu'une fois).
+function myMenuCard() {
+  const byId = new Map();
+  for (const m of state.menu ?? []) { const r = recipeById(m.id); if (r) byId.set(m.id, { r, servings: (byId.get(m.id)?.servings ?? 0) + (m.servings ?? 1) }); }
+  // Ordre de cuisine : d'abord les plats aux produits frais les plus fragiles (saumon avant pâtes).
+  const list = [...byId.values()].reverse().map((x) => ({ ...x, urgent: menuUrgency(x.r) })).sort((a, b) => a.urgent.days - b.urgent.days);
+  if (!list.length) return '';
+  const when = (u) => (!Number.isFinite(u.days) ? 'quand tu veux' : u.days <= 0 ? `aujourd'hui (${u.name})` : u.days <= 3 ? `d'abord : ${u.name} ${u.days} j` : `avant le ${dateFr(new Date(Date.now() + u.days * DAY).toISOString())}`);
+  return `<div class="card">
+    <div class="section-head"><h2>🍽️ Mon menu <span class="pill">${list.length}</span></h2><button class="btn ghost small" data-action="menu-clear">Tout effacer</button></div>
+    <p class="small muted">Dans l'ordre où les cuisiner : les plats aux produits frais qui se gardent le moins d'abord. Touche « Cuisiné » quand c'est fait.</p>
+    <div class="tiles">${list.map(({ r, servings, urgent }, i) => dishTile(r, {
+      sub: `<b class="${urgent.days <= 3 ? 'warn-text' : ''}">${i + 1}. ${esc(when(urgent))}</b><br>${servings} pers. · ${r.minutes} min`,
+      actions: `<button class="btn soft small" data-action="menu-done" data-id="${esc(r.id)}">${icon('check')} Cuisiné</button>${heartBtn(r)}`,
+    })).join('')}</div></div>`;
+}
+
+// Plats gardés (❤️) : à refaire plus tard, sans acheter tout de suite.
+function savedCard() {
+  const list = (state.saved ?? []).map((x) => recipeById(x.id)).filter(Boolean);
+  if (!list.length) return `<p class="small muted saved-hint">❤️ Touche 🤍 sur un plat pour le garder ici et le retrouver en un geste.</p>`;
+  return `<div class="card">
+    <div class="section-head"><h2>❤️ Mes plats gardés <span class="pill">${list.length}</span></h2>${list.length > 1 ? `<button class="btn ghost small" data-action="saved-add-all">Tout ajouter</button>` : ''}</div>
+    <div class="tiles">${list.map((r) => dishTile(r, {
+      sub: `≈ ${eur(dishCost(r))} / pers. · ${r.minutes} min`,
+      actions: `<button class="btn primary small" data-action="dish-add" data-id="${esc(r.id)}">${icon('plus')} Ma liste</button>${heartBtn(r)}`,
+    })).join('')}</div></div>`;
+}
+
 function promoMenuCard() {
   if (!CATALOG) return '';
   const chain = smartShop();
@@ -1728,40 +1873,149 @@ function promoMenuCard() {
     <div class="section-head"><h2>🏷️ Menu de la semaine en promo</h2></div>
     <div class="seg" role="group" aria-label="Magasin">${SMART_SHOPS.map((c) => `<button data-action="smart-shop" data-val="${esc(c)}" aria-pressed="${chain === c}">${esc(CHAINS[c].name)}</button>`).join('')}</div>
     <p class="small muted">${menu.length} plats dont des ingrédients sont en promo cette semaine chez ${esc(CHAINS[chain].name)}${chain === 'delhaize' && !hasCard('delhaize') ? ' (sans les promos carte Plus : coche-la dans Réglages si tu l\'as)' : ''}.</p>
-    <ul class="items">${menu.map((x) => `<li><span class="name"><button class="link-plain" data-action="recipe-open" data-id="${esc(x.r.id)}">${esc(x.r.name)}</button>
-      <span class="sub deal">${esc(x.promos.slice(0, 3).join(' · '))}</span></span><span class="num">≈ ${eur(x.cost)}<span class="sub">/ pers.</span></span></li>`).join('')}</ul>
+    <div class="tiles">${menu.map((x) => dishTile(x.r, {
+      sub: `<b class="num">≈ ${eur(x.cost)}</b> / pers.<span class="deal tile-deal">${esc(x.promos.slice(0, 2).join(' · '))}</span>`,
+      actions: heartBtn(x.r),
+    })).join('')}</div>
     <button class="btn primary block" data-action="promo-menu-add">${icon('cart')} Ajouter ce menu (${people} pers.) · ≈ ${eur(total)}${saved >= 0.5 ? `, dont −${eur(saved)} de promos` : ''}</button>
   </div>`;
 }
 
 // ---------- Mon placard (anti-gaspi) ----------
+// Liste collée (JSON ou une ligne par produit) → placard. Ce que les recettes
+// connaissent devient un ingrédient « j'ai » ; le reste est gardé à part.
+function importPlacard(text) {
+  const items = parsePlacard(text);
+  if (!items.length) { toast('Liste vide ou illisible'); return; }
+  const labels = { ING: Object.fromEntries(Object.keys(ING).filter((k) => !ING[k].pantry).map((k) => [k, ingName(k)])), PANTRY: { ...PANTRY_LABELS, epices: 'épices' } };
+  state.pantry ??= {};
+  state.pantryNames ??= {};
+  state.pantryOther ??= [];
+  let ing = 0, spices = 0, other = 0;
+  for (const it of items) {
+    const m = matchPlacard(it.name, labels);
+    if (m?.pantry) { if (state.pantry[m.key] === 'missing') delete state.pantry[m.key]; spices++; continue; }
+    if (m) {
+      state.pantry[m.key] = today();
+      delete state.pantryUntil?.[m.key];
+      const label = `${it.name}${it.qty ? ` (${it.qty})` : ''}`;
+      state.pantryNames[m.key] = [...new Set([...(state.pantryNames[m.key] ?? []), label])].slice(-10);
+      ing++;
+      continue;
+    }
+    const prev = state.pantryOther.find((x) => norm(x.name) === norm(it.name));
+    if (prev) prev.qty = it.qty || prev.qty; else state.pantryOther.push({ name: it.name, qty: it.qty });
+    other++;
+  }
+  placardOpen = true;
+  save();
+  render();
+  toast(`${ing} produit${ing > 1 ? 's' : ''} pour les recettes · ${spices} épice${spices > 1 ? 's' : ''} et condiments · ${other} autre${other > 1 ? 's' : ''}`);
+}
+function placardImportDialog() {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Importer mon placard">
+    <div class="row"><b class="grow">Importer mon placard</b><button class="btn ghost small" data-p="close" aria-label="Fermer">${icon('x')}</button></div>
+    <p class="small muted">Colle ta liste : une ligne par produit (« 3 paquets de spaghettis »), ou une liste JSON avec « nom », « quantite », « unite ».</p>
+    <textarea id="placard-text" rows="9" placeholder="Riz basmati&#10;3 paquets de spaghettis&#10;Thon en conserve"></textarea>
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-p="close">Annuler</button><button class="btn primary" data-p="ok">Importer</button></div></div>`;
+  document.body.append(wrap);
+  wrap.querySelector('textarea').focus();
+  wrap.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-p]');
+    if (e.target === wrap || b?.dataset.p === 'close') { wrap.remove(); return; }
+    if (b?.dataset.p === 'ok') { const t = wrap.querySelector('textarea').value; wrap.remove(); importPlacard(t); }
+  });
+}
 let placardOpen = false;
 document.addEventListener('toggle', (e) => { if (e.target.matches?.('details.placard')) placardOpen = e.target.open; }, true);
+// Jours restants avant la date limite d'un produit du placard (Infinity : se garde).
+function daysLeft(k) {
+  const u = state.pantryUntil?.[k];
+  if (u) return Math.round((new Date(`${u}T12:00:00`) - new Date(`${today()}T12:00:00`)) / DAY);
+  if (KEEPS_LONG.has(k)) return Infinity;
+  const v = state.pantry?.[k];
+  return typeof v === 'string' && v !== 'missing' ? 10 - Math.floor((Date.now() - new Date(v).getTime()) / DAY) : Infinity;
+}
+const FRESH = { vite: '⏰ À manger vite (3 jours ou moins)', semaine: '📅 Cette semaine', garde: '🗄️ Se garde' };
+
 function placardCard() {
   const keys = placardKeys();
   const until = state.pantryUntil ?? {};
-  const soon = keys.filter((k) => until[k] && until[k] <= new Date(Date.now() + 2 * DAY).toISOString().slice(0, 10));
+  const soon = keys.filter((k) => daysLeft(k) <= 3);
   const age = (k) => Math.max(0, Math.floor((Date.now() - new Date(state.pantry[k]).getTime()) / DAY));
+  // Date dépassée : à vérifier (encore bon ? fini ?).
+  const expired = Object.keys(state.pantry ?? {}).filter((k) => ING[k] && !ING[k].pantry && state.pantry[k] !== 'missing' && until[k] && until[k] < today());
   const ideas = soon.length ? RECIPES.filter((r) => compatible(r, recipeFilters()) && r.ingredients.some((i) => soon.includes(i.key)))
     .map((r) => ({ r, n: r.ingredients.filter((i) => keys.includes(i.key)).length })).sort((a, b) => b.n - a.n).slice(0, 4) : [];
   const names = Object.entries(ING).filter(([, d]) => !d.pantry).map(([k]) => ingName(k)).sort((a, b) => a.localeCompare(b, 'fr'));
+  // Plats qui utilisent le plus ce que tu as (et à qui il manque le moins).
+  const cookable = keys.length >= 2 ? RECIPES.filter((r) => r.type === 'plat' && okForLevel(r) && compatible(r, recipeFilters()))
+    .map((r) => { const b = r.ingredients.filter((i) => !i.pantry); const have = b.filter((i) => haveIng(i)).length; return { r, have, miss: b.length - have }; })
+    .filter((x) => x.have >= 2 || (x.have >= 1 && x.miss <= 1)).sort((a, b) => (b.have - b.miss) - (a.have - a.miss) || a.miss - b.miss).slice(0, 6) : [];
   return `<details class="card placard" ${placardOpen ? 'open' : ''}>
-    <summary><b>🏠 Mon placard</b> <span class="small muted">${keys.length ? `${keys.length} produit${keys.length > 1 ? 's' : ''}` : 'vide'}${soon.length ? ` · <span class="warn-text">${soon.length} à finir vite</span>` : ''}</span></summary>
+    <summary><b>🏠 Mon placard</b> <span class="small muted">${keys.length + (state.pantryOther ?? []).length ? `${keys.length + (state.pantryOther ?? []).length} produit${keys.length + (state.pantryOther ?? []).length > 1 ? 's' : ''}` : 'vide'}${soon.length ? ` · <span class="warn-text">${soon.length} à finir vite</span>` : ''}</span></summary>
     <p class="small muted">Ce que tu as déjà : rempli tout seul quand tu valides « Courses faites », ou à la main. Les recettes n'ajoutent pas ce que tu as.</p>
     <div class="row" style="gap:8px"><input id="placard-add" list="ing-names" placeholder="Ajouter (ex. œufs, riz…)" autocomplete="off" style="flex:1;min-width:0"><button class="btn soft small" data-action="placard-add">Ajouter</button></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost small" data-action="placard-import">${icon('copy')} Importer une liste (coller)</button>
+      ${(state.receipts ?? []).length ? `<button class="btn ghost small" data-action="receipts-from-placard">🧾 Mes courses passées (${state.receipts.length})</button>` : ''}</div>
     <datalist id="ing-names">${names.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
-    ${keys.length ? `<ul class="items">${keys.sort((a, b) => (until[a] ?? '9') .localeCompare(until[b] ?? '9')).map((k) => `<li class="${soon.includes(k) ? 'soon' : ''}">
-      <span class="name">${esc(ingName(k))}<span class="sub">depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}${until[k] ? ` · à consommer avant le ${dateFr(until[k])}` : ''}</span></span>
+    ${expired.length ? `<span class="eyebrow warn-text">⚠️ Date dépassée : encore bon ?</span><ul class="items">${expired.map((k) => `<li><span class="name">${esc(ingName(k))}<span class="sub">${state.pantryNames?.[k]?.length ? `${esc(state.pantryNames[k].join(', '))} · ` : ''}à consommer avant le ${dateFr(until[k])}</span></span>
+      <button class="btn soft small" data-action="placard-extend" data-key="${esc(k)}">Encore bon</button><button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
+    ${Object.keys(FRESH).map((g) => {
+      const ks = keys.filter((k) => freshness(daysLeft(k)) === g).sort((a, b) => daysLeft(a) - daysLeft(b));
+      return ks.length ? `<span class="eyebrow fresh-${g}">${FRESH[g]}</span><ul class="items">${ks.map((k) => `<li class="${g === 'vite' ? 'soon' : ''}">
+      <span class="name">${esc(ingName(k))}<span class="sub">${state.pantryNames?.[k]?.length ? `${esc(state.pantryNames[k].join(', '))} · ` : ''}${Number.isFinite(daysLeft(k)) ? (daysLeft(k) <= 0 ? 'à manger aujourd\'hui' : `encore ${daysLeft(k)} j (avant le ${dateFr(until[k] ?? new Date(Date.now() + daysLeft(k) * DAY).toISOString())})`) : `depuis ${age(k) ? `${age(k)} j` : 'aujourd\'hui'}`}</span></span>
       <input type="date" class="placard-date" data-until="${esc(k)}" value="${esc(until[k] ?? '')}" aria-label="Date limite ${esc(ingName(k))}">
-      <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : ''}
+      <button class="btn ghost small" data-action="placard-remove" data-key="${esc(k)}">Fini</button></li>`).join('')}</ul>` : '';
+    }).join('')}
+    ${(state.pantryOther ?? []).length ? `<span class="eyebrow">Autres produits</span><p class="tiny muted">Pas utilisés par les recettes de l'app (soupes, sauces prêtes, mélanges…), gardés pour mémoire.</p>
+      <ul class="items">${state.pantryOther.map((x, i) => `<li><span class="name">${esc(x.name)}${x.qty ? `<span class="sub">${esc(x.qty)}</span>` : ''}</span><button class="btn ghost small" data-action="placard-other-remove" data-i="${i}">Fini</button></li>`).join('')}</ul>` : ''}
+    ${cookable.length ? `<p class="small"><b>Avec ce que tu as :</b></p><div class="chips wrap">${cookable.map(({ r, miss }) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}<span class="muted"> · ${miss ? `il manque ${miss}` : 'tout est là'}</span></button>`).join('')}</div>` : ''}
     ${ideas.length ? `<p class="small"><b>À finir vite :</b> ${esc(soon.map(ingName).join(', '))}. Idées :</p><div class="chips wrap">${ideas.map(({ r }) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div>` : ''}
   </details>`;
+}
+
+// ---------- Visuels des plats ----------
+// Photo libre de Wikimedia Commons quand on en a une (data/recipe-images.json,
+// prices/recipe-images.mjs), chargée à la demande ; sinon une icône du plat.
+let PHOTOS = null;
+let photosLoading = null;
+function loadPhotos() {
+  photosLoading ??= fetch('data/recipe-images.json', { cache: 'no-cache' })
+    .then((res) => (res.ok ? res.json() : {})).then((d) => { PHOTOS = d; render(); })
+    .catch(() => { photosLoading = null; });
+}
+const DISH_EMOJI = [
+  [/soupe|velout|potage|minestrone|gaspacho|chorba|harira/i, '🍲'], [/salade/i, '🥗'], [/curry|\bdal\b|dahl|tikka|masala/i, '🍛'],
+  [/pizza/i, '🍕'], [/burger/i, '🍔'], [/taco|wrap|burrito|quesadilla|fajita|enchilada/i, '🌮'], [/sandwich|croque|tartine|toast|panini/i, '🥪'],
+  [/cr[eê]pe|pancake|gaufre/i, '🥞'], [/g[aâ]teau|cake|brownie|muffin|tarte|cheesecake|clafoutis|fondant/i, '🍰'], [/cookie|biscuit|sabl[ée]/i, '🍪'],
+  [/omelette|œufs?|oeufs?|frittata/i, '🍳'], [/nouille|ramen|wok|pad thai|udon/i, '🍜'], [/riz|risotto|paella|paëlla|biryani/i, '🍚'],
+  [/p[aâ]tes|spaghetti|lasagne|penne|tagliatelle|macaroni|gnocchi|ravioli|carbonara/i, '🍝'], [/chocolat/i, '🍫'],
+  [/saumon|poisson|cabillaud|thon|kedgeree|waterzooi|truite|maquereau/i, '🐟'], [/crevette|scampi|gambas/i, '🦐'], [/moule/i, '🦪'],
+  [/poulet|dinde|volaille/i, '🍗'], [/b(oe|œ)uf|steak|boulet|carbonnade|hach[ée]|agneau|kefta|bolognaise/i, '🥩'],
+  [/frites|pommes? de terre|pur[ée]e|gratin|stoemp|rösti/i, '🥔'], [/pain|brioche/i, '🍞'],
+];
+function dishEmoji(r) {
+  for (const [re, e] of DISH_EMOJI) if (re.test(r.name)) return e;
+  return r.type === 'dessert' ? '🍰' : r.flags.has('f') ? '🐟' : r.flags.has('m') ? '🍗' : '🥗';
+}
+/** Photo (ou icône) d'un plat. size : sm (liste), md (carte), lg (page de la recette). */
+function dishVisual(r, size = 'sm') {
+  if (!PHOTOS) loadPhotos();
+  const ph = PHOTOS?.[r.id];
+  return `<span class="dish-pic ${size}" aria-hidden="true"><span>${dishEmoji(r)}</span>${ph ? `<img src="${esc(ph[0])}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</span>`;
+}
+function photoCredit(r) {
+  const ph = PHOTOS?.[r.id];
+  return ph ? `<p class="tiny muted">Photo d'illustration : ${esc(ph[1])}, ${esc(ph[2])}, <a href="${esc(ph[3])}" target="_blank" rel="noopener">Wikimedia Commons</a>.</p>` : '';
 }
 
 function recipeCard(r) {
   const cost = dishCost(r);
   return `<button class="recipe" data-action="recipe-open" data-id="${esc(r.id)}">
-    <span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}</span></span>
+    ${dishVisual(r)}<span class="grow"><b>${esc(r.name)}</b><span class="sub">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'}${r.flags.has('m') || r.flags.has('f') ? '' : ' · végé'}${familiarity(r) ? '' : ' · <span class="pill">découverte</span>'}</span></span>
     <span class="num price">≈ ${eur(cost)}<span class="sub">/ pers.</span></span></button>`;
 }
 
@@ -1775,17 +2029,17 @@ function viewPlats() {
   const styles = state.settings.recipeStyles ?? [];
   const all = RECIPES.filter((r) => r.type === recipeType && (!q || norm(r.name).includes(q) || r.ingredients.some((i) => norm(ingName(i.key)).includes(q))));
   const ok = all.filter((r) => compatible(r, filters) && styles.every((st) => (st === 'pascher' ? dishCost(r) <= 2 : STYLES[st]?.test(r) ?? true)))
-    .sort((a, b) => dishCost(a) - dishCost(b));
-  const menu = (state.menu ?? []).map((m) => recipeById(m.id)).filter(Boolean);
+    .sort((a, b) => Number(familiarity(b) > 0) - Number(familiarity(a) > 0) || dishCost(a) - dishCost(b)); // classiques d'abord
   return `
     <h1>Plats</h1>
+    ${myMenuCard()}
+    ${savedCard()}
     ${placardCard()}
     ${promoMenuCard()}
-    ${menu.length ? `<div class="card"><div class="section-head"><span class="eyebrow">Ajoutés à ta liste</span><button class="btn ghost small" data-action="menu-clear">Effacer</button></div>
-      <div class="chips">${menu.map((r) => `<button class="chip" data-action="recipe-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div></div>` : ''}
     <div class="card">
       <span class="eyebrow">Ma cuisine</span>
       <div class="chips wrap">${Object.entries(TOOLS).map(([t, label]) => `<button class="chip" data-action="kitchen" data-val="${esc(t)}" aria-pressed="${Boolean(k[t])}">${k[t] ? '✓ ' : ''}${esc(label)}</button>`).join('')}</div>
+      ${discoveryField()}
       <span class="eyebrow">Alimentation</span>
       <div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(state.settings.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
     </div>
@@ -1823,7 +2077,8 @@ function viewRecipe(r) {
   const missing = r.tools.filter((g) => !g.some((t) => k[t])).map((g) => g.map((t) => TOOLS[t]).join(' ou '));
   return `
     <button class="btn ghost small" data-action="recipe-back">← Plats</button>
-    <h1>${esc(r.name)}</h1>
+    ${dishVisual(r, 'lg')}
+    <div class="row" style="align-items:flex-start;gap:10px"><h1 class="grow">${esc(r.name)}</h1>${heartBtn(r, true)}</div>
     <p class="small muted">${r.minutes} min · ${r.tools.map((g) => g.map((t) => TOOLS[t]).join(' ou ')).join(' + ') || 'sans cuisson'} · ≈ ${proteinOf(r)} g de protéines par personne</p>
     ${missing.length ? `<div class="banner warn-banner">⚠️<span class="small">Il te faut : ${esc(missing.join(', '))}.</span></div>` : ''}
     <div class="card">
@@ -1834,7 +2089,8 @@ function viewRecipe(r) {
       ${pantry.length ? `<span class="eyebrow">Placard</span><ul class="items checklist">${pantry.map((i) => ingRow(i, n, false)).join('')}</ul>` : ''}
     </div>
     <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
-      ${r.src ? `<p class="tiny muted">Recette adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a> (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
+      ${photoCredit(r)}
+      ${r.src ? `<p class="tiny muted">Recette ${r.id.startsWith('wl-') ? 'adaptée du <a href="' + esc(r.src) + '" target="_blank" rel="noopener">Livre de cuisine de Wikilivres</a>' : `adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">Wikibooks Cookbook</a>`} (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
     ${dishShops(r, n)}
     ${(() => {
       const need = r.ingredients.filter((i) => !haveIng(i));
@@ -1887,6 +2143,7 @@ function viewPlan() {
   orderStop = null;
   const isBest = plan === lastPlans[0];
   const saving = nearest ? nearest.total - plan.total : 0;
+  const meatCost = butcherItems().reduce((t, l) => t + butcherCost(l), 0); // viande (halal) achetée hors du plan
   // Confiance : part des articles du plan payés à un vrai prix (relevé ou saisi), pas estimé.
   const planLines = plan.stops.flatMap((st) => st.lines);
   const realShare = planLines.length ? planLines.filter((l) => l.info?.kind && l.info.kind !== 'estimate').length / planLines.length : 1;
@@ -1916,7 +2173,7 @@ function viewPlan() {
         return `${head}<li class="${item?.checked ? 'done' : ''}">
           <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${item?.checked ? 'checked' : ''} aria-label="Pris">
           <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(l.product.name)}${l.info?.article ? `<span class="sub">${l.packs ? `${l.packs} × ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)}</span>` : ''}${l.saving ? `<span class="sub deal">${esc(l.deal.txt)} : −${eur(l.saving)}</span>` : ''}</span>
-          <span style="text-align:right"><span class="num">${eur(l.total)}</span><br>${KIND[l.info?.kind] ?? ''}</span></li>`;
+          <span class="price-col"><b class="num">${eur(l.total)}</b>${KIND[l.info?.kind] ?? ''}</span></li>`;
       }).join('')}</ul>
     </div>`;
   }).join('');
@@ -1930,6 +2187,7 @@ function viewPlan() {
         <div class="stack" style="gap:6px"><span class="eyebrow">${isBest ? (sure ? 'Le moins cher au total' : 'Le moins cher d\'après les prix connus') : 'Autre option'}${plan.mode === 'collect' ? ' · retrait' : plan.mode === 'mixed' ? ' · retrait + magasin' : plan.kind === 'delivery' ? ' · livraison' : ''}</span>
           <span class="plan-name">${esc(plan.label)}</span>
           <div class="total num">${eur(plan.total)}</div>
+          ${meatCost ? `<span class="small">+ ≈ ${eur(meatCost)} de viande chez le boucher halal · <b>≈ ${eur(plan.total + meatCost)} en tout</b></span>` : ''}
           ${isBest && saving > 0.01 ? `<span class="saving">−${eur(saving)} vs le magasin le plus proche</span>` : ''}
           ${isBest && allPlans[0] && allPlans[0].total < plan.total - 0.01 && state.settings.planMode !== 'all' ? `<span class="tiny">Toutes options confondues : ${eur(allPlans[0].total)} (${esc(allPlans[0].label)})</span>` : ''}
         </div>
@@ -2019,8 +2277,9 @@ function viewOrder(plan, stop) {
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
         <span class="name">${(l.packs ?? l.qty) > 1 ? `<b>${l.packs ?? l.qty} ×</b> ` : ''}${esc(l.product.name)}<span class="sub">${l.info?.article && l.info.kind !== 'estimate'
-          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)} · ${eur(l.total)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
-          : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''} · ≈ ${eur(l.total)} (estimé)`}</span></span>
+          ? `${l.packs ? `${l.packs} paquet${l.packs > 1 ? 's' : ''} : ` : ''}${l.info.eq ? 'équivalent : ' : ''}${esc(l.info.article)}${l.saving ? ` · <span class="deal">${esc(l.deal.txt)} −${eur(l.saving)}</span>` : ''}`
+          : `Cherche « ${esc(l.link.query)} »${packOf(l.product) ? ` · format visé : <b>${esc(packOf(l.product))}</b>` : ''}`}</span></span>
+        <span class="price-col"><b class="num">${l.info?.kind === 'estimate' ? '≈ ' : ''}${eur(l.total)}</b>${l.info?.kind === 'estimate' ? '<span class="tiny muted">estimé</span>' : ''}</span>
         <a class="btn ${l === next ? 'primary' : 'soft'} small" target="_blank" rel="noopener" href="${esc(l.link.url)}" data-open="${esc(l.product.id)}"${shop?.copy && l.link.kind !== 'product' ? ` data-copy="${esc(l.link.query)}"` : ''}>${shop?.copy && l.link.kind !== 'product' ? 'Copier et ouvrir' : 'Ouvrir'}</a>
       </li>`).join('')}</ul>
     <a class="btn primary lg block" target="_blank" rel="noopener" href="${esc(shop?.cart ?? st.collect.url)}">${icon('cart')} ${esc(shop?.cartLabel ?? `Commander chez ${CHAINS[st.chain].name}`)}</a>
@@ -2034,9 +2293,9 @@ function butcherCard() {
   if (!meat.length) return '';
   return `<div class="card butcher-card">
     <div class="row"><span class="butcher-ico" aria-hidden="true">🥩</span><div class="grow"><b>Viande : chez le boucher halal</b>
-      <div class="small muted">${meat.length} produit${meat.length > 1 ? 's' : ''}, pas compté${meat.length > 1 ? 's' : ''} dans le plan supermarché</div></div></div>
+      <div class="small muted">${meat.length} produit${meat.length > 1 ? 's' : ''} · environ <b>${eur(meat.reduce((t, l) => t + butcherCost(l), 0))}</b> (estimé au prix du supermarché)</div></div></div>
     <ul class="items">${meat.map((l) => `<li class="${l.checked ? 'done' : ''}"><input type="checkbox" class="check" data-action="check" data-id="${esc(l.id)}" ${l.checked ? 'checked' : ''} aria-label="Acheté">
-      <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(butcherLabel(l.p))}</span></li>`).join('')}</ul>
+      <span class="name">${l.qty > 1 ? `${l.qty} × ` : ''}${esc(butcherLabel(l.p))}</span><span class="price-col"><b class="num">≈ ${eur(butcherCost(l))}</b><span class="tiny muted">estimé</span></span></li>`).join('')}</ul>
     <button class="btn primary block" data-action="butcher">Trouver un boucher halal ${icon('arrow')}</button></div>`;
 }
 
@@ -2176,7 +2435,7 @@ function planText(plan) {
 
 // Lignes du plan achetées : celles cochées, ou toutes si rien n'est coché.
 function boughtLines(plan) {
-  const lines = plan.stops.flatMap((s) => s.lines.map((l) => ({ ...l, chain: s.store.chain })));
+  const lines = plan.stops.flatMap((s) => s.lines.map((l) => ({ ...l, chain: s.store.chain, storeName: s.store.placeName ?? s.store.name })));
   const checked = lines.filter((l) => state.list.find((x) => x.id === l.product.id)?.checked);
   return checked.length ? checked : lines;
 }
@@ -2192,18 +2451,102 @@ function savingOf(lines) {
   return Math.max(0, Math.round(total * 100) / 100);
 }
 
-function finishShopping(plan, paid = null) {
+// Achats → placard : chaque produit alimentaire reconnu devient un ingrédient « j'ai »
+// avec sa date limite estimée (src/placard.js) ; le reste va dans « Autres produits ».
+// L'hygiène, l'entretien et les boissons n'y vont pas. → nombre de produits rangés.
+function addToPlacard(items, date = today()) {
+  const labels = { ING: Object.fromEntries(Object.keys(ING).filter((k) => !ING[k].pantry).map((k) => [k, ingName(k)])), PANTRY: { ...PANTRY_LABELS, epices: 'épices' } };
+  state.pantry ??= {};
+  state.pantryUntil ??= {};
+  state.pantryNames ??= {};
+  state.pantryOther ??= [];
+  let n = 0;
+  for (const it of items) {
+    if (it.cat != null && it.cat > 5) continue;
+    const m = matchPlacard(it.name, labels) ?? (it.article ? matchPlacard(it.article, labels) : null);
+    const label = `${it.article || it.name.replace(/\s*\(.*\)$/, '')}${it.qty > 1 ? ` ×${it.qty}` : ''}`;
+    if (m?.pantry) { if (state.pantry[m.key] === 'missing') delete state.pantry[m.key]; continue; }
+    if (m) {
+      state.pantry[m.key] = date;
+      if (KEEPS_LONG.has(m.key)) delete state.pantryUntil[m.key];
+      else state.pantryUntil[m.key] = new Date(new Date(`${date}T12:00:00`).getTime() + shelfDays(m.key) * DAY).toISOString().slice(0, 10);
+      state.pantryNames[m.key] = [...new Set([...(state.pantryNames[m.key] ?? []), label])].slice(-10);
+    } else {
+      const prev = state.pantryOther.find((x) => norm(x.name) === norm(it.article || it.name));
+      if (prev) prev.qty = it.qty > 1 ? `×${it.qty}` : prev.qty; else state.pantryOther.push({ name: (it.article || it.name).slice(0, 80), qty: it.qty > 1 ? `×${it.qty}` : '' });
+    }
+    n++;
+  }
+  return n;
+}
+
+// « Courses faites » : la liste de ce qui a été acheté, à confirmer ou corriger.
+function confirmShopping(plan) {
+  const rows = [
+    ...boughtLines(plan).map((l) => ({ id: l.product.id, name: l.product.name, sub: l.info?.article ?? '', qty: l.packs ?? l.qty, unit: l.total / (l.packs ?? l.qty), on: true })),
+    ...butcherItems().filter((l) => l.checked).map((l) => ({ id: l.id, name: butcherLabel(l.p), sub: 'boucher halal', qty: l.qty, unit: butcherCost(l) / l.qty, on: true })),
+  ];
+  const extras = [];
+  let editing = false;
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  document.body.append(wrap);
+  const est = () => rows.filter((r) => r.on).reduce((t, r) => t + r.unit * r.qty, 0) + (plan.fees ?? 0);
+  function draw() {
+    const paidVal = wrap.querySelector('#paid')?.value;
+    wrap.innerHTML = `<div class="modal-box shop-confirm" role="dialog" aria-modal="true" aria-label="Tes courses">
+      <div class="row"><b class="grow">🛒 Tes courses</b><button class="btn ghost small" data-c="close" aria-label="Fermer">${icon('x')}</button></div>
+      <p class="small">${editing ? 'Décoche ce que tu n\'as pas pris, corrige les quantités, ajoute ce que tu as pris en plus.' : 'C\'était exactement ça ?'}</p>
+      <ul class="items">${rows.map((r, i) => `<li class="${r.on ? '' : 'done'}">
+        ${editing ? `<input type="checkbox" class="check" data-c="on" data-i="${i}" ${r.on ? 'checked' : ''} aria-label="Acheté">` : ''}
+        <span class="name">${r.qty > 1 && !editing ? `${r.qty} × ` : ''}${esc(r.name)}${r.sub ? `<span class="sub">${esc(r.sub)}</span>` : ''}</span>
+        ${editing && r.on ? `<span class="stepper"><button data-c="qty" data-i="${i}" data-d="-1" aria-label="Moins">${icon('minus')}</button><b class="num">${r.qty}</b><button data-c="qty" data-i="${i}" data-d="1" aria-label="Plus">${icon('plus')}</button></span>` : `<b class="num price-col">${r.on ? eur(r.unit * r.qty) : '—'}</b>`}</li>`).join('')}
+        ${extras.map((x, i) => `<li><span class="name">${esc(x)}<span class="sub">ajouté</span></span><button class="icon-btn" data-c="extra-del" data-i="${i}" aria-label="Retirer">${icon('x')}</button></li>`).join('')}</ul>
+      ${editing ? `<div class="row" style="gap:8px"><input id="extra" placeholder="Pris en plus (ex. yaourts)" autocomplete="off" style="flex:1;min-width:0"><button class="btn soft small" data-c="extra-add">Ajouter</button></div>` : ''}
+      <label class="field"><span>Montant payé (facultatif)</span><div class="row"><input type="text" id="paid" inputmode="decimal" placeholder="${esc(est().toFixed(2).replace('.', ','))}" value="${esc(paidVal ?? '')}" style="max-width:140px"> <b>€</b></div></label>
+      ${editing ? '<button class="btn primary block" data-c="save">Valider mes courses</button>'
+        : `<div class="row" style="gap:8px"><button class="btn primary grow" data-c="save">Oui, c'est ça</button><button class="btn soft grow" data-c="edit">Non, je modifie</button></div>`}
+      <p class="tiny muted">Ce qui est validé va dans ton placard (avec une date limite estimée) et dans tes reçus ; ce qui n'a pas été pris reste dans ta liste.</p></div>`;
+  }
+  wrap.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-c]');
+    if (e.target === wrap || b?.dataset.c === 'close') { wrap.remove(); return; }
+    if (!b) return;
+    const i = Number(b.dataset.i);
+    const c = b.dataset.c;
+    if (c === 'edit') editing = true;
+    else if (c === 'on') rows[i].on = b.checked;
+    else if (c === 'qty') rows[i].qty = Math.max(1, rows[i].qty + Number(b.dataset.d));
+    else if (c === 'extra-add') { const v = wrap.querySelector('#extra')?.value.trim(); if (v) extras.push(v.slice(0, 80)); }
+    else if (c === 'extra-del') extras.splice(i, 1);
+    else if (c === 'save') {
+      const n = Number(String(wrap.querySelector('#paid')?.value ?? '').replace(',', '.'));
+      wrap.remove();
+      finishShopping(plan, Number.isFinite(n) && n > 0 ? n : null, { rows: rows.map((r) => ({ id: r.id, on: r.on, qty: r.qty })), extras });
+      return;
+    }
+    draw();
+  });
+  draw();
+}
+
+function finishShopping(plan, paid = null, edits = null) {
   const today = new Date().toISOString().slice(0, 10);
-  const lines = boughtLines(plan);
+  // Corrections de « C'était exactement ça ? » : articles pas pris, autres quantités.
+  const edit = new Map((edits?.rows ?? []).map((r) => [r.id, r]));
+  const lines = boughtLines(plan).filter((l) => edit.get(l.product.id)?.on !== false).map((l) => {
+    const e = edit.get(l.product.id);
+    const orig = l.packs ?? l.qty;
+    if (!e || e.qty === orig || !(orig > 0)) return l;
+    const k = e.qty / orig;
+    return { ...l, total: Math.round(l.total * k * 100) / 100, ...(l.packs ? { packs: e.qty } : { qty: e.qty }) };
+  });
   const estimate = Math.round((lines.reduce((t, l) => t + l.total, 0) + (plan.fees ?? 0)) * 100) / 100;
   const saving = state.home ? savingOf(lines) : 0;
-  const inPlan = plan.stops.flatMap((s) => s.lines.map((l) => l.product.id));
-  const checked = inPlan.filter((id) => state.list.find((l) => l.id === id)?.checked);
-  const bought = new Set(checked.length ? checked : inPlan);
+  const bought = new Set(lines.map((l) => l.product.id));
   state.recurring = state.recurring.map((r) => (bought.has(r.id) ? learnFrequency(r, today) : r));
-  // Placard : ce qui vient d'être acheté est à la maison.
-  state.pantry ??= {};
-  for (const id of bought) { const k = ING_OF_PRODUCT[id]; if (k) { state.pantry[k] = today; delete state.pantryUntil?.[k]; } }
+  // Placard : tout ce qui vient d'être acheté est à la maison (avec sa date limite estimée).
+  const toPlacard = lines.map((l) => ({ name: l.product.name, article: l.info?.article, qty: l.packs ?? l.qty, cat: l.product.cat }));
   // Dépenses par rayon (ramenées au montant payé s'il est connu).
   const goods = lines.reduce((t, l) => t + l.total, 0);
   const k = paid != null && goods > 0 ? Math.max(0, paid - (plan.fees ?? 0)) / goods : 1;
@@ -2211,12 +2554,123 @@ function finishShopping(plan, paid = null) {
   for (const l of lines) cats[l.product.cat ?? 4] = Math.round(((cats[l.product.cat ?? 4] ?? 0) + l.total * k) * 100) / 100;
   state.history.unshift({ date: today, label: plan.label, total: estimate, ...(paid != null ? { paid } : {}), saving, items: bought.size, cats });
   state.history = state.history.slice(0, 50);
+  // Reçu conservé (Budget → Mes reçus) : chaque article, son prix, sa famille, son Nutri-Score.
+  const meat = butcherItems().filter((l) => l.checked && edit.get(l.id)?.on !== false).map((l) => ({ ...l, qty: edit.get(l.id)?.qty ?? l.qty }));
+  for (const l of meat) { bought.add(l.id); toPlacard.push({ name: butcherLabel(l.p), qty: l.qty, cat: 3 }); }
+  for (const name of edits?.extras ?? []) toPlacard.push({ name, qty: 1 });
+  const added = addToPlacard(toPlacard, today);
+  keepReceipt({
+    date: today, label: plan.label, total: estimate, paid, fees: plan.fees || undefined,
+    lines: [...lines.map((l) => ({ ...receiptLine(l.product, l.info?.article, l.packs ?? l.qty, l.total, l.chain, l.storeName, l.info?.kind, l.saving ? l.deal?.txt : undefined), id: l.product.id })),
+      ...(edits?.extras ?? []).map((name) => ({ ...receiptLine({ name }, null, 1, 0, null, 'En plus', 'user'), d: 'ajouté à la main' }))],
+    butcher: meat.map((l) => ({ n: butcherLabel(l.p), q: l.qty, t: butcherCost(l), g: 'viande' })),
+  });
   state.list = state.list.filter((l) => !bought.has(l.id)).map((l) => ({ ...l, checked: false }));
   for (const id of bought) delete state.dishNeed?.[id];
   save();
   const left = state.list.length;
-  toast(left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍');
+  toast(`${left ? `Enregistré. ${left} article${left > 1 ? 's' : ''} reste${left > 1 ? 'nt' : ''} dans la liste.` : 'Courses enregistrées 👍'} ${added} produit${added > 1 ? 's' : ''} rangé${added > 1 ? 's' : ''} dans ton placard.`);
   setTab('list');
+}
+
+// ---------- Reçus conservés ----------
+// Nutri-Score de l'article acheté : produit du catalogue, sinon même nom dans le catalogue de l'enseigne.
+const nutriIndex = {};
+function nutriOf(product, article, chain) {
+  if (product?.nutri) return product.nutri;
+  const cat = CATALOGS[chain];
+  if (!article || !cat) return undefined;
+  if (!nutriIndex[chain]) {
+    nutriIndex[chain] = new Map();
+    for (const r of cat.rows) if (r[ROW.nutri]) { nutriIndex[chain].set(norm(rowName(r)), r[ROW.nutri]); nutriIndex[chain].set(norm(`${r[ROW.name]} ${r[ROW.content] ?? ''}`.trim()), r[ROW.nutri]); }
+  }
+  return nutriIndex[chain].get(norm(article));
+}
+function receiptLine(product, article, q, total, chain, store, kind, deal) {
+  const name = product?.name ?? article ?? '?';
+  return {
+    n: name, a: article && article !== name ? article : undefined, q, t: Math.round((total || 0) * 100) / 100, c: chain, s: store,
+    cat: product?.cat, g: spendGroup(article || name, product?.cat), ns: nutriOf(product, article, chain), k: kind, d: deal,
+  };
+}
+function keepReceipt(r) {
+  state.receipts = [{ id: `r${Date.now().toString(36)}`, ...r }, ...(state.receipts ?? [])].slice(0, 150);
+}
+// Viande chez le boucher halal : estimée au prix du supermarché (on n'a pas les prix des boucheries).
+function butcherCost(l) {
+  const info = priceInfo(l.p, 'colruyt', chains(), state.overrides, realPrices());
+  return Math.round((info?.price ?? l.p.ref ?? 0) * l.qty * 100) / 100;
+}
+
+const NUTRI_COLORS = { A: '#038141', B: '#85bb2f', C: '#fecb02', D: '#ee8100', E: '#e63e11' };
+let receiptOpen = null; // null | 'list' | id d'un reçu
+const PERIODS = { month: 'Ce mois', '3m': '3 mois', all: 'Tout' };
+function receiptsIn(period) {
+  const all = state.receipts ?? [];
+  if (period === 'all') return all;
+  const d = new Date();
+  const from = period === '3m' ? new Date(d.getFullYear(), d.getMonth() - 2, 1) : new Date(d.getFullYear(), d.getMonth(), 1);
+  const key = from.toISOString().slice(0, 10);
+  return all.filter((r) => r.date >= key);
+}
+
+// Diagrammes : dépenses par famille, et Nutri-Score des achats (en euros dépensés).
+function spendCharts() {
+  const period = PERIODS[state.settings.spendPeriod] ? state.settings.spendPeriod : 'month';
+  const list = receiptsIn(period);
+  const { groups, nutri, total } = summarize(list);
+  const chips = `<div class="seg" role="group" aria-label="Période">${Object.entries(PERIODS).map(([k, l]) => `<button data-action="set" data-key="spendPeriod" data-val="${esc(k)}" aria-pressed="${period === k}">${l}</button>`).join('')}</div>`;
+  if (!total) return `<div class="card"><h2>Où part ton argent</h2>${chips}<p class="small muted">Pas encore de reçu sur cette période : touche « Courses faites » après tes courses, ou scanne un ticket.</p></div>`;
+  const max = groups[0].v;
+  const known = total - nutri['?'];
+  const seg = Object.keys(NUTRI_COLORS).filter((k) => nutri[k] > 0);
+  return `<div class="card"><h2>Où part ton argent</h2>${chips}
+      <p class="small muted">${list.length} reçu${list.length > 1 ? 's' : ''} · ${eur(total)}</p>
+      <ul class="aisle-spend">${groups.map((g) => `<li title="${esc(`${g.label} : ${eur(g.v)}`)}"><span class="grow">${esc(g.label)}</span><b class="num">${eur(g.v)}</b><span class="num muted small" style="min-width:42px;text-align:right">${Math.round((g.v / total) * 100)} %</span>
+        <i style="width:${Math.max(2, (g.v / max) * 100)}%"></i></li>`).join('')}</ul></div>
+    <div class="card"><h2>Nutri-Score de tes achats</h2>
+      ${known > 0 ? `<div class="nutri-bar" role="img" aria-label="${esc(seg.map((k) => `${k} ${Math.round((nutri[k] / known) * 100)} %`).join(', '))}">${seg.map((k) => `<span style="flex:${nutri[k]};background:${NUTRI_COLORS[k]}" class="${k === 'C' ? 'dark' : ''}" title="${esc(`Nutri-Score ${k} : ${eur(nutri[k])}`)}">${nutri[k] / known >= 0.08 ? k : ''}</span>`).join('')}</div>
+        <ul class="nutri-legend">${seg.map((k) => `<li><i style="background:${NUTRI_COLORS[k]}"></i><b>${k}</b> ${eur(nutri[k])} · ${Math.round((nutri[k] / known) * 100)} %</li>`).join('')}</ul>` : ''}
+      <p class="tiny muted">${known > 0 ? `Calculé sur ${eur(known)} d'achats au Nutri-Score connu (A = le plus sain). ` : 'Aucun article de cette période n\'a de Nutri-Score connu. '}${nutri['?'] > 0 ? `${eur(nutri['?'])} sans Nutri-Score : fruits et légumes frais, boucher, et les articles Colruyt (Colruyt ne le publie pas encore ; Delhaize et Aldi oui).` : ''}</p></div>`;
+}
+
+function viewReceipts() {
+  const list = state.receipts ?? [];
+  const r = receiptOpen !== 'list' ? list.find((x) => x.id === receiptOpen) : null;
+  if (r) {
+    const byStore = new Map();
+    for (const l of r.lines) { const k = l.s ?? CHAINS[l.c]?.name ?? 'Magasin'; if (!byStore.has(k)) byStore.set(k, []); byStore.get(k).push(l); }
+    const line = (l) => `<li><span class="name">${l.q > 1 ? `${l.q} × ` : ''}${esc(l.n)}${nutriBadge(l.ns, 'sm')}<span class="sub">${l.a ? `${esc(l.a)} · ` : ''}${esc(GROUPS[l.g] ?? '')}${l.k === 'estimate' ? ' · prix estimé' : ''}${l.d ? ` · <span class="deal">${esc(l.d)}</span>` : ''}</span></span><b class="num price-col">${eur(l.t)}</b></li>`;
+    return `<button class="btn ghost small" data-action="receipt" data-id="list">← Mes reçus</button>
+      <section class="hero"><span class="eyebrow">${esc(dateFr(r.date))} · ${esc(r.label ?? '')}</span>
+        <div class="total num">${eur(r.paid ?? r.total)}</div>
+        <span class="small">${r.paid != null ? `Payé (estimé par l'app : ${eur(r.total)})` : 'Estimé par l\'app'} · ${r.lines.length + (r.butcher?.length ?? 0)} articles</span></section>
+      <div class="actions">${r.lines.some((l) => l.id && productById(l.id)) ? `<button class="btn" data-action="receipt-again" data-id="${esc(r.id)}">${icon('repeat')}Refaire cette liste</button>` : ''}<button class="btn" data-action="receipt-copy" data-id="${esc(r.id)}">${icon('copy')}Copier pour Claude</button>
+        <button class="btn" data-action="receipt-md" data-id="${esc(r.id)}">${icon('share')}Télécharger (.md)</button></div>
+      <p class="tiny muted">Le texte copié contient chaque article, son prix et d'où vient le prix : colle-le dans une conversation avec Claude pour vérifier un problème.</p>
+      ${[...byStore].map(([store, ls]) => `<div class="card"><div class="row"><b class="grow">${esc(store)}</b><b class="num">${eur(ls.reduce((t, l) => t + l.t, 0))}</b></div><ul class="items">${ls.map(line).join('')}</ul></div>`).join('')}
+      ${r.butcher?.length ? `<div class="card"><div class="row"><b class="grow">🥩 Boucher halal (estimé)</b><b class="num">${eur(r.butcher.reduce((t, l) => t + l.t, 0))}</b></div><ul class="items">${r.butcher.map(line).join('')}</ul></div>` : ''}
+      ${spendChartsFor([r])}
+      <button class="btn ghost danger block" data-action="receipt-delete" data-id="${esc(r.id)}">Supprimer ce reçu</button>`;
+  }
+  return `<button class="btn ghost small" data-action="receipt" data-id="">← Budget</button>
+    <h1>Mes reçus</h1>
+    ${list.length ? `<ul class="items receipts">${list.map((x) => `<li><button class="row-btn" data-action="receipt" data-id="${esc(x.id)}">
+        <span class="name"><b>${esc(dateFr(x.date))}</b> · ${esc(x.label ?? '')}<span class="sub">${x.lines.length + (x.butcher?.length ?? 0)} articles${x.paid != null ? ' · montant payé' : ' · estimé'}</span></span>
+        <b class="num price-col">${eur(x.paid ?? x.total)}</b>${icon('arrow')}</button></li>`).join('')}</ul>`
+      : '<div class="empty">🧾<b>Pas encore de reçu</b><span>Après tes courses, touche « Courses faites » dans le plan, ou scanne ton ticket de caisse : le reçu est gardé ici.</span></div>'}
+    ${spendCharts()}`;
+}
+// Diagrammes d'un seul reçu (même rendu, sans choix de période).
+function spendChartsFor(list) {
+  const keep = state.receipts;
+  state.receipts = list;
+  const saved = state.settings.spendPeriod;
+  state.settings.spendPeriod = 'all';
+  const html = spendCharts().replace(/<div class="seg" role="group" aria-label="Période">[\s\S]*?<\/div>/, '');
+  state.receipts = keep;
+  state.settings.spendPeriod = saved;
+  return html;
 }
 
 // ---------- Habitudes ----------
@@ -2249,7 +2703,8 @@ function budgetCard() {
       <div class="bars" role="img" aria-label="Dépenses des 6 derniers mois">${months.map((m) => `<div class="bar"><span class="num tiny">${m.total ? `${Math.round(m.total)} €` : ''}</span><i style="height:${(m.total / max) * 75}%" class="${budget && m.total > budget ? 'over' : ''}"></i><span class="tiny muted">${esc(m.label)}</span></div>`).join('')}</div>
       <p class="tiny muted">Chaque « Courses faites » compte le montant payé (ou l'estimation). Économie = les mêmes articles au magasin le plus proche, moins le prix du plan.</p>
     </div>
-    ${spendingByAisle(cur.key)}`;
+    <button class="banner" data-action="receipt" data-id="list">🧾<span class="grow"><b>Mes reçus</b><br><span class="small muted">${(state.receipts ?? []).length} reçu${(state.receipts ?? []).length > 1 ? 's' : ''} : le détail de chaque course, à copier pour Claude</span></span>${icon('arrow')}</button>
+    ${(state.receipts ?? []).length ? spendCharts() : spendingByAisle(cur.key)}`;
 }
 
 // Dépenses du mois par rayon (courses faites et tickets).
@@ -2271,6 +2726,7 @@ function spendingByAisle(month) {
 }
 
 function viewRecurring() {
+  if (receiptOpen) return viewReceipts();
   const now = Date.now();
   const rows = state.recurring
     .map((r) => ({ ...r, p: productById(r.id), next: r.last ? new Date(r.last).getTime() + r.every * DAY : now }))
@@ -2405,6 +2861,8 @@ function viewSettings() {
         <span class="tiny muted">Choisis un type : l'app compare les œufs de ce type dans chaque magasin, au prix d'une boîte de 12.</span></label>
       <label class="field"><span>Mon alimentation</span><div class="chips wrap">${Object.entries(DIETS).map(([d, x]) => `<button class="chip" data-action="diet" data-val="${esc(d)}" aria-pressed="${(s.diet ?? 'tout') === d}">${esc(x.label)}</button>`).join('')}</div>
         <span class="tiny muted">Halal : ni porc ni alcool dans les recettes, et la viande va sur la liste du boucher halal (le supermarché ne garde que les articles marqués halal).</span></label>
+      ${meatPrefsField()}
+      ${discoveryField()}
       <label class="row"><input type="checkbox" class="switch" data-card="delhaize" ${s.cards?.delhaize ? 'checked' : ''}><span class="grow">J'ai la carte Delhaize Plus<br><span class="tiny muted">La plupart des promos Delhaize (1+1, 2e à -50 %, -10 % carte Plus…) la demandent : cochée, elles sont comptées.</span></span></label>
       <details><summary class="small muted">Niveaux de prix estimés par enseigne</summary>
         <div class="grid2" style="margin-top:10px">${Object.entries(ch).map(([k, c]) => `
@@ -2419,7 +2877,7 @@ function viewSettings() {
         <label class="btn">Importer<input type="file" id="import" accept="application/json" hidden></label>
         <button class="btn danger" data-action="reset">Tout effacer</button>
       </div>
-      <p class="tiny muted">Liste, adresse et prix saisis sont enregistrés seulement sur ce téléphone (l'app n'a pas de serveur). Services utilisés : OpenStreetMap pour l'adresse et les magasins, Google Maps pour les itinéraires, Open Food Facts pour les codes-barres.</p>
+      <p class="tiny muted">Liste, adresse et prix saisis sont enregistrés seulement sur ce téléphone (l'app n'a pas de serveur). Services utilisés : OpenStreetMap pour l'adresse et les magasins, Google Maps pour les itinéraires, Open Food Facts pour les codes-barres, Wikimedia pour les photos des plats.</p>
     </div>
     <p class="foot">${priceSourcesNote()}</p>`;
 }
@@ -2497,7 +2955,7 @@ document.addEventListener('click', async (e) => {
     render();
     window.scrollTo({ top: 0 });
   } else if (a === 'quiz-pick') {
-    const q = questionsFor(quiz.mode)[quiz.i];
+    const q = questionsFor(quiz.mode, quiz.answers)[quiz.i];
     const v = q.options.find((o) => String(o.value) === b.dataset.val).value;
     if (q.type === 'many') {
       const cur = new Set((quiz.answers[q.id] ?? []).map(String));
@@ -2506,22 +2964,78 @@ document.addEventListener('click', async (e) => {
       render();
     } else {
       quiz.answers[q.id] = v;
-      if (quiz.i + 1 < questionsFor(quiz.mode).length) quiz.i++; else finishQuiz();
+      if (quiz.i + 1 < questionsFor(quiz.mode, quiz.answers).length) quiz.i++; else finishQuiz();
       render();
     }
   } else if (a === 'quiz-next') {
-    if (quiz.i + 1 < questionsFor(quiz.mode).length) { quiz.i++; render(); } else finishQuiz();
+    if (quiz.i + 1 < questionsFor(quiz.mode, quiz.answers).length) { quiz.i++; render(); } else finishQuiz();
   } else if (a === 'quiz-back') {
     if (quiz.i) quiz.i--; else quiz = null;
     render();
   } else if (a === 'dish-swap') {
     const sm = smartSettings();
     const cur = sm.dishes.find((d) => d.id === id);
-    const [next] = proposeDishes({ ...(sm.profile ?? {}), dinners: recipeById(id).type === 'plat' ? 1 : 0, dessert: recipeById(id).type === 'dessert' ? 1 : 0 },
+    const [next] = proposeDishes(sameKind({ ...(sm.profile ?? {}), dinners: recipeById(id).type === 'plat' ? 1 : 0, dessert: recipeById(id).type === 'dessert' ? 1 : 0 }, recipeById(id)),
       [...sm.dishes.map((d) => d.id), ...(sm.swapped ?? [])], dishTarget({ ...DEFAULT_PROFILE, ...(sm.profile ?? {}) }));
     sm.dishesAuto = false; // choix à la main : un changement de budget ne les remplace plus
     sm.swapped = [...(sm.swapped ?? []), id].slice(-40);
     if (next && cur) Object.assign(cur, { id: next.id }); else toast('Pas d\'autre plat compatible');
+    save();
+    render();
+  } else if (a === 'meat-pref') {
+    const prefs = { ...(state.settings.meatPrefs ?? {}) };
+    if (b.dataset.val === 'ok') delete prefs[id]; else prefs[id] = b.dataset.val;
+    state.settings.meatPrefs = prefs;
+    // Les plats proposés suivent (sauf ceux choisis à la main).
+    const sm = smartSettings();
+    if (sm.profile && sm.dishesAuto !== false && sm.dishes.length) sm.dishes = proposeDishes(sm.profile);
+    save();
+    render();
+  } else if (a === 'receipt') {
+    receiptOpen = id || null;
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'receipt-copy' || a === 'receipt-md') {
+    const r = (state.receipts ?? []).find((x) => x.id === id);
+    if (!r) return;
+    const md = receiptMarkdown(r, (c) => CHAINS[c]?.name ?? c);
+    if (a === 'receipt-md') download(`courses-${r.date}.md`, md, 'text/markdown');
+    else {
+      try { await navigator.clipboard.writeText(md); toast('Copié : colle-le dans Claude'); } catch { await ask('Copie ce texte :', { text: md, ok: 'Fermer', cancel: null }); }
+    }
+  } else if (a === 'receipt-again') {
+    const r = (state.receipts ?? []).find((x) => x.id === id);
+    const items = (r?.lines ?? []).filter((l) => l.id && productById(l.id));
+    for (const l of items) {
+      const it = state.list.find((x) => x.id === l.id);
+      if (it) it.qty = Math.max(it.qty, Math.round(l.q) || 1); else state.list.push({ id: l.id, qty: Math.round(l.q) || 1, checked: false });
+    }
+    save();
+    toast(`${items.length} produit${items.length > 1 ? 's' : ''} remis dans ta liste`);
+    receiptOpen = null;
+    setTab('list');
+  } else if (a === 'receipt-delete') {
+    if (!(await ask('Supprimer ce reçu ? (le total du mois reste compté)', { ok: 'Supprimer' }))) return;
+    state.receipts = (state.receipts ?? []).filter((x) => x.id !== id);
+    receiptOpen = 'list';
+    save();
+    render();
+  } else if (a === 'smart-step') {
+    smartStep = b.dataset.val || null;
+    render();
+    window.scrollTo({ top: 0 });
+  } else if (a === 'dish-dislike') {
+    const sm = smartSettings();
+    const cur = sm.dishes.find((d) => d.id === id);
+    sm.disliked = [...new Set([...(sm.disliked ?? []), id])].slice(-200);
+    const r = recipeById(id);
+    const [next] = cur ? proposeDishes(sameKind({ ...(sm.profile ?? {}), dinners: r?.type === 'dessert' ? 0 : 1, dessert: r?.type === 'dessert' ? 1 : 0 }, r),
+      sm.dishes.map((d) => d.id), dishTarget({ ...DEFAULT_PROFILE, ...(sm.profile ?? {}) })) : [];
+    if (next && cur) { cur.id = next.id; toast(`Remplacé par « ${recipeById(next.id).name} »`); } else { sm.dishes = sm.dishes.filter((d) => d.id !== id); toast('Plat écarté'); }
+    save();
+    render();
+  } else if (a === 'dislike-reset') {
+    smartSettings().disliked = [];
     save();
     render();
   } else if (a === 'smart-more-dish') {
@@ -2571,7 +3085,33 @@ document.addEventListener('click', async (e) => {
     toast(`Ingrédients de « ${r.name} » ajoutés à ta liste`);
     recipeOpen = null;
     render();
+  } else if (a === 'dish-save') {
+    const on = isSaved(id);
+    state.saved = on ? state.saved.filter((x) => x.id !== id) : [{ id, at: today() }, ...(state.saved ?? [])].slice(0, 100);
+    save();
+    toast(on ? 'Retiré de tes plats gardés' : 'Gardé ❤️ (Plats → Mes plats gardés)');
+    render();
+  } else if (a === 'dish-add') {
+    const r = recipeById(id);
+    if (!r) return;
+    addDish(r, servingsNow());
+    save();
+    toast(`« ${r.name} » : ingrédients dans ta liste`);
+    render();
+  } else if (a === 'saved-add-all') {
+    const list = (state.saved ?? []).map((x) => recipeById(x.id)).filter(Boolean);
+    if (!(await ask(`Ajouter les ingrédients de ${list.length} plats à ta liste (${servingsNow()} pers.) ?`, { ok: 'Ajouter' }))) return;
+    for (const r of list) addDish(r, servingsNow());
+    save();
+    toast(`${list.length} plats dans ta liste`);
+    render();
+  } else if (a === 'menu-done') {
+    state.menu = (state.menu ?? []).filter((m) => m.id !== id);
+    save();
+    toast(isSaved(id) ? 'Bon appétit !' : 'Bon appétit ! Touche 🤍 pour le garder et le refaire plus tard.');
+    render();
   } else if (a === 'menu-clear') {
+    if (!(await ask('Effacer tout ton menu ? (ta liste de courses ne change pas)', { ok: 'Effacer' }))) return;
     state.menu = [];
     save();
     render();
@@ -2612,9 +3152,27 @@ document.addEventListener('click', async (e) => {
     state.pantry = { ...(state.pantry ?? {}), [k]: today() };
     save();
     render();
+  } else if (a === 'receipts-from-placard') {
+    receiptOpen = 'list';
+    setTab('recurring');
+    receiptOpen = 'list';
+    render();
+  } else if (a === 'placard-import') {
+    placardImportDialog();
+  } else if (a === 'placard-extend') {
+    const k = b.dataset.key;
+    state.pantryUntil = { ...(state.pantryUntil ?? {}), [k]: new Date(Date.now() + 3 * DAY).toISOString().slice(0, 10) };
+    save();
+    toast(`${ingName(k)} : encore 3 jours`);
+    render();
+  } else if (a === 'placard-other-remove') {
+    state.pantryOther = (state.pantryOther ?? []).filter((_, i) => i !== Number(b.dataset.i));
+    save();
+    render();
   } else if (a === 'placard-remove') {
     delete state.pantry?.[b.dataset.key];
     delete state.pantryUntil?.[b.dataset.key];
+    delete state.pantryNames?.[b.dataset.key];
     save();
     render();
   } else if (a === 'promo-hide') {
@@ -2779,10 +3337,7 @@ document.addEventListener('click', async (e) => {
       ? 'Marquer les articles cochés comme achetés ? Les autres restent dans ta liste.'
       : 'Aucun article coché : marquer tout le plan comme acheté ?';
     if (!(await ask(msg, { ok: 'Oui, c\'est fait' }))) return;
-    const est = boughtLines(p).reduce((t, l) => t + l.total, 0) + (p.fees ?? 0);
-    const paid = await ask('Combien as-tu payé ? (pour le suivi du budget)', { input: est.toFixed(2).replace('.', ','), ok: 'Enregistrer', cancel: 'Passer' });
-    const n = paid == null ? null : Number(String(paid).replace(',', '.'));
-    finishShopping(p, Number.isFinite(n) && n > 0 ? n : null);
+    confirmShopping(p);
   } else if (a === 'rec') {
     const p = productById(id);
     state.recurring.push({ id, every: p.every ?? 7 });
@@ -3001,7 +3556,19 @@ if (state.custom.some(isArticle) || EGGS[state.settings.eggs]?.re) loadCatalog()
   const shared = readShared(location.hash);
   if (shared) importShared(shared);
 }
-window.addEventListener('hashchange', () => { const sh = readShared(location.hash); if (sh) importShared(sh); });
+window.addEventListener('hashchange', () => { const sh = readShared(location.hash); if (sh) importShared(sh); placardFromHash(); });
+// Lien « …#placard=… » : la liste du placard voyage dans le lien (jamais envoyée au serveur).
+function placardFromHash() {
+  const m = location.hash.match(/[#&]placard=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const text = new TextDecoder().decode(Uint8Array.from(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
+    setTab('plats');
+    importPlacard(text);
+  } catch { toast('Lien de placard illisible'); }
+}
+placardFromHash();
 
 // Catalogues préchargés quand le téléphone est libre : première recherche immédiate,
 // et tout reste utilisable sans réseau en magasin (gardés par sw.js).

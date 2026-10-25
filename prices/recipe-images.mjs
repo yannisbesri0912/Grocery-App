@@ -7,6 +7,34 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { RECIPES, makeRecipe } from '../src/recipes.js';
 
 const OUT = process.argv[2] ?? 'data/recipe-images.json';
+// Recherches françaises qui tombent à côté (article générique, aliment cru, autre plat) : pas de photo.
+const BAD_GUESS = new Set([
+  'one-pot-pasta-tomate-mozzarella',
+  'gnocchi-poeles-sauce-tomate',
+  'riz-saute-aux-crevettes',
+  'saumon-riz-et-brocoli',
+  'tofu-saute-aux-legumes',
+  'quiche-saumon-et-poireaux',
+  'poulet-curry-coco-et-riz',
+  'cabillaud-pane-et-puree',
+  'ramen-express',
+  'pommes-de-terre-farcies',
+  'gratin-de-chou-fleur',
+  'soupe-de-lentilles-corail',
+  'salade-de-lentilles-et-feta',
+  'wrap-poulet-crudites',
+  'sandwich-jambon-fromage',
+  'sandwich-thon-mayo',
+  'riz-au-lait',
+  'chicons-au-gratin',
+  'gratin-de-courgettes',
+  'pates-au-thon-et-a-la-tomate',
+  'pates-au-pesto-et-tomates',
+  'pates-aux-courgettes-et-feta',
+  'escalope-de-dinde-aux-champignons',
+  'saucisses-et-puree',
+  'tarte-fine-tomate-mozzarella',
+]);
 const UA = { 'User-Agent': 'GroceryOpti/1.0 (https://github.com/yannisbesri0912/Grocery-App)' };
 const SIZE = 500;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -62,7 +90,8 @@ async function licenses(files) {
 }
 
 const wikibooks = JSON.parse(readFileSync(new URL('../data/recipes-wikibooks.json', import.meta.url), 'utf8')).map((row) => ({ r: makeRecipe(row, 'wb-'), src: row[6] }));
-const all = [...RECIPES.map((r) => ({ r })), ...wikibooks];
+const wikilivres = JSON.parse(readFileSync(new URL('../data/recipes-wikilivres.json', import.meta.url), 'utf8')).map((row) => ({ r: makeRecipe(row, 'wl-'), src: row[6], fr: true }));
+const all = [...RECIPES.map((r) => ({ r })), ...wikibooks, ...wikilivres];
 const found = new Map(); // id → { file, thumb }
 
 // 1. Page Wikibooks de la recette.
@@ -78,12 +107,17 @@ const enPages = await pageImages('en.wikipedia.org', [...new Set(missingWb.map((
 for (const x of missingWb) { const hit = enPages.get(enTitle(x.src)); if (hit) found.set(x.r.id, hit); }
 console.log(`+ Wikipédia (en) : ${found.size}`);
 
+// 2b. Livre de cuisine (Wikilivres) : image de la page de la recette.
+const wlPages = await pageImages('fr.wikibooks.org', [...new Set(wikilivres.map((x) => wbTitle(x.src)).filter(Boolean))]);
+for (const x of wikilivres) { const hit = wlPages.get(wbTitle(x.src)); if (hit) found.set(x.r.id, hit); }
+console.log(`+ Wikilivres : ${found.size}`);
+
 // 3. Recettes de l'app (noms français) : premier résultat de recherche sur Wikipédia en français.
-for (const { r } of all.filter((x) => !found.has(x.r.id) && !x.src)) {
+for (const { r } of all.filter((x) => !found.has(x.r.id) && (!x.src || x.fr))) {
   const q = r.name.replace(/\s+(et|avec|au|aux|à la|à l'|sauce)\s.*$/i, '');
   const data = await api('fr.wikipedia.org', { action: 'query', generator: 'search', gsrsearch: q, gsrlimit: '1', prop: 'pageimages', piprop: 'thumbnail|name', pithumbsize: SIZE });
   const p = data?.query?.pages?.[0];
-  if (p?.pageimage && p.thumbnail?.source) found.set(r.id, { file: p.pageimage, thumb: p.thumbnail.source, guess: p.title });
+  if (p?.pageimage && p.thumbnail?.source && !BAD_GUESS.has(r.id)) found.set(r.id, { file: p.pageimage, thumb: p.thumbnail.source, guess: p.title });
   await sleep(200);
 }
 console.log(`+ Wikipédia (fr) : ${found.size}`);
@@ -92,7 +126,9 @@ const lic = await licenses([...new Set([...found.values()].map((f) => f.file))])
 const out = {};
 for (const [id, f] of found) {
   const l = lic.get(f.file);
-  if (l) out[id] = [f.thumb, l.author, l.license, l.page, ...(f.guess ? [f.guess] : [])];
+  if (l) out[id] = [f.thumb.replace(/\?utm_.*$/, ''), l.author, l.license, l.page];
 }
+// Recherches devinées (à relire, et à ajouter à BAD_GUESS si elles tombent à côté).
+writeFileSync(`${OUT}.guesses.txt`, [...found].filter(([id, f]) => f.guess && out[id]).map(([id, f]) => `${id} → ${f.guess}`).join('\n'));
 writeFileSync(OUT, `{\n${Object.entries(out).map(([k, v]) => `${JSON.stringify(k)}:${JSON.stringify(v)}`).join(',\n')}\n}\n`);
 console.log(`Écrit : ${OUT} — ${Object.keys(out).length} photos libres sur ${all.length} recettes`);

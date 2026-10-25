@@ -349,7 +349,7 @@ const PANTRY_FLAGS = {
 const HALAL_SWAP = new Set(['hache', 'jambon', 'lardons', 'chorizo', 'steak-burger']);
 
 /** [nom, type, minutes, ustensiles, ingrédients, étapes, source?] → recette. */
-export function makeRecipe([name, type, minutes, tools, ingredients, steps, src], prefix = '') {
+export function makeRecipe([name, type, minutes, tools, ingredients, steps, src, fam], prefix = '') {
   const ings = parseIngredients(ingredients);
   // Régimes et allergies : tous les ingrédients comptent, placard compris
   // (« pantry » ne change que ce qu'on achète, pas ce que contient le plat).
@@ -362,6 +362,7 @@ export function makeRecipe([name, type, minutes, tools, ingredients, steps, src]
     ingredients: ings,
     flags,
     ...(src ? { src } : {}),
+    ...(fam != null ? { fam } : {}), // plat d'ici (1) ou « découverte » (0), noté à l'import
   };
 }
 
@@ -371,13 +372,16 @@ export const RECIPES = R.map((r) => makeRecipe(r));
  * Ajoute des recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) :
  * ingrédients inconnus écartés, identifiants uniques.
  */
+const sameName = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1/g, '$1');
 export function addRecipes(rows, prefix = 'wb-') {
   const ids = new Set(RECIPES.map((r) => r.id));
+  const names = new Set(RECIPES.map((r) => sameName(r.name))); // « Carbonnade flamande » déjà là : pas en double
   let added = 0;
   for (const row of rows) {
     const r = makeRecipe(row, prefix);
-    if (ids.has(r.id) || r.ingredients.some((i) => !ING[i.key] && !(i.pantry && PANTRY_LABELS[i.key]))) continue;
+    if (ids.has(r.id) || names.has(sameName(r.name)) || r.ingredients.some((i) => !ING[i.key] && !(i.pantry && PANTRY_LABELS[i.key]))) continue;
     ids.add(r.id);
+    names.add(sameName(r.name));
     RECIPES.push(r);
     added++;
   }
@@ -468,8 +472,53 @@ export const STYLES = {
 };
 
 /** La recette est-elle faisable avec ces ustensiles et ce régime ? */
-export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], maxTime = Infinity } = {}) {
+// Plats connus en Belgique et en France : les recettes écrites pour l'app (2), et
+// parmi les recettes importées, les grands classiques (1). Le reste : « découverte » (0).
+const FAMILIAR = /fricass|tourte|poulet croustillant|poulet barbecue|haricots verts|riz au curry|œufs brouill|bruschetta|bolognaise|bolo\b|carbonara|lasagne|gratin|quiche|omelette|croque|hachis|parmentier|bourguignon|blanquette|pot-au-feu|ratatouille|poulet r[oô]ti|steak|burger|pizza|chili|risotto|paella|couscous|tajine|boulettes?\b|pur[ée]e|frites|macaroni|spaghetti|tagliatelle|p[aâ]tes|nouilles saut|riz saut|riz pilaf|wok|fajitas|tacos|tortilla|wraps?\b|tartiflette|raclette|coq au vin|goulasch|waterzooi|carbonnade|stoemp|chicons|vol-au-vent|moules|cabillaud|saumon|thon|poulet (au|à la|aux)|escalope|cordon bleu|soupe (de|à la|aux|au) (tomate|légumes|lentilles|poulet|pommes de terre|potiron|courgette)|velout|pommes de terre (farcies|sautées|au four|à la crème)|poivrons farcis|courgettes farcies|tomates farcies|pain de viande|chakchouka|falafels?|curry de (poulet|lentilles|pois)|mafé|ragoût de bœuf|bœuf|dinde rôtie|côtes de porc|gratin/i;
+// Origine lointaine écrite dans le nom : plat de découverte, même s'il ressemble à un classique.
+const FARAWAY = /\((?![^)]*(variante|express|maison|sans viande|végé))[^)]*\)|africain|ougand|zambien|mongol|cap-verd|pakistan|philippin|nigérian|libérien|rwand|dominicain|péruvien|gambien|éthiopien|égyptien|libyen|kényan|sylheti|trinidad|portoric|indonésien|colombien|hongrois|bulgare|slovaque|maltais|norvégien|suédois|polonais|cubain|séfarade|vietnam|coréen|sindhi|haoussa|caroline|cincinnati|pedernales|texan|créole|mexicain|madras|vindaloo|karahi|tetrazzini|marsala|jollof|tonkatsu|bulgogi|kedgeree|picadillo|gumbo|jambalaya|tso|denver|mjaddara|koshari|maqlouba|sayadeya|dinuguan|babi|langue|cent ans|bryndz|knödel|kasnocken|komle|kroppkakor|pierogi|rissoles|yorkshire|gyuveche|kyufteta|stracciatella|salmorejo|bacalhau|rassolnik|youvarlakia|kugel|aloo|rajma|chushki|asopao|caldo|chraime|chikwanda|damoda|muchomo|buuz|braai|boxty|coddle|figolli|froġa|holzknecht|ibijumba|ikijumba|sukuma|yetakelt|ertesuppe|oliebollen|pickert|racuszki|palatschinken|kaiserschmarrn|lomo|locrio|com chiên|riz gras|mafé/i;
+// Les plats préférés des familles, proposés en priorité.
+const FAVORITES = new Set(['spaghetti-bolognaise', 'pates-carbonara', 'lasagnes-a-la-bolognaise', 'poulet-curry-coco-et-riz', 'chili-con-carne',
+  'poulet-roti-et-pommes-de-terre', 'steak-frites-et-salade', 'boulets-a-la-liegeoise-et-frites', 'hachis-parmentier', 'vol-au-vent', 'moules-frites',
+  'burger-maison-et-frites', 'fajitas-au-poulet', 'croque-monsieur-et-salade', 'pizza-maison', 'quiche-lorraine', 'poulet-pane-croustillant-et-frites',
+  'saumon-au-four-et-legumes', 'carbonnade-flamande', 'riz-cantonais', 'tacos-au-boeuf', 'boulettes-sauce-tomate-et-puree', 'gratin-de-pates-au-jambon',
+  'poulet-basquaise', 'waterzooi-de-poulet', 'cabillaud-pane-et-puree', 'pates-au-thon-et-a-la-tomate', 'omelette-aux-champignons', 'soupe-a-la-tomate']);
+// Desserts, midi et petit-déj connus (les noms entre parenthèses y expliquent souvent un classique : « (scones) »).
+const FAMILIAR_LIGHT = /croque|wraps?\b|hachis|tourte|roul[ée]s [àa] la cannelle|pudding aux pommes|mousse|cr[eè]me [àa] la banane|pralin|champignons farcis|g[aâ]teau|cake|brownie|blondie|cookie|crumble|cr[eê]pes?\b|pancake|gaufre|muffin|madeleine|mousse au chocolat|riz au lait|tarte|quatre-quarts|meringue|[ée]clair|cr[eè]me (anglaise|p[aâ]tissi[eè]re|au chocolat)|flan|cupcake|scones?|biscuits?|salade|mimosa|coleslaw|porridge|banana split|bananes po[eê]l|tatin|strudel|teurgoule|pain perdu|sandwich|tartines?|smoothie|compote|caprese|omelette|œufs brouill|lemon curd|carr[ée]s au citron|soufflés au citron|sauce chocolat|petit-d[ée]jeuner anglais/i;
+const FARAWAY_LIGHT = /tanzan|y[ée]m[ée]nite|catalan|haoussa|tchad|chypri|uruguay|shirazi|chopska|curtido|ontario|ozark|nig[ée]rian|malawi|congee|zimtsterne|vanillekipferl|reindling|sachertorte|halva|panocha|jahnun|kal kals|bu[ñn]uelos|irish potatoes|tire au miel|wainar|welsh|snickerdoodle|grout|thiele|shrewsbury|marly|pascualina|zambien|[ée]gyptien|laban|chapati|monte cristo|red devils|pan con tomate|ancienne mode|bonbon/i;
+/** 3 : grand classique familial ; 2 : recette de l'app ; 1 : classique importé ; 0 : découverte. */
+export function familiarity(r) {
+  if (FAVORITES.has(r.id)) return 3;
+  if (r.fam != null) return r.fam; // Livre de cuisine (Wikilivres) : noté à l'import
+  if (!r.id.startsWith('wb-')) return 2;
+  if (r.type !== 'plat') return FAMILIAR_LIGHT.test(r.name) && !FARAWAY_LIGHT.test(r.name) ? 1 : 0;
+  return FAMILIAR.test(r.name) && !FARAWAY.test(r.name) ? 1 : 0;
+}
+// Réglage « Plats proposés » : part de plats « découverte » dans les propositions.
+export const DISCOVERY = {
+  classique: { label: 'Classiques', share: 0 },
+  mix: { label: 'Un peu de découverte', share: 0.2 },
+  aventure: { label: 'Aventure', share: 1 },
+};
+
+// Viandes et poissons qu'on peut préférer ou refuser (Réglages, questions du panier malin).
+export const MEATS = { poulet: 'Poulet', boeuf: 'Bœuf', dinde: 'Dinde', agneau: 'Agneau', porc: 'Porc', poisson: 'Poisson', 'fruits-mer': 'Crevettes, moules' };
+const MEAT_OF = {
+  poulet: 'poulet', hache: 'boeuf', boeuf: 'boeuf', steak: 'boeuf', 'boeuf-ragout': 'boeuf', 'steak-burger': 'boeuf', merguez: 'agneau',
+  dinde: 'dinde', jambon: 'porc', lardons: 'porc', chorizo: 'porc', porc: 'porc',
+  saumon: 'poisson', thon: 'poisson', cabillaud: 'poisson', crevettes: 'fruits-mer', moules: 'fruits-mer',
+};
+// Halal : le boucher remplace jambon et lardons par de la dinde, le chorizo par du bœuf.
+const HALAL_MEAT = { jambon: 'dinde', lardons: 'dinde', chorizo: 'boeuf' };
+/** Viandes et poissons d'une recette (clés de MEATS). */
+export function meatsOf(r, halal = false) {
+  return new Set(r.ingredients.filter((i) => !i.pantry).map((i) => (halal && HALAL_MEAT[i.key]) || MEAT_OF[i.key]).filter(Boolean));
+}
+
+export function compatible(r, { kitchen = {}, diet = 'tout', allergies = [], maxTime = Infinity, avoid = [] } = {}) {
   if (r.minutes > maxTime) return false;
+  // Viandes refusées (« Jamais »).
+  if (avoid.length) { const m = meatsOf(r, DIETS[diet]?.halal); if (avoid.some((k) => m.has(k))) return false; }
   if (!r.tools.every((group) => group.some((t) => kitchen[t]))) return false;
   const banned = (DIETS[diet]?.not ?? '') + allergies.join('');
   if (DIETS[diet]?.halal && r.flags.has('p') && !r.flags.has('h')) return false;
@@ -519,29 +568,48 @@ function mainKind(r) {
 const MEAL = new Set(['pates', 'riz', 'pdt', 'semoule', 'quinoa', 'nouilles', 'gnocchi', 'lasagne', 'pain', 'baguette', 'tortillas', 'pate-pizza', 'pate-brisee', 'pate-feuil', 'pizza', 'frites', 'patate-douce', 'pain-burger', 'pain-mie', 'pain-pita', 'poulet', 'hache', 'boeuf', 'steak', 'boeuf-ragout', 'steak-burger', 'dinde', 'porc', 'merguez', 'jambon', 'lardons', 'chorizo', 'saumon', 'thon', 'cabillaud', 'crevettes', 'moules', 'oeufs', 'lentilles', 'pois-chiches', 'haricots-rouges', 'tofu', 'falafel']);
 export const isMeal = (r) => r.ingredients.filter((i) => !i.pantry && MEAL.has(i.key)).length >= 1 && r.ingredients.filter((i) => !i.pantry).length >= 3;
 
-export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null } = {}) {
+export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfois', exclude = [], perServing = null, loves = [], discovery = 'classique', recent = [] } = {}) {
   if (n <= 0) return [];
   // perServing : prix visé par portion (le budget le permet) ; sans lui, les moins chers.
   // Au-dessus du prix visé, un plat est trois fois plus pénalisé qu'en dessous.
   const gap = (c) => (perServing == null ? c : c <= perServing ? perServing - c : (c - perServing) * 3);
   const pool = RECIPES.filter((r) => r.type === 'plat' && isMeal(r) && !exclude.includes(r.id) && compatible(r, filters))
     .map((r) => ({ r, cost: costOf(r) }))
-    .sort((a, b) => gap(a.cost) - gap(b.cost));
+    // Classiques familiaux (bolognaise, carbonara, boulets…) d'abord, puis les recettes de l'app,
+    // à 2 € et 1 € par portion près ; un plat proposé récemment recule (variété d'une fois à l'autre).
+    .map((x) => ({ ...x, score: gap(x.cost) - ({ 3: 2, 2: 1 }[familiarity(x.r)] ?? 0) + (recent.includes(x.r.id) ? 1.5 : 0) }))
+    .sort((a, b) => a.score - b.score);
   const share = { souvent: 0.5, parfois: 0.3, rarement: 0.15, jamais: 0 };
   const target = { viande: Math.round(n * share[meat]), poisson: Math.round(n * share[fish]) };
   target.vege = Math.max(0, n - target.viande - target.poisson);
   const picked = [];
   const used = new Set();
-  const take = (kind, count) => {
+  // Viandes préférées (« J'adore ») : environ 2 plats sur 3 de viande ou de poisson les contiennent.
+  const halal = DIETS[filters?.diet]?.halal;
+  const loved = (r) => loves.length > 0 && loves.some((k) => meatsOf(r, halal).has(k));
+  // Plats « découverte » (origine lointaine) : une petite part au plus, selon le réglage.
+  const maxNew = Math.round(n * (DISCOVERY[discovery]?.share ?? 0));
+  let newCount = 0;
+  const take = (kind, count, only = null, any = false) => {
     for (const x of pool) {
       if (picked.length >= n || count <= 0) break;
-      if (used.has(x.r.id) || (kind && mainKind(x.r) !== kind)) continue;
+      if (used.has(x.r.id) || (kind && mainKind(x.r) !== kind) || (only && !only(x.r))) continue;
+      const isNew = familiarity(x.r) === 0;
+      if (isNew && newCount >= maxNew && !any) continue;
       picked.push(x.r.id); used.add(x.r.id); count--;
+      if (isNew) newCount++;
     }
+    return count;
   };
-  take('viande', target.viande);
-  take('poisson', target.poisson);
+  const takeLoved = (kind, count) => {
+    const before = picked.length;
+    take(kind, Math.ceil(count * 0.67), loved);
+    take(kind, count - (picked.length - before));
+  };
+  takeLoved('viande', target.viande);
+  takeLoved('poisson', target.poisson);
   take('vege', target.vege);
   take(null, n - picked.length); // compléter si une catégorie manque
+  take(null, n - picked.length, null, true); // et s'il n'y a plus assez de classiques
   return picked;
 }

@@ -52,3 +52,23 @@ export function cleanItem(x, extra = {}) {
   const qty = typeof x.qty === 'number' && Number.isFinite(x.qty) ? Math.min(99, Math.max(0, Math.round(x.qty))) : 1;
   return { ...extra, id: x.id, qty, checked: x.checked === true };
 }
+
+// Reçu conservé : texte court, montants numériques, lignes au format connu.
+const str = (v, n = 160) => (typeof v === 'string' ? v.slice(0, n) : undefined);
+function cleanLine(l) {
+  if (!l || typeof l !== 'object' || typeof l.n !== 'string') return null;
+  return clean({
+    n: l.n.slice(0, 160), a: str(l.a), q: num(l.q, 999) ?? 1, t: num(l.t) ?? 0, c: typeof l.c === 'string' && Object.hasOwn(CHAINS, l.c) ? l.c : undefined,
+    s: str(l.s, 120), cat: Number.isInteger(l.cat) && l.cat >= 0 && l.cat <= 9 ? l.cat : undefined, g: str(l.g, 20),
+    ns: typeof l.ns === 'string' && /^[A-E]$/.test(l.ns) ? l.ns : undefined, k: str(l.k, 10), d: str(l.d, 60),
+    id: isId(l.id) ? l.id : undefined,
+  });
+}
+export function cleanReceipt(r) {
+  if (!r || typeof r !== 'object' || !isId(r.id) || !day(r.date)) return null;
+  return clean({
+    id: r.id, date: r.date.slice(0, 10), label: str(r.label, 120), total: num(r.total, 1e5) ?? 0, paid: num(r.paid, 1e5), fees: num(r.fees, 1e4),
+    lines: (Array.isArray(r.lines) ? r.lines : []).slice(0, 300).map(cleanLine).filter(Boolean),
+    butcher: Array.isArray(r.butcher) ? r.butcher.slice(0, 100).map(cleanLine).filter(Boolean) : undefined,
+  });
+}
