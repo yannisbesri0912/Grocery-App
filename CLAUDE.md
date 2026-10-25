@@ -83,7 +83,7 @@ suivre avec les outils GitHub (`actions_list`, `get_job_logs`), puis
   l'ordre Wikilivres (`wl-`), Kookboek (`kb-`), Wikibooks (`wb-`) ; un nom déjà vu est ignoré.
   ~1 010 recettes en tout. Format : `[nom, type, minutes, ustensiles, ingrédients, étapes, src, fam?]`,
   ingrédients `clé:quantité-par-personne` et `~placard`.
-- `recipe-images.json` : ~400 photos libres Wikimedia (URL, auteur, licence, page), chargées à la
+- `recipe-images.json` : ~515 photos libres Wikimedia (URL, auteur, licence, page), chargées à la
   demande ; `prices/recipe-images.mjs` (à lancer via `data-raw`). Les recherches « devinées »
   sur Wikipédia sont listées dans `<sortie>.guesses.txt` : **les relire** et ajouter les ratées
   (plante, animal vivant, autre plat, personne…) à `BAD_GUESS`. Les ids de photo doivent

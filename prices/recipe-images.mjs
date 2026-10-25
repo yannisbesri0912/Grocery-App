@@ -7,8 +7,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { RECIPES, makeRecipe, addRecipes, sameName } from '../src/recipes.js';
 
 const OUT = process.argv[2] ?? 'data/recipe-images.json';
-// Recherches françaises qui tombent à côté (article générique, aliment cru, autre plat) : pas de photo.
+// Photos qui tombent à côté (article générique, aliment cru, autre plat) : pas de photo.
 const BAD_GUESS = new Set([
+  // Kookboek : image de page sans rapport ou autre plat.
+  'kb-lasagnes-a-la-poele-sans-four', 'kb-haricots-verts-sautes-a-l-indonesienne', 'kb-pates-aux-epinards-et-fromage-frais',
   // Livre de cuisine (Wikilivres) : recherches tombées à côté (plante, poisson vivant, autre plat…).
   'wl-aiga-bolhida', 'wl-beignets-de-citrouille', 'wl-blancs-de-poulet-farcis-aux-herbes', 'wl-boulettes-de-lentilles',
   'wl-boulettes-de-noix-en-ragout', 'wl-cake-moelleux-au-chocolat', 'wl-cake-aux-olives', 'wl-creme-de-chou-fleur',
@@ -153,7 +155,7 @@ const lic = await licenses([...new Set([...found.values()].map((f) => f.file))])
 const out = {};
 for (const [id, f] of found) {
   const l = lic.get(f.file);
-  if (l) out[id] = [f.thumb.replace(/\?utm_.*$/, ''), l.author, l.license, l.page];
+  if (l && !BAD_GUESS.has(id)) out[id] = [f.thumb.replace(/\?utm_.*$/, ''), l.author, l.license, l.page];
 }
 // L'app charge Wikilivres, le Kookboek puis Wikibooks sans doublon de nom : la photo d'une recette écartée
 // passe à la recette gardée du même nom (si celle-ci n'en a pas).
