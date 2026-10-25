@@ -22,8 +22,20 @@ export const SHOPS = {
     search: (q) => `https://www.collectandgo.be/fr/recherche?${new URLSearchParams({ searchTerm: q })}`,
     cart: 'https://www.collectandgo.be/fr/home',
     cartLabel: 'Finaliser sur Collect&Go',
+    short: true, // recherche courte : les noms mélangent parfois français et néerlandais
   },
 };
+
+// Petits mots, mots néerlandais glissés dans les noms français (« en porties », « korst ») et
+// rayons (« surgelés » n'est pas dans le nom des produits) : une recherche Collect&Go qui les
+// contient ne trouve rien.
+const FILLER = new Set(['en', 'de', 'du', 'des', 'd', 'la', 'le', 'les', 'l', 'et', 'au', 'aux', 'a', 'à', 'avec', 'sans', 'pour',
+  'porties', 'portions', 'korst', 'stuks', 'st', 'zak', 'met', 'van', 'voor', 'vers', 'surgelé', 'surgelés', 'surgelée', 'surgelées', 'diepvries']);
+/** Recherche courte : les 3 premiers mots utiles. */
+export function shortQuery(q) {
+  const words = String(q).split(/[\s,]+/).map((w) => w.replace(/^[dl]'/i, '')).filter((w) => w && !FILLER.has(w.toLowerCase()));
+  return words.slice(0, 3).join(' ') || String(q).trim();
+}
 
 /** Nom d'article → texte de recherche : sans la marque maison, le format ni les détails après « | ». */
 export function searchText(article) {
@@ -97,6 +109,7 @@ export function orderLink(chain, line, templates = {}) {
   }
   // Équivalent : son nom (en français) ; article d'une autre enseigne : son nom sans la marque maison ni le format.
   const fromArticle = info.article && info.kind !== 'estimate' && (shop.articleSearch !== false || info.eq) && info.fr !== false ? searchText(info.article) : '';
-  const query = fromArticle || RULES[line.product.id]?.q || searchText(line.product.name.replace(/\s*\(.*\)$/, '')) || line.product.name;
+  const full = fromArticle || RULES[line.product.id]?.q || searchText(line.product.name.replace(/\s*\(.*\)$/, '')) || line.product.name;
+  const query = shop.short ? shortQuery(full) : full;
   return { url: shop.search(query), kind: 'search', query };
 }

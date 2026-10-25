@@ -25,7 +25,7 @@ branche `main` (publiée par `.github/workflows/pages.yml`).
 ## Lancer, tester
 
 ```bash
-npm ci && npm test                     # ~91 tests node:test (test/*.test.js), doivent tous passer
+npm ci && npm test                     # ~92 tests node:test (test/*.test.js), doivent tous passer
 python3 -m http.server 5175            # depuis la racine : l'app sur http://localhost:5175
 ```
 Tests navigateur : scripts Playwright jetables dans le scratchpad (`e2e*.cjs`, Chromium déjà

@@ -46,7 +46,16 @@ test('lien direct appris : numéro retrouvé dans une adresse collée, puis appl
 
 test('article Delhaize dans une commande Colruyt : on cherche son équivalent, sans la marque Delhaize', () => {
   const est = orderLink('colruyt', { product: { id: 'delhaize-9', name: 'DELHAIZE Steak, cerf 300 gr' }, info: { kind: 'estimate' } });
-  assert.equal(est.query, 'Steak, cerf');
+  assert.equal(est.query, 'Steak cerf'); // recherche courte Collect&Go
   const eq = orderLink('colruyt', { product: { id: 'delhaize-9', name: 'DELHAIZE Lait, demi-écrémé 1 l' }, info: { kind: 'real', eq: true, article: 'BONI lait demi-écrémé 1L' } });
   assert.equal(eq.query, 'lait demi-écrémé');
+});
+
+test('Collect&Go : recherche courte, sans mots néerlandais glissés ni « surgelés »', async () => {
+  const { shortQuery } = await import('../src/order.js');
+  const surg = { id: 'legumes-surg', name: 'Légumes surgelés (1 kg)' };
+  assert.equal(orderLink('colruyt', { product: surg, info: { kind: 'real', article: 'BONI épinards en branches en porties 1,5kg' } }).query, 'épinards branches');
+  assert.equal(orderLink('colruyt', { product: surg, info: { kind: 'estimate' } }).query, 'légumes');
+  assert.equal(orderLink('delhaize', { product: surg, info: { kind: 'estimate' } }).query, 'légumes surgelés'); // Delhaize inchangé
+  assert.equal(shortQuery("crème d'Isigny entière épaisse"), 'crème Isigny entière');
 });
