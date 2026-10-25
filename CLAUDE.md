@@ -60,6 +60,10 @@ suivre avec les outils GitHub (`actions_list`, `get_job_logs`), puis
   **halal** : ni porc ni alcool, viande chez le boucher), `MEATS`/préférences (j'adore / jamais),
   `familiarity` (3 plat familial, 2 recette de l'app, 1 classique importé, 0 « découverte »),
   `pickDishes` (budget par portion, viandes préférées, part de découverte, variété).
+  Préparation des 104 recettes de l'app : une étape par ligne (`\n`), au tutoiement, avec durées,
+  feu, signes de cuisson, cuisson du riz/des pâtes, et toujours une sauce pour le riz et les pâtes.
+  `splitSteps` découpe aussi les recettes importées (une phrase = une étape) ; dans l'app, on
+  coche les étapes et l'écran reste allumé (Wake Lock).
 - `src/smart.js` : panier malin (budget, gammes). `src/questions.js` : questionnaire (6 / 21 q.).
 - `src/placard.js` : import de liste, reconnaissance des produits, durées de conservation
   (`shelfDays`, `freshness`). `src/halal.js` : porc / alcool / viande → boucher, boucheries OSM.
