@@ -1,0 +1,263 @@
+spaghetti-bolognaise → Sauce bolognaise
+pates-carbonara → Pâtes à la carbonara
+pates-creme-et-champignons → Pâtes à la carbonara
+lasagnes-a-la-bolognaise → Lasagnes
+gratin-de-pates-au-jambon → Pâtes au four
+pates-poulet-brocoli → Cuisine italienne
+spaghetti-ail-et-huile → Spaghetti
+riz-cantonais → Riz cantonais
+chili-con-carne → Chili con carne
+chili-sin-carne → Chili con carne
+risotto-aux-champignons → Risotto
+poulet-teriyaki-et-riz → Teriyaki
+curry-de-pois-chiches → Curry (plat)
+dahl-de-lentilles-corail → Dal
+poulet-basquaise → Poulet basquaise
+poke-bowl-au-saumon → Poke (plat)
+buddha-bowl-quinoa → Buddha bowl
+poulet-roti-et-pommes-de-terre → Poulet rôti
+poulet-pane-croustillant-et-frites → Escalope à la milanaise
+steak-frites-et-salade → Steak frites
+boulettes-sauce-tomate-et-puree → Boulette
+hachis-parmentier → Hachis parmentier
+stoemp-aux-carottes-et-saucisse → Stoemp
+merguez-et-semoule-aux-legumes → Merguez
+carbonnade-flamande → Carbonade flamande
+vol-au-vent → Vol-au-vent
+waterzooi-de-poulet → Waterzooï
+moules-frites → Moules-frites
+fajitas-au-poulet → Fajita
+tacos-au-boeuf → Taco
+burger-maison-et-frites → Hamburger
+quiche-lorraine → Quiche lorraine
+croque-monsieur-et-salade → Croque-monsieur
+pizza-maison → Pizza
+gratin-dauphinois-au-jambon → Gratin dauphinois
+poulet-tikka-et-riz → Poulet tikka masala
+saumon-au-four-et-legumes → Saumon
+poisson-en-papillote-au-micro-ondes → Cuisson en papillote
+wok-de-boeuf-aux-legumes → Bœuf lôc lac
+nouilles-sautees-au-poulet → Yakisoba
+gyros-de-poulet-maison → Kebab
+pain-de-viande-et-puree → Pain de viande
+poelee-pommes-de-terre-et-lardons → Pommes de terre sarladaises
+tartiflette → Tartiflette
+omelette-aux-champignons → Omelette
+shakshuka → Chakchouka
+tortilla-espagnole → Tortilla de patatas
+frittata-aux-legumes → Frittata
+patate-douce-rotie-et-pois-chiches → Patate douce rôtie
+wraps-aux-falafels → Wrap
+couscous-aux-legumes → Couscous
+soupe-a-la-tomate → Soupe
+veloute-de-potiron → Velouté
+pizza-surgelee-et-salade → Pizza
+salade-nicoise → Salade niçoise
+salade-cesar-au-poulet → Salade César
+salade-de-pates → Salade de pâtes
+taboule → Taboulé
+salade-grecque → Salade grecque
+club-sandwich-au-poulet → Club sandwich
+pommes-de-terre-au-micro-ondes → Pomme de terre
+pancakes → Pancake
+porridge-a-la-banane → Bouillie
+pain-perdu → Pain perdu
+oeufs-brouilles-et-tartines → Œufs brouillés
+smoothie-banane → Smoothie
+crepes → Crêpe
+crumble-aux-pommes → Crumble
+gateau-au-yaourt → Gâteau
+mug-cake-au-chocolat → Cupcake
+salade-de-fruits → Salade de fruits
+banana-bread → Pain aux bananes
+wl-aligot → Aligot
+wl-beignets-rapes → Beignet de pommes de terre
+wl-beignet-aux-pommes → Beignet
+wl-apfelstrudel → Apfelstrudel
+wl-aiga-bolhida → Sauge
+wl-bakmi-goreng → Bakmi
+wl-basler-brunsli → Basler Brunsli
+wl-beignets-de-fleurs-de-courgettes → Beignets de fleurs de courgette
+wl-beignets-de-pommes-de-terre → Beignet de pommes de terre
+wl-amlou → Amlou
+wl-beigne → Donut
+wl-beignets-de-citrouille → Donut
+wl-blancs-de-poulet-farcis-aux-herbes → Poulet à la comtoise
+wl-bienmesabe → Bienmesabe
+wl-boulettes-de-lentilles → Lentille cultivée
+wl-boulettes-de-noix-en-ragout → Boulette
+wl-bouches-de-dames → Pâtisserie marocaine
+wl-bougnette → Bougnette
+wl-brownies → Brownie
+wl-cake-nature → Cake (gâteau)
+wl-brownie-aux-noix → Brownie
+wl-boeuf-hache → Bœuf haché
+wl-cake-moelleux-au-chocolat → Red velvet cake
+wl-cake-aux-olives → Cake-walk
+wl-carbonade-flamande → Carbonade flamande
+wl-carottes-au-four → Carotte
+wl-chicons-au-gratin → Endive
+wl-compote-de-pommes → Compote de pommes
+wl-cocas → Coca (tourte)
+wl-concombres-a-la-cretoise → Concombre
+wl-chou-fleur-a-la-creme → Chou-fleur
+wl-chouquette → Chouquette
+wl-coddle → Coddle
+wl-coca-de-llanda → Coca de llanda
+wl-creme-de-chou-fleur → Chou (plante)
+wl-creme-catalane → Crème catalane
+wl-creme-chantilly → Crème chantilly
+wl-creme-dessert-au-chocolat → Crème dessert
+wl-crumble-au-citron → Crumble
+wl-tarte-au-sucre → Tarte
+wl-des-de-saumon-marine-au-citron → Oncorhynchus tshawytscha
+wl-pave-aux-noix → Pavé
+wl-tarte-caramel-aux-noix → Crème caramel
+wl-tarte-au-citron → Tarte
+wl-daube-provencale → Daube provençale
+wl-gateau-simple-au-chocolat → Gâteau de Saint-Genix
+wl-escalivada → Escalivada
+wl-degue → Dègué
+wl-dorayaki → Dorayaki
+wl-flan-aux-oeufs → Flan
+wl-flan-de-courgettes → Flan
+wl-flan-aux-oeufs-au-chocolat → Flan
+wl-fleischschnacka → Fleischschnacka
+wl-flamusse-bourguignonne → Flamusse bourguignonne
+wl-galettes-d-avoine → Kelpie
+wl-galettes-de-haricots-rouges-au-mais → Anko (pâte)
+wl-galettes-de-quinoa → Graine de quinoa
+wl-galette-des-rois-et-des-reines → Galette des rois
+wl-galette-de-pommes-de-terre → Galette de pommes de terre
+wl-gachas → Gachas
+wl-frita → Frita
+wl-galette-facile-des-rois-et-des-reines → Galette des rois
+wl-gaspacho-andalou → Gaspacho
+wl-gratin-de-pates-sauce-blanche → Pâtes au four
+wl-gratin-de-courgettes-et-feta → Courgette
+wl-gratin-savoyard → Gratin savoyard
+wl-gratin-au-chou → Gratin dauphinois
+wl-gratinee-a-la-biere → Gratin dauphinois
+wl-gazpacho → Gazpacho (groupe)
+wl-gratin-de-poireaux → Gratin
+wl-ghoribas-aux-amandes → Ghribiya
+wl-gratin-de-pates-et-viande-hachee → Pâtes au four
+wl-gratin-de-potiron → Potiron
+wl-gaspacho-andalou-variante → Gaspacho
+wl-gratin-a-la-girardet → Gratin dauphinois
+wl-gateau-au-chocolat → Gâteau
+wl-gateau-aux-noix-et-au-miel → Gâteau
+wl-gateau-d-elisabeth → Gâteau Reine Élisabeth
+wl-gateau-moelleux-au-chocolat → Moelleux au chocolat
+wl-gateau-au-fromage-a-la-mode-d-obwald → Gâteau
+wl-gateau-aux-carottes-et-aux-epices → Gâteau
+wl-gateau-aux-pommes → Gâteau
+wl-gateau-de-pommes-a-la-poudre-d-amandes → Pommes Anna
+wl-gateau-de-riz → Gâteau de riz
+wl-huevos-moles → Huevos moles
+wl-gateau-au-vin-blanc → Gâteau
+wl-gateau-nantais → Gâteau nantais
+wl-gateau-au-chocolat-rapide → Gâteau
+wl-macarons-d-amiens → Macaron d'Amiens
+wl-lentilles-cuisinees → Lentille cultivée
+wl-karantika → Karantika
+wl-kluski-na-parze → Kluski na parze
+wl-khinkali → Khinkali
+wl-lasagnes-faciles → Lasagnes
+wl-michon → Pierre Michon
+wl-mannala → Mannele
+wl-melsa → Bou Sellam
+wl-maakouda → Maaqouda
+wl-macarons-de-montmorillon → Macaron de Montmorillon
+wl-omelette-angevine → Cuisine de la pomme de terre
+wl-natillas → Natillas
+wl-neules → Neules
+wl-pie-anglaise → Banoffee pie
+wl-penne-arrabbiata → Sauce arrabbiata
+wl-paillassons-de-pommes-de-terre → Galette de pommes de terre
+wl-pizza-aux-poivrons → Pizza
+wl-pizza-aux-poivrons-et-au-pesto → Pizza
+wl-pizza-calzone-aux-aubergines → Calzone
+wl-pizza-au-thon → Pizza
+wl-pizza-aux-moules → Pizza
+wl-piperade → Piperade
+wl-poisson-au-guazzetto → Poisson
+wl-placki-ziemniaczane → Placki
+wl-pompe-a-l-huile → Pompe à l'huile (dessert)
+wl-piquant-bourbonnais → Bourbonnais (habitants)
+wl-pizza-familiale → Histoire de la pizza
+wl-potage-aux-lentilles-corail → Potage
+wl-poelee-de-champignons-au-fromage-a-l-ail-et-fines-herbes → Croûte aux champignons
+wl-poelee-brestoise → Œuf au plat
+wl-poulet-yassa → Yassa (plat)
+wl-pudding-au-chocolat → Pudding
+wl-poulet-roti → Poulet rôti
+wl-poulet-a-la-gaston-gerard → Poulet
+wl-poulet-kedjenou → Kédjénou
+wl-pate-de-pois-chiches → Pois chiche
+wl-pates-aux-champignons-et-aux-herbes → Pâtes alimentaires
+wl-pates-aux-poivrons → Pâtes alimentaires
+wl-pates-a-la-flammenkuche → Pâtes alimentaires
+wl-puree-d-aubergines → Baba ganousch
+wl-pates-au-thon → Pâtes alimentaires
+wl-puree-de-carottes → Potage de Crécy
+wl-puree-de-courgettes → Pâtes au four
+wl-pate-chinois → Pâté chinois
+wl-pate-vegetal-aux-flocons-et-aux-epinards → Parfait (pâte à tartiner)
+wl-pates-au-poivron-et-a-la-farine-de-pois-chiches → Pâté
+wl-quatre-quarts-aux-pommes → Quatre-quarts
+wl-quiche-lorraine → Quiche lorraine
+wl-pao-de-lo → Pão-de-Ló
+wl-porkolt → Pörkölt
+wl-quinoa-au-lait → Quinoa
+wl-risotto-de-saumon → Risotto
+wl-riz-au-lait-a-la-bretonne → Riz
+wl-riz-au-chocolat → Riz
+wl-riz-cantonais → Riz cantonais
+wl-risotto-au-poulet → Risotto
+wl-riz-noir → Riz noir
+wl-riz-rouge → Levure de riz rouge
+wl-rosbif → Rosbif
+wl-salade-de-piquillo → Poivron
+wl-sandwich-au-beurre-d-arachide-et-a-la-banane → Sandwich
+wl-salade-mixte → Salade composée
+wl-salade-juive → Salade juive
+wl-salade-liegeoise → Salade liégeoise
+wl-salade-mechouia-aux-pommes-de-terre → Slata méchouia
+wl-soupe-au-potiron → Soupe
+wl-soupe-aux-courgettes-et-aux-tomates → Soupe
+wl-spaghetti-au-jambon-de-parme → Arrêt spaghetti
+wl-soupe-de-potiron → Soupe de potiron
+wl-soupe-de-lentilles-grecque → Cuisine grecque
+wl-sevillana → Sevillana
+wl-spanakopita → Spanakópita
+wl-taboule-au-quinoa → Taboulé
+wl-tarte-au-beaufort → Tarte
+wl-tarte-aux-courgettes → Tarte
+wl-tarte-au-saumon-et-aux-epinards → Tarte
+wl-tarte-aux-brocolis-et-au-jambon → Tarte
+wl-spaghettis-au-basilic → Spaghetti
+wl-tarte-aux-legumes → Tarte
+wl-tarte-au-sucre-complet-et-a-la-cannelle → Tarte
+wl-speculoos → Spéculoos
+wl-tarte-aux-champignons → Tarte
+wl-tarte-aux-fraises → Tarte
+wl-tajine-tunisien → Tajine tunisien
+wl-tarte-aux-tomates-et-au-gouda → Tarte
+wl-terrine-verte → Terrine
+wl-tarte-a-l-oignon → Tarte à l'oignon
+wl-tian-de-courgettes → Tian provençal
+wl-teurgoule → Teurgoule
+wl-thon-grille-a-la-mediterraneenne → Salade niçoise
+wl-tarte-a-la-tomate → Tarte
+wl-tarte-en-quemeu → Tarte en quemeu
+wl-veloute-de-champignons-aux-lardons → Velouté de champignons
+wl-tourin → Tourin
+wl-tortilla → Tortilla
+wl-tourain-blanchi → Cuisine périgourdine
+wl-tocinillo → Tocino de cielo
+wl-veloute-de-potiron → Velouté
+wl-oeufs-en-meurette → Œufs en meurette
+wl-epinards-a-la-creme → Épinard
+wl-oeufs-d-autruche-au-fromage → Œuf d'autruche
+wl-oeuf-bocage → Œuf-en-Ternois
