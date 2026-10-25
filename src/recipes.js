@@ -613,3 +613,15 @@ export function pickDishes(n, filters, costOf, { meat = 'parfois', fish = 'parfo
   take(null, n - picked.length, null, true); // et s'il n'y a plus assez de classiques
   return picked;
 }
+
+// Étapes de la préparation : une phrase (ou deux très courtes) par étape.
+export function splitSteps(text) {
+  if (String(text ?? '').includes('\n')) return String(text).split('\n').map((x) => x.trim()).filter(Boolean); // étapes écrites ligne par ligne
+  const parts = String(text ?? '').split(/(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ0-9«(])/).map((x) => x.trim()).filter(Boolean);
+  const out = [];
+  for (const x of parts) {
+    if (out.length && (x.length < 25 || out[out.length - 1].length < 25)) out[out.length - 1] += ` ${x}`;
+    else out.push(x);
+  }
+  return out;
+}

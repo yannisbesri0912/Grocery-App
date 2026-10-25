@@ -145,3 +145,12 @@ test('plats proposés : des classiques (bolognaise…), la découverte seulement
   const mix = pickDishes(10, filters, cost, { meat: 'souvent', discovery: 'mix' });
   assert.ok(mix.filter((id) => familiarity(RECIPES.find((r) => r.id === id)) === 0).length <= 2);
 });
+
+test('préparation découpée en étapes (phrases très courtes regroupées)', async () => {
+  const { splitSteps } = await import('../src/recipes.js');
+  assert.deepEqual(splitSteps('Mariner le poulet en morceaux dans le yaourt et les épices (curry, paprika). Cuire 15 min à 200 °C en air fryer (20 min au four). Servir avec le riz.'),
+    ['Mariner le poulet en morceaux dans le yaourt et les épices (curry, paprika).', 'Cuire 15 min à 200 °C en air fryer (20 min au four). Servir avec le riz.']);
+  assert.deepEqual(splitSteps('Mélangez. Ajoutez la farine puis le lait petit à petit.'), ['Mélangez. Ajoutez la farine puis le lait petit à petit.']);
+  assert.deepEqual(splitSteps(''), []);
+  assert.deepEqual(splitSteps('Coupe.\nCuis 5 min.'), ['Coupe.', 'Cuis 5 min.']); // une ligne = une étape
+});

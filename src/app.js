@@ -17,7 +17,7 @@ import { GROUPS, spendGroup, summarize, receiptMarkdown } from './spend.js';
 import { parsePlacard, matchPlacard, KEEPS_LONG, shelfDays, freshness } from './placard.js';
 import { cheaperOptions } from './cheaper.js';
 import { tierOf, tierLabel, candidatesFromRows, productOptions, buildBasket } from './smart.js';
-import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS, familiarity, DISCOVERY } from './recipes.js';
+import { RECIPES, ING, TOOLS, TYPES, DIETS, compatible, formatAmount, pickDishes, addRecipes, STYLES, PANTRY_LABELS, proteinOf, isMeal, FR_Q, MEATS, familiarity, DISCOVERY, splitSteps } from './recipes.js';
 import { QUESTIONS, questionsFor, optionsOf, DEFAULT_PROFILE, staplesFor, servingsFor } from './questions.js';
 import { parseSizes } from './matcher.js';
 import { parseVoice } from './voice.js';
@@ -2068,8 +2068,20 @@ function ingRow(i, n, priced) {
     ${priced ? `<span class="num muted small" style="min-width:56px;text-align:right">${have ? 'j\'ai' : eur(i.amount * n * resolveIng(i.key).perUnit)}</span>` : ''}</li>`;
 }
 
+// Étapes cochées pendant qu'on cuisine (pas sauvegardées) ; l'écran reste allumé.
+let cooking = { id: null, done: new Set() };
+let wakeLock = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && navigator.wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener?.('release', () => { wakeLock = null; }); }
+    if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch { /* pas pris en charge : tant pis */ }
+}
+
 function viewRecipe(r) {
   if (!r) { recipeOpen = null; return viewPlats(); }
+  if (cooking.id !== r.id) { cooking = { id: r.id, done: new Set() }; keepAwake(false); }
+  const steps = splitSteps(r.steps);
   const n = state.settings.servings ?? smartSettings().profile?.people ?? 1;
   const bought = r.ingredients.filter((i) => !i.pantry);
   const pantry = r.ingredients.filter((i) => i.pantry);
@@ -2088,7 +2100,9 @@ function viewRecipe(r) {
       <ul class="items checklist">${bought.map((i) => ingRow(i, n, true)).join('')}</ul>
       ${pantry.length ? `<span class="eyebrow">Placard</span><ul class="items checklist">${pantry.map((i) => ingRow(i, n, false)).join('')}</ul>` : ''}
     </div>
-    <div class="card"><span class="eyebrow">Préparation</span><p>${esc(r.steps)}</p>
+    <div class="card"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="eyebrow">Préparation</span><span class="small muted">${cooking.done.size}/${steps.length} étape${steps.length > 1 ? 's' : ''}</span></div>
+      <p class="small muted" style="margin:0">Touche une étape quand elle est faite${'wakeLock' in navigator ? ' (l\'écran reste allumé)' : ''}.</p>
+      <ol class="steps">${steps.map((st, i) => `<li><button data-action="step" data-i="${i}" aria-pressed="${cooking.done.has(i)}"><span class="step-n">${cooking.done.has(i) ? icon('check') : i + 1}</span><span class="grow">${esc(st)}</span></button></li>`).join('')}</ol>
       ${photoCredit(r)}
       ${r.src ? `<p class="tiny muted">Recette ${r.id.startsWith('wl-') ? 'adaptée du <a href="' + esc(r.src) + '" target="_blank" rel="noopener">Livre de cuisine de Wikilivres</a>' : `adaptée et traduite du <a href="${esc(r.src)}" target="_blank" rel="noopener">${r.id.startsWith('kb-') ? 'Kookboek de Wikibooks (néerlandais)' : 'Wikibooks Cookbook'}</a>`} (licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>), quantités par personne calculées par l'app.</p>` : ''}</div>
     ${dishShops(r, n)}
@@ -3043,7 +3057,13 @@ document.addEventListener('click', async (e) => {
   } else if (a === 'recipe-open') {
     recipeOpen = id;
     if (state.tab !== 'plats') { setSmartOpen(false); setTab('plats'); } else { render(); window.scrollTo({ top: 0 }); }
+  } else if (a === 'step') {
+    const i = Number(b.dataset.i);
+    if (cooking.done.has(i)) cooking.done.delete(i); else cooking.done.add(i);
+    if (cooking.done.size === 1) keepAwake(true);
+    render();
   } else if (a === 'recipe-back') {
+    keepAwake(false);
     recipeOpen = null;
     render();
   } else if (a === 'recipe-type') {
