@@ -13,7 +13,9 @@ branche `main` (publiée par `.github/workflows/pages.yml`).
 - **Jamais l'adresse de l'utilisateur dans le dépôt** (elle apparaît sur ses captures) : elle
   reste dans le `localStorage` du téléphone.
 - Pas d'identifiants, pas de paiement automatique, **pas de robot sur colruyt.be** (risque de
-  blocage IP). Collect&Go : seulement des liens que l'utilisateur ouvre lui-même.
+  blocage IP ; même collectandgo.be répond par une page anti-robot). Collect&Go : seulement des
+  liens que l'utilisateur ouvre lui-même : `/fr/recherche?searchTerm=…` (les fiches utilisent un
+  numéro interne `#pdp_…` absent des données Colruyt, pas de lien direct possible).
 - Recettes et photos : **seulement des sources libres** (CC BY-SA, CC0, domaine public),
   attribution affichée. Jamais Marmiton, 750g, TheMealDB (payant pour une app publiée).
 - Pas de PR sauf demande ; on pousse directement sur `main`. Pas d'identifiant de modèle dans
@@ -103,7 +105,9 @@ préférées, plats classiques / découverte, œufs, carte Delhaize Plus).
 ## Pistes et limites connues
 
 - Nutri-Score absent pour Colruyt (pas publié) ; synchro du foyer entre téléphones (non fait).
-- Lidl et Carrefour Express : prix estimés.
+- Lidl et Carrefour Express : prix estimés. Lidl n'a ni API publique ni boutique en ligne
+  alimentaire (lidl.be : ~175 articles en ligne, robots.txt interdit les listes) ; Open Prices
+  presque vide pour Lidl BE. Piste proposée : retenir les vrais prix des tickets Lidl Plus scannés.
 - Quantités du placard non décomptées quand on cuisine (« Fini » à la main).
 - Kookboek : 131 recettes traduites sur ~560 ; les autres ont un ingrédient introuvable en
   Belgique ou une page sans liste d'ingrédients. Pour en ajouter : compléter `MAP` dans

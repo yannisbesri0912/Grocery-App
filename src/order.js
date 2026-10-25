@@ -13,17 +13,15 @@ export const SHOPS = {
     cart: 'https://www.delhaize.be/fr/checkout', // page « Mon panier » (vérifiée le 14 oct. 2026)
     cartLabel: 'Ouvrir mon panier Delhaize',
   },
-  // Collect&Go (Colruyt) : sa recherche ne change pas l'adresse de la page, il
-  // n'y a donc pas de lien direct. On copie le nom et on ouvre le site : il
-  // suffit de le coller dans la barre de recherche. Ses noms d'articles sont en
-  // néerlandais : on copie les mots français.
+  // Collect&Go (Colruyt) : la recherche a son adresse (/fr/recherche?searchTerm=…,
+  // vue le 25 oct. 2026). Les fiches produits, elles, utilisent un numéro interne
+  // absent des données Colruyt : pas de lien direct vers la fiche. Un article qui n'a
+  // qu'un nom néerlandais (info.fr === false) est cherché avec les mots français de l'app.
   colruyt: {
     origin: 'https://www.collectandgo.be',
-    search: () => 'https://www.collectandgo.be/fr/home',
+    search: (q) => `https://www.collectandgo.be/fr/recherche?${new URLSearchParams({ searchTerm: q })}`,
     cart: 'https://www.collectandgo.be/fr/home',
     cartLabel: 'Finaliser sur Collect&Go',
-    articleSearch: false,
-    copy: true,
   },
 };
 
@@ -98,7 +96,7 @@ export function orderLink(chain, line, templates = {}) {
     return { url: shop.product ? shop.product(url) : url, kind: 'product', query: info.article ?? line.product.name };
   }
   // Équivalent : son nom (en français) ; article d'une autre enseigne : son nom sans la marque maison ni le format.
-  const fromArticle = info.article && info.kind !== 'estimate' && (shop.articleSearch !== false || info.eq) ? searchText(info.article) : '';
+  const fromArticle = info.article && info.kind !== 'estimate' && (shop.articleSearch !== false || info.eq) && info.fr !== false ? searchText(info.article) : '';
   const query = fromArticle || RULES[line.product.id]?.q || searchText(line.product.name.replace(/\s*\(.*\)$/, '')) || line.product.name;
   return { url: shop.search(query), kind: 'search', query };
 }

@@ -19,9 +19,12 @@ test('orderLink cherche l\'article, sinon la recherche du catalogue', () => {
   const real = orderLink('delhaize', { product: lait, info: { kind: 'real', article: 'Delhaize Lait demi-écrémé | 1 L' } });
   assert.equal(real.kind, 'search');
   assert.equal(real.query, 'Lait demi-écrémé');
-  // Collect&Go : noms d'articles en néerlandais → mots français à coller.
-  const cg = orderLink('colruyt', { product: lait, info: { kind: 'real', article: 'BONI halfvolle melk 1L' } });
-  assert.deepEqual(cg, { url: 'https://www.collectandgo.be/fr/home', kind: 'search', query: 'lait demi-écrémé' });
+  // Collect&Go : recherche directe (/fr/recherche?searchTerm=…) avec le nom français de l'article…
+  const cg = orderLink('colruyt', { product: { id: 'pommes', name: 'Pommes Jonagold (1 kg)' }, info: { kind: 'real', article: 'BONI pomme jonagold 6st' } });
+  assert.deepEqual(cg, { url: 'https://www.collectandgo.be/fr/recherche?searchTerm=pomme+jonagold', kind: 'search', query: 'pomme jonagold' });
+  // … ou les mots français de l'app quand l'article n'a qu'un nom néerlandais.
+  const nl = orderLink('colruyt', { product: lait, info: { kind: 'real', article: 'BONI halfvolle melk 1L', fr: false } });
+  assert.equal(nl.query, 'lait demi-écrémé');
   const est = orderLink('delhaize', { product: lait, info: { kind: 'estimate', url: '/x' } });
   assert.equal(est.query, 'lait demi-écrémé');
   assert.match(est.url, /^https:\/\/www\.delhaize\.be\/fr\/shop\/search\?text=lait%20demi/);

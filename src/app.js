@@ -4,7 +4,7 @@ import {
 } from './optimizer.js';
 import { geocodeAddress, reverseGeocode, currentPosition, findStores, findButchers, todayHours } from './places.js';
 import { halalKind, BUTCHER_NAMES, butcherName } from './halal.js';
-import { SHOPS, orderLink, learnTemplate, searchText } from './order.js';
+import { SHOPS, orderLink, searchText } from './order.js';
 import { equivalentOf } from './same.js';
 import { searchCatalog, ROW, rowName } from './catalog.js';
 import { dealTotal, dealAdvice } from './deals.js';
@@ -359,13 +359,13 @@ function realPrices() {
     if (p.shop && !p.shop.gone) entry[p.shop.chain] = { price: p.shop.price, article: p.name, url: p.shop.url, deal: dealOf(p.shop.chain, p.shop.id), ...(p.shop.promo ? { promo: true } : {}) };
     // Comparaison automatique : le même article dans l'autre enseigne, à son vrai prix.
     const tw = p.colruyt ? twinOf('colruyt', p.colruyt.id) : p.shop ? twinOf(p.shop.chain, p.shop.id) : null;
-    if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), url: rowUrl(tw.chain, tw.r), deal: tw.r[ROW.deal] || undefined, ...(tw.chain === 'colruyt' ? { ref: colruytRef(tw.r[ROW.id]) } : {}), ...(tw.r[ROW.promo] ? { promo: true } : {}) };
+    if (tw && !entry[tw.chain]) entry[tw.chain] = { price: tw.r[ROW.price], article: rowName(tw.r), ...(tw.chain === 'colruyt' && !tw.r[ROW.fr] ? { fr: false } : {}), url: rowUrl(tw.chain, tw.r), deal: tw.r[ROW.deal] || undefined, ...(tw.chain === 'colruyt' ? { ref: colruytRef(tw.r[ROW.id]) } : {}), ...(tw.r[ROW.promo] ? { promo: true } : {}) };
     // Sinon, un article équivalent (marque du magasin…) dans les autres enseignes.
     const own = p.colruyt ? ['colruyt', p.colruyt.id] : p.shop ? [p.shop.chain, p.shop.id] : null;
     if (own) for (const c of CATALOG_CHAINS) {
       if (entry[c] || c === own[0]) continue;
       const eq = equivalentRow(own[0], own[1], c);
-      if (eq) entry[c] = { price: eq[ROW.price], article: rowName(eq), eq: true, url: rowUrl(c, eq), deal: eq[ROW.deal] || undefined, ...(c === 'colruyt' ? { ref: colruytRef(eq[ROW.id]) } : {}), ...(eq[ROW.promo] ? { promo: true } : {}) };
+      if (eq) entry[c] = { price: eq[ROW.price], article: rowName(eq), ...(c === 'colruyt' && !eq[ROW.fr] ? { fr: false } : {}), eq: true, url: rowUrl(c, eq), deal: eq[ROW.deal] || undefined, ...(c === 'colruyt' ? { ref: colruytRef(eq[ROW.id]) } : {}), ...(eq[ROW.promo] ? { promo: true } : {}) };
     }
     if (Object.keys(entry).length) real[p.id] = entry;
   }
@@ -2236,8 +2236,7 @@ function viewOrder(plan, stop) {
   const shop = SHOPS[st.chain];
   const templates = state.settings.linkTemplates ?? {};
   const lines = stop.lines.map((l) => ({ ...l, link: orderLink(st.chain, l, templates), item: state.list.find((x) => x.id === l.product.id) }));
-  // Collect&Go : apprendre une fois le format des liens produits (voir src/order.js).
-  const teach = st.chain === 'colruyt' && !templates.colruyt ? lines.find((l) => l.info?.ref && l.info.kind !== 'estimate') : null;
+  // Ancien modèle de lien Collect&Go appris (il ne marchait pas : numéro interne du site).
   const direct = st.chain === 'colruyt' && templates.colruyt;
   const done = lines.filter((l) => l.item?.checked).length;
   const next = lines.find((l) => !l.item?.checked);
@@ -2255,24 +2254,14 @@ function viewOrder(plan, stop) {
     <div class="card">
       <ol class="how">
         <li>Sur le site, connecte-toi et choisis <b>${esc(st.placeName ?? st.name)}</b> comme point de retrait (une seule fois). Tous les magasins ne font pas le retrait : sinon, prends le point de retrait le plus proche proposé par le site.</li>
-        ${shop?.copy && !direct
-          ? '<li>Touche <b>Copier et ouvrir</b> : le nom du produit est copié et le site s\'ouvre. Colle-le dans la barre de recherche, ajoute l\'article au panier, puis reviens ici. La case se coche toute seule.</li>'
+        ${st.chain === 'colruyt'
+          ? '<li>Touche <b>Ouvrir</b> : la recherche du produit s\'ouvre sur Collect&amp;Go. Choisis l\'article indiqué, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>'
           : '<li>Touche <b>Ouvrir</b> : le produit s\'ouvre sur le site, ajoute-le au panier, puis reviens ici. La case se coche toute seule.</li>'}
         <li>« Estimé » : l'app n'a pas encore le vrai article. Prends le format visé (pas un pack de 12 ni une salade préparée) : le prix réel peut différer.</li>
         <li>À la fin, ouvre ton panier pour choisir le créneau et payer sur le site.</li>
       </ol>
       ${min && sub < min ? `<p class="small warn-text">Minimum de commande : ${eur(min)} (il manque ${eur(min - sub)}).</p>` : ''}
     </div>
-    ${teach ? `<div class="card teach">
-      <b>Liens directs vers chaque produit (une seule fois)</b>
-      <ol class="how small">
-        <li>Sur Collect&amp;Go, cherche <b>${esc(teach.info.article)}</b> et ouvre sa fiche.</li>
-        <li>Copie l'adresse de la page (barre d'adresse, ou Partager › Copier).</li>
-        <li>Colle-la ici : l'app en déduit les liens de tous les produits.</li>
-      </ol>
-      <div class="row"><input type="url" id="teach-url" placeholder="https://www.collectandgo.be/…" autocomplete="off" style="flex:1;min-width:0">
-        <button class="btn primary small" data-action="teach-link" data-chain="colruyt" data-ref='${esc(JSON.stringify(teach.info.ref))}' data-name="${esc(teach.info.article)}">Apprendre</button></div>
-      <p class="tiny muted">Aucun robot : l'app ne visite jamais le site, c'est toi qui ouvres les pages, comme d'habitude.</p></div>` : ''}
     ${direct ? '<p class="small muted">Liens directs Collect&amp;Go activés. <button class="link" data-action="forget-link" data-chain="colruyt">Oublier</button></p>' : ''}
     <ul class="items order">${lines.map((l) => `<li class="${l.item?.checked ? 'done' : ''}${l === next ? ' next' : ''}">
         <input type="checkbox" class="check" data-action="check" data-id="${esc(l.product.id)}" ${l.item?.checked ? 'checked' : ''} aria-label="Dans le panier">
@@ -3214,14 +3203,6 @@ document.addEventListener('click', async (e) => {
     reportProblem();
   } else if (a === 'share-list') {
     shareList();
-  } else if (a === 'teach-link') {
-    const url = document.getElementById('teach-url')?.value ?? '';
-    const t = learnTemplate(url, JSON.parse(b.dataset.ref), b.dataset.name);
-    if (!t || !/collectandgo\.be|colruyt\.be/.test(t.tpl)) { toast('Je ne retrouve pas le numéro de ce produit dans l\'adresse : vérifie que c\'est bien sa fiche'); return; }
-    state.settings.linkTemplates = { ...(state.settings.linkTemplates ?? {}), [b.dataset.chain]: t };
-    save();
-    render();
-    toast('C\'est appris : chaque produit a maintenant son lien direct');
   } else if (a === 'forget-link') {
     const { [b.dataset.chain]: _, ...rest } = state.settings.linkTemplates ?? {};
     state.settings.linkTemplates = rest;
