@@ -372,7 +372,7 @@ export const RECIPES = R.map((r) => makeRecipe(r));
  * Ajoute des recettes importées (Wikibooks Cookbook, CC BY-SA 4.0) :
  * ingrédients inconnus écartés, identifiants uniques.
  */
-const sameName = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1/g, '$1');
+export const sameName = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1/g, '$1');
 export function addRecipes(rows, prefix = 'wb-') {
   const ids = new Set(RECIPES.map((r) => r.id));
   const names = new Set(RECIPES.map((r) => sameName(r.name))); // « Carbonnade flamande » déjà là : pas en double

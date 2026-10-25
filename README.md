@@ -114,7 +114,7 @@ les grands classiques importés, avec en priorité les plats familiaux : bologna
 boulets, vol-au-vent, moules-frites…), *Un peu de découverte* (environ 1 plat sur 5 venu
 d'ailleurs) ou *Aventure* (tout). Un plat déjà proposé récemment recule, pour varier.
 
-**Photos des plats** : 252 recettes ont une photo libre de Wikimedia Commons (image de la page
+**Photos des plats** : 399 recettes ont une photo libre de Wikimedia Commons (image de la page
 Wikibooks de la recette, sinon de l'article Wikipédia du plat), avec auteur et licence affichés
 sur la recette (`data/recipe-images.json`, créé par `prices/recipe-images.mjs`). Les photos ne
 sont pas copiées dans le dépôt : l'app les charge depuis Wikimedia quand on les regarde. Les
