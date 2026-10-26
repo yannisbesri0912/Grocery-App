@@ -1,7 +1,12 @@
-# Prix réels — 2026-10-25 18:32 UTC
+# Prix réels — 2026-10-26 10:09 UTC
 
 - **colruyt** : 68 produits au 2026-10-25
 - **colruyt** : catalogue complet de 9566 articles
+- **delhaize** : 60 produits au 2026-10-26
+- **delhaize** : catalogue complet de 14368 articles
+- **aldi** : 52 produits au 2026-10-26
+- **aldi** : catalogue complet de 2347 articles
+- **promos** : 14 promotions utiles
 - **même produit** : 826 articles identiques Colruyt / Delhaize
 
 Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours (source PrijsProfeet).
@@ -22,7 +27,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Courgettes (1 kg) | 3.49 € — Ronde Courgettes (los) | 4.55 € 🏷️ — Delhaize Stoomzakje / courgette / suikererwt 2 x 200 gr | — | — |
 | Poivrons (500 g) | 1.48 € — Poivron rouge | 1.28 € 🏷️ — Delhaize poivron / cubes 600 gr | 4.22 € — SUNTAT Saucisson de volaille en tranches au poivron 200 g | — |
 | Brocoli (500 g) | 0.99 € — Brocoli 1st 500g | 0.68 € 🏷️ — Delhaize brocoli 600 gr | 1.00 € — Brocoli 500 g | — |
-| Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 0.99 € 🏷️ — Delhaize champignons coupé 450 gr | 2.96 € — Champignons blonds 2 x 250 g | — |
+| Champignons (500 g) | 1.67 € — EVERYDAY champignons middelgroot 500g | 0.99 € 🏷️ — Delhaize champignons coupé 450 gr | 2.96 € — Champignons blonds 2 x 250 g | 1.99 € 🏷️ — Champignons fin XXL 400 g |
 | Avocats (2 pièces) | 0.98 € — BONI hass avocat 5st | — | 1.40 € — Avocats, 3 pcs 2 x 3 pcs, 3 pcs | — |
 | Pain gris tranché (800 g) | 0.99 € — EVERYDAY pain gris coupé 800g | 1.85 € — DELHAIZE Pain de campagne, gris, pré-emballé 800 gr | 0.99 € — DÉLIPAIN Pain gris 800 g | — |
 | Baguette | 0.46 € — EVERYDAY 1/2 baguette blanc 4x150g | 0.46 € — DELHAIZE Baguette, blanc, 2 pièces 2 x 150 gr | 0.62 € — Baguette blanche Parisienne 400 g | — |
@@ -38,7 +43,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Crème fraîche (20 cl) | 1.09 € — BONI crème aigre 15% vet 20cl | 1.08 € — DELHAIZE Crème fraîche 25 cl | 0.79 € — MILSANI Crème fraîche 200 ml | — |
 | Skyr / fromage blanc (500 g) | 1.39 € — BONI Skyr nature 500g | 1.40 € — DELHAIZE Skyr, nature, high Protein, 0%, FP 1 kg | 1.39 € — MILSANI Skyr nature 500 g | — |
 | Filet de poulet (1 kg) | 6.97 € — Filet de poulet 1kg | — | 12.48 € — Kippenborstfilet 600 g | — |
-| Haché bœuf-porc (500 g) | 3.75 € — Haché porc bœuf ±500g | — | — | — |
+| Haché bœuf-porc (500 g) | 3.75 € — Haché porc bœuf ±500g | — | — | 2.81 € 🏷️ — Porc & veau haché préparé XXL 800 g |
 | Jambon cuit (200 g) | 3.12 € — BONI jambon à l'os sans gluten 150g | 2.71 € — DELHAIZE Jambon cuit, degraisse, MP 420 gr | 3.45 € — Jambon à l'os 150 g | — |
 | Filet de saumon frais (250 g) | 5.99 € — BONI filet de saumon Atl. Graatls 2x125g | 5.30 € — DELHAIZE Filet de saumon, avec peau +/- 260 gr | 3.34 € — GOLDEN SEAFOOD Filet de saumon frais 2 x 200 g | — |
 | Thon en boîte (3×80 g) | 1.79 € — EVERYDAY thon zonnebloemolie MSC 200g | 1.80 € — DELHAIZE Thon, huile de tournesol 3 x 200 gr | 1.93 € — GOLDEN SEAFOOD Thon à l'huile 185 g | — |
@@ -68,7 +73,7 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Coca-Cola (6×33 cl) | 2.96 € — COCA-COLA Regular Original Taste 2L | 5.08 € — COCA-COLA Original taste, canette 15 x 33 cl | 2.96 € — COCA-COLA Coca-Cola regular 2 l | — |
 | Bière Jupiler (24×25 cl) | 14.69 € — JUPILER pils 5,2% casier 24x33cl | 13.43 € 🏷️ — Jupiler Blond bière / pils / 5,2% alc. / en boîte 8 x 50 cl | 16.18 € — JUPILER Pils, 8 pcs 8 x 50 cl | — |
 | Vin rouge (75 cl) | — | — | — | — |
-| Papier toilette (12 rouleaux) | 3.20 € 🏷️ — NALYS papier toilette Soft 2l 130v 24r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | — |
+| Papier toilette (12 rouleaux) | 2.13 € 🏷️ — Nalys papier toilette Soft 2l 130v 24r | 4.79 € — NALYS Papier toilette, soft, eco, family Pack 18 pc | 4.29 € — SUBLIMO Papier toilette confort, 12 pcs le paquet | 3.75 € 🏷️ — FLORALYS papier toilette 3-lagig 32 pièces |
 | Essuie-tout (4 rouleaux) | 2.72 € — BONI essuie-tout classic 3l 64v 6r | 2.85 € — DELHAIZE Essuie-tout, 4x64 Feuillles, 3plis, eco 4 pc | — | — |
 | Dentifrice | 0.35 € — BONI dentifrice coolmint 125ml | 2.15 € 🏷️ — Oral-B dentifrice / Professional protection 7,5 cl | 0.35 € — DENTITEX Dentifrice 125 ml | — |
 | Gel douche (250 ml) | 0.60 € — BONI gel douche noir 500ml | 1.71 € — TAHITI Gel douche, coco 31,5 cl | 0.60 € — LACURA Gel douche familial 500 ml | — |
@@ -77,8 +82,8 @@ Prix ramené au format de la liste (ex. 1 L, 1 kg). 🏷️ = promotion en cours
 | Mouchoirs (boîte de 100) | 0.39 € — EVERYDAY mouchoirs box 2l 150st | 0.40 € — DELHAIZE Mouchoirs, boite, 2-plis 200 pc | 0.83 € — SUBLIMO Mouchoirs, 120 pcs par boîte | — |
 | Lessive liquide (40 lavages) | 3.19 € — EVERYDAY lessive white 45d 2,475L | 7.08 € 🏷️ — Coral Vloeib wasmiddel/ Optmal white/ 1.17L / 26D 26 st | 2.63 € — Lessive liquide 50 wasbeurten | — |
 | Liquide vaisselle (500 ml) | 0.43 € — ACTAE liquide vaisselle citron 1L | 0.89 € — DELHAIZE Liquide vaisselle, original 50 cl | 0.43 € — POWER FORCE Liquide vaisselle, 1L 1 l | — |
-| Tablettes lave-vaisselle (40) | 16.12 € — FINISH QUANTUM vaatwas tabs regular 31st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | 9.02 € 🏷️ — DREFT Vaatwastabs platinum all en 1 2 x 39 pièces |
+| Tablettes lave-vaisselle (40) | 9.02 € 🏷️ — Dreft vaatwas tabs plat.citroen 39st | 2.39 € — DELHAIZE Tablettes Lave-Vaisselle, all-in-One 50 pc | 2.00 € — POWER FORCE Tablettes pour lave-vaisselle classic, 100 pcs 100 cycles, le paquet | 9.02 € 🏷️ — DREFT Vaatwastabs platinum all en 1 2 x 39 pièces |
 | Sacs poubelle blancs (20) | — | — | — | — |
 | Éponges (3) | 0.15 € — EVERYDAY éponges à récurer 10st | 3.44 € — VILEDA Eponges à récurer, slalom Universal, 3+1 4 pc | 0.24 € — TWIDO HOUSEHOLD Éponges à récurer, 10 pcs le lot | — |
-| Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, poulet 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
+| Croquettes chat adulte (2 kg) | 7.12 € — WHISKAS Dry thon +1jaar 1,9kg | 7.36 € — WHISKAS Aliment chat, croquettes, boeuf 1,9 kg | 2.59 € — CACHET Croquettes pour chat, 2 kg | — |
 | Litière (10 L) | 1.99 € — EVERYDAY litière pour chat ±7L | 2.65 € — DELHAIZE Litière, non-Agglomérante 6 l | 4.49 € — CACHET Litière pour chats hygiène, 10 l | — |
